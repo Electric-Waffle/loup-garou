@@ -1,0 +1,31 @@
+# =============================================================================
+# .gitignore
+# -----------------------------------------------------------------------------
+# Ce fichier liste les fichiers et dossiers que Git doit IGNORER, c'est-à-dire
+# ne jamais ajouter au dépôt (ni proposer dans `git status`).
+#
+# Important : .gitignore n'agit que sur les fichiers qui ne sont PAS encore
+# suivis par Git. Un fichier déjà commité reste suivi tant qu'on ne l'a pas
+# retiré explicitement de l'index avec `git rm --cached`.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Dépendances npm
+# -----------------------------------------------------------------------------
+# Le dossier node_modules contient toutes les bibliothèques installées par
+# `npm install`. On ne le versionne pas, pour trois raisons :
+#
+#   1. Il est très lourd (des milliers de fichiers) et alourdit le dépôt.
+#   2. Il se régénère entièrement à partir de package.json et
+#      package-lock.json : ces deux fichiers, eux, SONT versionnés et suffisent
+#      à reconstruire exactement les mêmes versions de dépendances.
+#   3. Certaines dépendances contiennent du code compilé spécifique au système
+#      (Windows, macOS, Linux). Un node_modules créé sur une machine peut ne
+#      pas fonctionner sur une autre.
+#
+# Après un clone du dépôt, il suffit donc de lancer `npm install`.
+#
+# Le "/" final indique qu'on cible un dossier (et tout son contenu), où qu'il
+# se trouve dans l'arborescence du projet.
+node_modules/
