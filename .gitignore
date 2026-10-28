@@ -29,3 +29,17 @@
 # Le "/" final indique qu'on cible un dossier (et tout son contenu), où qu'il
 # se trouve dans l'arborescence du projet.
 node_modules/
+
+
+# -----------------------------------------------------------------------------
+# Résultat du build Vite
+# -----------------------------------------------------------------------------
+# `npm run build` génère le site final (HTML, JS et CSS optimisés) dans le
+# dossier dist/. On ne le versionne pas :
+#
+#   1. C'est un produit dérivé du code source : on peut le recréer à
+#      l'identique à tout moment avec `npm run build`.
+#   2. Ses noms de fichiers changent à chaque build (ex. index-CaXuKN49.js,
+#      le suffixe est une empreinte du contenu). Le versionner ajouterait du
+#      bruit dans chaque commit.
+dist/
