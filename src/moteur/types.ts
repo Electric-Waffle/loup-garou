@@ -8,7 +8,7 @@ export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote
 export interface Meta {
   source?: string;
   cause?: string;
-  expire?: "aube";
+  expire?: "aube" | "aube_suivante"; // aube_suivante : survit à l'aube en cours (tag posé PENDANT une aube)
   [cle: string]: unknown;
 }
 
@@ -104,6 +104,9 @@ export interface Role {
 
   /** État initial du rôle, stocké dans joueur.memoire */
   init?(): Record<string, any>;
+
+  /** Au lancement de la partie, avant la nuit 1 : ce que le rôle DONNE (ex. le Marchand reçoit son or). */
+  debut?(partie: Partie, moi: Joueur): ResultatAction | void;
 
   /** Étapes 1-2 : ce que le meneur voit et les choix proposés */
   decision?(partie: Partie, moi: Joueur): Decision;

@@ -11,10 +11,19 @@ const loup: Role = {
   priorite: 20,
   appelNuit: true,
 
-  decision: () => ({
-    message: "Les loups se réveillent et choisissent une victime.",
-    choix: [{ id: "devorer", label: "Dévorer", cible: "un_joueur" }]
-  }),
+  decision: (partie) => {
+    // Blessés par le Paysan qu'ils ont dévoré : ils se réveillent, mais ne chassent pas.
+    // POURQUOI ici et pas avec "enchante" : seule la chasse est bloquée, pas les autres cartes
+    // de ceux qui votent avec les loups (Loup savant, Loup succube).
+    const tousBlesses = partie.porteursDe("loup").every(j => partie.aTag(j, "blesse"));
+    if (tousBlesses) {
+      return { message: "Les loups se réveillent, blessés par le paysan : ils ne chassent pas cette nuit.", choix: [] };
+    }
+    return {
+      message: "Les loups se réveillent et choisissent une victime.",
+      choix: [{ id: "devorer", label: "Dévorer", cible: "un_joueur" }]
+    };
+  },
 
   agir: (choix) => ({
     donner: [{ tag: "mordu", a: choix.cibles[0] }]

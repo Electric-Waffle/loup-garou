@@ -356,3 +356,75 @@ test("Cartes fantômes : appelées avec seulement « Passer », et seulement si 
   p.passer();
   assert.equal(p.decisionCourante()?.alias, "cupidon");
 });
+
+test("Marchand : voté, il paie avec son or et le village revote", () => {
+  const p = partieAvec(["loup", "marchand", "villageois", "villageois"]);
+  assert.ok(p.aTag(p.joueur("j1"), "or"));
+
+  p.voter("j1");
+  assert.equal(p.joueur("j1").vivant, true);
+  assert.equal(p.phase, "debat");
+  assert.equal(p.plaidoirie, "j1");
+  assert.ok(!p.aTag(p.joueur("j1"), "or"));
+
+  p.voter("j1");
+  assert.equal(p.joueur("j1").vivant, false);
+  assert.equal(p.phase, "resultat_vote");
+  assert.equal(p.morts().length, 1);
+});
+
+test("Marchand : dévoré, son or passe à un des loups", () => {
+  const p = partieAvec(["loup", "loup", "marchand", "villageois", "villageois"]);
+  p.jouer({ id: "devorer", cibles: ["j2"] });
+  p.leverLeJour();
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.equal(p.joueursAvecTag("or").filter(j => j.role === "loup").length, 1);
+});
+
+test("Marchand : sans tueur vivant, le mourant choisit à qui donner l'or", () => {
+  const p = partieAvec(["loup", "marchand", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "mort", { cause: "chagrin", source: "j3" });
+  const courante = p.decisionCourante();
+  assert.equal(courante?.alias, "marchand");
+  assert.equal(courante?.urgente, true);
+
+  p.jouer({ id: "donner", cibles: ["j2"] });
+  assert.ok(p.aTag(p.joueur("j2"), "or"));
+  assert.ok(!p.aTag(p.joueur("j1"), "or"));
+});
+
+test("Paysan : voté, il assomme deux joueurs", () => {
+  const p = partieAvec(["loup", "paysan", "villageois", "villageois", "villageois"]);
+  p.voter("j1");
+  assert.equal(p.decisionCourante()?.alias, "paysan");
+  p.jouer({ id: "assommer", cibles: ["j2", "j0"] });
+  assert.ok(p.aTag(p.joueur("j2"), "enchante"));
+  assert.ok(p.aTag(p.joueur("j0"), "enchante"));
+});
+
+test("Paysan : dévoré, les loups blessés ne chassent pas la nuit suivante", () => {
+  const p = partieAvec(["loup", "loup", "paysan", "villageois", "villageois", "villageois"]);
+  p.jouer({ id: "devorer", cibles: ["j2"] });
+  p.leverLeJour();
+  // ATTENTION : le tag a survécu au nettoyage de CETTE aube grâce à "aube_suivante".
+  assert.ok(p.aTag(p.joueur("j0"), "blesse") && p.aTag(p.joueur("j1"), "blesse"));
+
+  p.nuitSuivante();
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+  p.passer();
+  p.leverLeJour();
+  assert.ok(!p.aTag(p.joueur("j0"), "blesse"));
+});
+
+test("Bâtisseur : toutes les maisons villageoises vivantes renforcées, avant la victoire des loups", () => {
+  const p = partieAvec(["loup", "batisseur", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "renforce");
+  assert.equal(verifierVictoire(p), undefined);
+
+  // 1 loup contre 1 villageois vivant : les loups gagneraient, mais la maison passe avant.
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le village (toutes les maisons sont renforcées)");
+
+  // [].every() vaut true : sans villageois vivant, pas de victoire du Bâtisseur.
+  assert.equal(verifierVictoire(partieAvec(["loup", "fou"])), "Le fou");
+});

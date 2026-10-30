@@ -206,6 +206,16 @@ const template: Role = {
     return {};
   },
 
+  /**
+   * Au lancement, avant la nuit 1 : ce que le rôle DONNE, comme agir().
+   * Différence avec init() : un TAG est visible de tous les rôles et peut changer de main.
+   *
+   * Exemple (Marchand) : return { donner: [{ tag: "or", a: moi.id }] };
+   */
+  debut(partie: Partie, moi: Joueur): ResultatAction | void {
+    // Par défaut : rien.
+  },
+
   /* ===================================================================================
    *  ÉTAPES 1-2 : decision()
    *  Appelée quand la carte est montrée (la nuit, ou pour une décision en attente).
@@ -410,6 +420,9 @@ export default template;
  *    amoureux      donné par Cupidon (meta.partenaire) ; la mort de l'un tue l'autre
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
+ *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)
+ *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
+ *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
  *
  *  CAUSES DE MORT EXISTANTES
  *    "mordu", "poison", "chagrin", "chasseur", "vote"

@@ -2,6 +2,7 @@ import { aube } from "./aube";
 import { melanger, type Aleatoire } from "./distribution";
 import { appliquerResultat, tourDeCarte } from "./donner";
 import { EVENEMENTS, LISTE_EVENEMENTS } from "./evenements";
+import { donnerTag } from "./recevoir";
 import { ROLES } from "./roles";
 import { peutAgir } from "./tours";
 import type {
@@ -53,6 +54,7 @@ export class Partie {
   attente: { alias: string; joueur: string }[] = []; // décisions urgentes (Chasseur…)
   evenement?: Evenement;
   vainqueur?: string;
+  plaidoirie?: string;                               // id du joueur qui a racheté son vote : il parle seul
   debutPhase = 0;                                    // index du journal au début de la phase
   aleatoire: Aleatoire;
   private apparence: Apparence;
@@ -81,6 +83,13 @@ export class Partie {
     // aucun joueur ne peut donc les tirer, c'est la partie qui le fait au lancement.
     const loupSavantActif = cartesActives.includes("loup-savant");
     this.cartesDuSavant = loupSavantActif ? melanger(this.cartesHorsJeu, this.aleatoire).slice(0, 3) : [];
+
+    // Crochet debut() : ce que chaque rôle possède avant la nuit 1 (l'or du Marchand).
+    // POURQUOI par appliquerResultat et pas init() : init() remplit la memoire du rôle, invisible
+    // des autres ; un TAG passe par donnerTag, apparaît au journal et peut changer de main.
+    for (const joueur of this.joueurs) {
+      appliquerResultat(this, this.roleDe(joueur).debut?.(this, joueur), joueur.role);
+    }
 
     // ATTENTION : en dernier, car la file de la nuit 1 lit cartesHorsJeu et cartesFantomes.
     this.commencerNuit();
@@ -336,13 +345,25 @@ export class Partie {
   ouvrirDebat(): void { this.changerPhase("debat"); }
   ouvrirVote(): void { this.changerPhase("vote"); }
 
-  /** Élimine un joueur (ou personne). Le "mort" passe par donnerTag, comme le reste. */
+  /**
+   * Élimine un joueur (ou personne). Le "mort" passe par donnerTag, comme le reste.
+   * Si la mort est CONSOMMÉE (le joueur paie avec son or, voir recevoir.ts), le vote est annulé :
+   * nouveau débat où l'accusé parle seul, puis nouveau vote.
+   */
   voter(id: string | null): void {
+    this.plaidoirie = undefined;
+    // ATTENTION : la phase change AVANT la mort, car morts() liste les morts depuis le début de la phase.
     this.changerPhase("resultat_vote");
-    if (id) {
-      appliquerResultat(this, { donner: [{ tag: "mort", a: id, meta: { cause: "vote" } }] }, "vote");
-    } else {
+    if (!id) {
       this.log({ type: "info", texte: "Le village n'élimine personne." });
+      return;
+    }
+
+    // POURQUOI donnerTag ici et pas appliquerResultat : on a besoin de l'Issue renvoyée.
+    const issue = donnerTag(this, this.joueur(id), "mort", { source: "vote", cause: "vote" });
+    if (issue === "consomme") {
+      this.plaidoirie = id;
+      this.changerPhase("debat");
     }
   }
 

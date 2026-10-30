@@ -57,7 +57,18 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
 
     case "mort": {
       if (!joueur.vivant) return r.bloquer("déjà mort");
+
+      // L'or rachète un vote. POURQUOI ici et pas dans marchand.ts : l'or change de main,
+      // la règle doit valoir pour TOUT porteur (un loup qui en a hérité, le Fou…).
+      // POURQUOI consommer et pas accepter-puis-annuler : une fois acceptée, la mort a déjà
+      // déclenché le chagrin de l'amoureux et le tir du Chasseur.
+      if (meta.cause === "vote" && partie.aTag(joueur, "or")) {
+        partie.retirerTag(joueur, "or", profondeur + 1);
+        return r.consommer("paie avec son or : nouveau vote");
+      }
+
       const issue = r.accepter();
+      if (partie.aTag(joueur, "or")) transmettreLOr(partie, joueur, meta, profondeur);
       // Chaîne des amoureux : la mort de l'un entraîne celle de l'autre.
       const partenaire = partie.partenaireDe(joueur);
       if (partenaire?.vivant) {
@@ -69,6 +80,29 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
     default:
       return r.accepter();
   }
+}
+
+/**
+ * Un porteur d'or vient de mourir : l'or va à un de ses tueurs vivants, sinon il choisit.
+ *
+ * CONCEPT : le "tueur" est meta.source, l'alias de la CARTE qui a donné la mort ("loup",
+ * "sorciere"…). porteursDe() la change en joueurs vivants. Quand la source n'est pas une carte
+ * jouée par un vivant (Chasseur déjà mort, peste du Rat, chagrin dont la source est un joueur),
+ * la liste est vide : c'est le mourant qui choisit, via la décision de la carte Marchand.
+ */
+function transmettreLOr(partie: Partie, joueur: Joueur, meta: Meta, profondeur: number): void {
+  const source = typeof meta.source === "string" ? meta.source : "";
+  const tueurs = partie.porteursDe(source).filter(j => j.id !== joueur.id);
+  const heritier = partie.auHasard(tueurs);
+
+  if (!heritier) {
+    // ATTENTION : l'or reste sur le mort jusqu'à sa décision ; s'il est enchanté, il ne se
+    // réveille pas (mettreEnAttente l'ignore) et l'or est perdu avec lui.
+    partie.mettreEnAttente("marchand", joueur);
+    return;
+  }
+  partie.retirerTag(joueur, "or", profondeur + 1);
+  donnerTag(partie, heritier, "or", { source: joueur.id, cause: "heritage" }, profondeur + 1);
 }
 
 /** Les cinq réponses possibles d'un receveur. Chacune écrit dans le journal. */

@@ -17,7 +17,15 @@ export function verifierVictoire(partie: Partie): string | undefined {
   if (vivants.length === 2 && resteUnRatGarou && resteUnNonLoup) return "Le village";
 
   if (nbLoups === 0) return "Le village";
-  if (nbLoups >= vivants.length - nbLoups) {
+
+  // Bâtisseur : toutes les maisons des villageois VIVANTS sont renforcées.
+  // POURQUOI avant les loups : si les deux arrivent en même temps, le chantier de plusieurs nuits l'emporte.
+  // ATTENTION : [].every(...) vaut true. Sans le test de longueur, zéro villageois vivant = victoire du village.
+  const villageoisVivants = vivants.filter(j => partie.roleDe(j).camp === "village");
+  const toutesRenforcees = villageoisVivants.every(j => partie.aTag(j, "renforce"));
+  if (villageoisVivants.length > 0 && toutesRenforcees) return "Le village (toutes les maisons sont renforcées)";
+
+  if (nbLoups >=vivants.length - nbLoups) {
     // Le Fou voulait cette victoire des loups : s'il est encore en vie, elle lui revient.
     const fouVivant = vivants.some(j => partie.roleDe(j).camp === "fou");
     return fouVivant ? "Le fou" : "Les loups-garous";

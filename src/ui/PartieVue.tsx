@@ -58,6 +58,9 @@ const TAGS: Record<string, string> = {
   maire: "🎖️ maire",
   enchante: "✨ enchanté",
   lie: "🎭 lié",
+  or: "💰 or",
+  blesse: "🩹 blessé",
+  renforce: "🧱 maison renforcée",
   mort: "⚰️ mort"
 };
 
@@ -540,10 +543,17 @@ function EtapeDeJour({
         </section>
       );
 
-    case "debat":
+    case "debat": {
+      // Second débat payé avec l'or : le moteur dit qui parle seul.
+      const accuse = partie.plaidoirie ? partie.joueur(partie.plaidoirie) : undefined;
+      // shortcut : l'interface connaît l'alias "pretre" ; à remplacer par un champ de Role si d'autres rappels arrivent.
+      const pretreMort = partie.joueurs.some(j => !j.vivant && j.role === "pretre");
+      const rappelPretre = pretreMort && !partie.aBesoinDUnMaire();
       return (
         <section>
-          <h2>Débat</h2>
+          <h2>{accuse ? `Plaidoirie de ${accuse.nom}` : "Débat"}</h2>
+          {accuse && <p className="info-publique">{accuse.nom} a payé avec son or : lui seul a la parole, puis le village revote.</p>}
+          {rappelPretre && <p className="aide">⛪ Le prêtre, mort, peut chuchoter au maire.</p>}
           {/* Le minuteur garde son propre état. Il est détruit (et son intervalle arrêté)
               dès qu'on quitte la phase de débat, puisque ce JSX n'est plus rendu. */}
           <Minuteur minutes={dureeDebat} />
@@ -552,6 +562,7 @@ function EtapeDeJour({
           </button>
         </section>
       );
+    }
 
     // Le vote se fait en cliquant sur un siège (voir cliquerJoueur dans PartieVue).
     case "vote":
