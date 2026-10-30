@@ -65,7 +65,7 @@ Un site **local, en full JavaScript / TypeScript**, pour **préparer et animer d
 2. **Préparer** : joueurs présents autour d'une table ronde (échange de places par deux clics), nombre de loups choisi, distribution aléatoire des cartes activées (loups spéciaux et Loups-Garous en proportion aléatoire, 1 exemplaire de chaque rôle spécial, complété par des villageois), bouton Redistribuer, durée du débat, puis lancement.
 
 ### Le cycle d'une partie
-Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, rapport) → événement → débat (minuteur) → vote → résultat du vote → nuit suivante. La victoire est vérifiée en ouvrant l'événement et au passage à la nuit suivante.
+Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, rapport) → événement → élection du maire (s’il n’y en a pas de vivant) → débat (minuteur) → vote → résultat du vote → nuit suivante. La victoire est vérifiée en ouvrant l'événement et au passage à la nuit suivante.
 
 ---
 

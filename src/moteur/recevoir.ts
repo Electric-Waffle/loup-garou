@@ -34,6 +34,23 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
       partie.retirerTag(joueur, "mordu", profondeur + 1);
       return r.consommer("morsure annulée");
 
+    // La morsure devient une mort certaine : le tag "mordu" disparaît, donc la Sorcière
+    // ne voit plus la victime et "sauve" n'a plus rien à annuler. L'aube le change en "mort".
+    case "agonisant":
+      partie.retirerTag(joueur, "mordu", profondeur + 1);
+      return r.accepter();
+
+    // Change la carte du joueur (le Rat devient rat-garou). Ses tags et sa memoire sont conservés.
+    // POURQUOI un tag plutôt que joueur.role = ... dans le rôle : la transformation passe par
+    // l'entrée unique, apparaît au journal, et sert à tout futur rôle qui se transforme.
+    case "devient": {
+      const nouveauRole = meta.role;
+      if (typeof nouveauRole !== "string") return r.bloquer("aucun rôle indiqué");
+      partie.role(nouveauRole); // ATTENTION : lève une erreur si l'alias est inconnu, avant toute modification
+      joueur.role = nouveauRole;
+      return r.consommer(`devient ${partie.titre(nouveauRole)}`);
+    }
+
     case "protege":
       if (partie.aTag(joueur, "protege_hier")) return r.bloquer("déjà protégé la nuit dernière");
       return r.accepter({ expire: "aube" });

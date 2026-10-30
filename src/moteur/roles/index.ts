@@ -4,11 +4,12 @@ import chasseur from "./chasseur";
 import cupidon from "./cupidon";
 import loup from "./loup";
 import loupSuccube from "./loup-succube";
+import rat from "./rat";
+import ratGarou from "./rat-garou";
 import salvateur from "./salvateur";
 import sorciere from "./sorciere";
 import villageois from "./villageois";
 import voyante from "./voyante";
-import custom from "./custom";
 
 /**
  * Registre des rôles. Ajouter un rôle :
@@ -26,7 +27,8 @@ export const LISTE_ROLES: Role[] = [
   loupSuccube,
   chasseur,
   ancien,
-  custom
+  rat,
+  ratGarou
 ];
 
 export const ROLES: Record<string, Role> = Object.fromEntries(LISTE_ROLES.map(r => [r.alias, r]));

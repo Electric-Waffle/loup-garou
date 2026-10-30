@@ -353,6 +353,20 @@ const template: Role = {
     // Exemple (Chasseur) : en mourant, ouvrir une décision pour tirer sur quelqu'un.
     //   if (tag === "mort") partie.mettreEnAttente(ALIAS, moi);
     // Par défaut : rien ne se déclenche.
+  },
+
+  /* ===================================================================================
+   *  À L'AUBE : aube()  —  APRÈS LES CONSÉQUENCES DES TAGS DE LA NUIT
+   *  Appelée pour chaque joueur VIVANT qui a ce rôle, une fois les morts de l'aube connus.
+   *  Sert aux règles qui dépendent de l'état de la partie, pas d'un tag reçu.
+   * =================================================================================== */
+
+  /**
+   * Comme agir() : renvoie ce que le rôle DONNE, sans rien modifier lui-même.
+   * Exemple (Rat-garou) : s'il est le dernier à voter avec les loups, il se donne "mort".
+   */
+  aube(partie: Partie, moi: Joueur): ResultatAction | void {
+    // Par défaut : rien.
   }
 };
 

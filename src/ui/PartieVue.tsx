@@ -50,6 +50,12 @@ const TAGS: Record<string, string> = {
   empoisonne: "☠️ empoisonné",
   amoureux: "💘 amoureux",
   vie_perdue: "💔 vie perdue",
+  agonisant: "🐀 agonisant",
+  peste: "🦠 peste (4 aubes)",
+  peste_active: "🦠 peste (3 aubes)",
+  peste_imminente: "🦠 peste (2 aubes)",
+  peste_mortelle: "🦠 peste (dernière aube)",
+  maire: "🎖️ maire",
   mort: "⚰️ mort"
 };
 
@@ -59,7 +65,9 @@ const CAUSES: Record<string, string> = {
   poison: "empoisonné",
   chagrin: "mort de chagrin",
   chasseur: "abattu par le chasseur",
-  vote: "éliminé par le village"
+  vote: "éliminé par le village",
+  peste: "emporté par la peste",
+  isole: "dernier de la meute, dévoré par la nuit"
 };
 
 /**
@@ -71,6 +79,7 @@ const PHASES: Record<string, string> = {
   nuit: "Nuit",
   aube: "Aube",
   evenement: "Événement",
+  election: "Élection du maire",
   debat: "Débat",
   vote: "Vote",
   resultat_vote: "Résultat du vote",
@@ -214,6 +223,7 @@ export function PartieVue({
   const attendu = nbCibles(option?.cible);
 
   const enVote = partie.phase === "vote";
+  const enElection = partie.phase === "election";
   const estNuit = partie.phase === "nuit";
 
   /* -----------------------------------------------------------------------------------
@@ -228,6 +238,10 @@ export function PartieVue({
   function cliquerJoueur(idJoueur: string) {
     if (enVote) {
       agir(() => partie.voter(idJoueur));
+      return;
+    }
+    if (enElection) {
+      agir(() => partie.elire(idJoueur));
       return;
     }
 
@@ -305,7 +319,8 @@ export function PartieVue({
     const estPorteur = courante?.porteurs.some(porteur => porteur.id === joueur.id) ?? false;
 
     // Cliquable pendant le vote (s'il est vivant), ou s'il fait partie des cibles possibles.
-    const cliquablePourLeVote = enVote && joueur.vivant;
+    // L'élection du maire se joue comme le vote : un clic sur un joueur vivant.
+    const cliquablePourLeVote = (enVote || enElection) && joueur.vivant;
     const cliquableCommeCible = possibles.includes(joueur.id);
     const estCliquable = cliquablePourLeVote || cliquableCommeCible;
 
@@ -504,12 +519,23 @@ function EtapeDeJour({
           {infosPubliques.map((texte, index) => (
             <p key={index} className="info-publique">{texte}</p>
           ))}
-          <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.ouvrirDebat())}>
-            Ouvrir le débat
+          {/* POURQUOI le moteur décide (suiteDeLEvenement) : « faut-il un maire ? » est une règle
+              du jeu, l'interface se contente d'adapter le libellé. */}
+          <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.suiteDeLEvenement())}>
+            {partie.aBesoinDUnMaire() ? "Élire le maire" : "Ouvrir le débat"}
           </button>
         </section>
       );
     }
+
+    // L'élu se choisit en cliquant sur un siège (voir cliquerJoueur dans PartieVue).
+    case "election":
+      return (
+        <section>
+          <h2>Élection du maire</h2>
+          <p>Clique sur le joueur élu maire par le village.</p>
+        </section>
+      );
 
     case "debat":
       return (

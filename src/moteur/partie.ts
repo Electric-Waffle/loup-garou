@@ -235,6 +235,21 @@ export class Partie {
     }
   }
 
+  /** Vrai si aucun joueur VIVANT n'a le tag "maire" : il faut en élire un. */
+  aBesoinDUnMaire(): boolean { return this.joueursAvecTag("maire").length === 0; }
+
+  /** Après l'événement : élection du maire s'il n'y en a pas, sinon directement le débat. */
+  suiteDeLEvenement(): void {
+    if (this.aBesoinDUnMaire()) this.changerPhase("election");
+    else this.ouvrirDebat();
+  }
+
+  /** Le meneur désigne le maire. Le tag passe par donnerTag, comme le reste, puis le débat s'ouvre. */
+  elire(id: string): void {
+    appliquerResultat(this, { donner: [{ tag: "maire", a: id }] }, "election");
+    this.ouvrirDebat();
+  }
+
   ouvrirDebat(): void { this.changerPhase("debat"); }
   ouvrirVote(): void { this.changerPhase("vote"); }
 

@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { aube } from "./aube";
 import { composer } from "./distribution";
 import { Partie } from "./partie";
+import { donnerTag } from "./recevoir";
 import { ROLES } from "./roles";
 import { nuitDeux, nuitUn, TABLE } from "./scenario";
 import { peutAgir } from "./tours";
+import { verifierVictoire } from "./victoire";
 
 test("nuit 1 : le salvateur bloque la morsure, Cupidon lie Emma et Hugo", () => {
   const p = nuitUn();
@@ -131,4 +134,115 @@ test("distribution : sans Loup-Garou, tous les loups doivent être spéciaux", (
   const actifs = ["loup-succube", "villageois"];
   assert.deepEqual(composer(5, 1, actifs).filter(c => c !== "villageois"), ["loup-succube"]);
   assert.throws(() => composer(5, 2, actifs));
+});
+
+/* ---------- Rat, rat-garou, peste et maire ---------- */
+
+/** La table de référence, avec un Rat à la place de David et sans Cupidon. */
+function tableAvecRat() {
+  return TABLE.map(j => {
+    if (j.id === "david") return { ...j, role: "rat" };
+    if (j.id === "ines") return { ...j, role: "villageois" };
+    return j;
+  });
+}
+
+/** Joue la nuit 1 jusqu'à la morsure du Rat (Voyante, Salvateur, Loups). */
+function morsureDuRat(): Partie {
+  const p = new Partie(tableAvecRat(), { aleatoire: () => 0 });
+  p.jouer({ id: "sonder", cibles: ["bob"] });
+  p.jouer({ id: "proteger", cibles: ["alice"] });
+  p.jouer({ id: "devorer", cibles: ["david"] });
+  return p;
+}
+
+test("Rat : mordu, il choisit de mordre ; la Sorcière ne le voit pas et il meurt à l'aube", () => {
+  const p = morsureDuRat();
+  const urgente = p.decisionCourante();
+  assert.equal(urgente?.alias, "rat");
+  assert.equal(urgente?.urgente, true);
+
+  p.jouer({ id: "mordre", cibles: [] });
+  assert.ok(p.aTag(p.joueur("bob"), "peste"));
+  assert.ok(p.aTag(p.joueur("david"), "agonisant"));
+
+  // La Sorcière ne voit aucune victime : pas de potion de vie proposée.
+  const sorciere = p.decisionCourante();
+  assert.equal(sorciere?.alias, "sorciere");
+  assert.ok(!sorciere?.decision.choix.some(c => c.id === "sauver"));
+  p.jouer({ id: "rien", cibles: [] });
+
+  p.leverLeJour();
+  assert.deepEqual(p.morts().map(m => [m.joueur.id, m.cause]), [["david", "mordu"]]);
+});
+
+test("Rat : il rejoint la meute et survit à la morsure", () => {
+  const p = morsureDuRat();
+  p.jouer({ id: "transformer", cibles: [] });
+  assert.equal(p.joueur("david").role, "rat-garou");
+  assert.ok(!p.aTag(p.joueur("david"), "mordu"));
+
+  p.jouer({ id: "rien", cibles: [] }); // Sorcière
+  p.leverLeJour();
+  assert.equal(p.joueur("david").vivant, true);
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["bob", "david"]);
+});
+
+test("Peste : la victime meurt à la 4e aube, pas avant", () => {
+  const p = new Partie(tableAvecRat());
+  const bob = p.joueur("bob");
+  donnerTag(p, bob, "peste", { source: "rat" });
+
+  for (let i = 1; i <= 3; i++) {
+    aube(p);
+    assert.equal(bob.vivant, true, `vivant après l'aube ${i}`);
+  }
+  aube(p);
+  assert.equal(bob.vivant, false);
+  assert.ok(p.journal.some(e => e.type === "recu" && e.tag === "mort" && e.joueur === "bob" && e.cause === "peste"));
+});
+
+test("Rat-garou : il meurt à l'aube s'il est le dernier de la meute", () => {
+  const table = TABLE.map(j => j.id === "david" ? { ...j, role: "rat-garou" } : j);
+  const p = new Partie(table);
+  aube(p);
+  assert.equal(p.joueur("david").vivant, true); // Bob, le loup, est encore là
+
+  donnerTag(p, p.joueur("bob"), "mort", { cause: "vote" });
+  aube(p);
+  assert.equal(p.joueur("david").vivant, false);
+});
+
+test("Victoire : un rat-garou face à un seul joueur fait gagner le village", () => {
+  const p = new Partie([
+    { id: "r", nom: "R", image: "", role: "rat-garou" },
+    { id: "v", nom: "V", image: "", role: "villageois" },
+    { id: "w", nom: "W", image: "", role: "villageois" }
+  ]);
+  donnerTag(p, p.joueur("w"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le village");
+});
+
+test("Maire : élu s'il n'y en a pas, puis plus d'élection", () => {
+  const p = nuitUn(); // tour 2, nuit en cours ; on rejoue un jour complet
+  p.jouer({ id: "sonder", cibles: ["chloe"] });
+  p.jouer({ id: "proteger", cibles: ["alice"] });
+  p.jouer({ id: "devorer", cibles: ["david"] });
+  p.jouer({ id: "rien", cibles: [] });
+  p.leverLeJour();
+  p.ouvrirEvenement("calme");
+
+  p.suiteDeLEvenement();
+  assert.equal(p.phase, "election");
+  p.elire("jules");
+  assert.equal(p.phase, "debat");
+  assert.ok(p.aTag(p.joueur("jules"), "maire"));
+  assert.equal(p.aBesoinDUnMaire(), false);
+});
+
+test("Rat voté par le village : le maire attrape la peste", () => {
+  const p = new Partie(tableAvecRat());
+  donnerTag(p, p.joueur("jules"), "maire");
+  p.voter("david");
+  assert.ok(p.aTag(p.joueur("jules"), "peste"));
 });

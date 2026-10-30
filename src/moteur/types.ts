@@ -2,7 +2,7 @@ import type { Partie } from "./partie";
 
 export type Camp = "village" | "loups" | "solo";
 
-export type Phase = "nuit" | "aube" | "evenement" | "debat" | "vote" | "resultat_vote" | "fin";
+export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote" | "resultat_vote" | "fin";
 
 /** Métadonnées qui voyagent avec un tag : qui l'a donné, pourquoi, quand il expire… */
 export interface Meta {
@@ -116,6 +116,9 @@ export interface Role {
 
   /** Après coup : le tag a été accepté par le joueur qui a ce rôle (ex. le Chasseur meurt → il tire). */
   reagir?(tag: string, meta: Meta, partie: Partie, moi: Joueur): void;
+
+  /** À l'aube, après les conséquences des tags : appelé pour chaque joueur vivant qui a ce rôle (ex. le rat-garou seul meurt). */
+  aube?(partie: Partie, moi: Joueur): ResultatAction | void;
 }
 
 /* ---------- Événements ---------- */
