@@ -83,6 +83,7 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .camp-loups { background: #4a1f2a; color: #f2a6a6; }
 .camp-village { background: #1f3a33; color: #9fe0c0; }
 .camp-solo { background: #3e3420; color: #f0d08c; }
+.camp-fou { background: #33224a; color: #d4b8f5; }
 
 /* ---------- Options : joueurs ---------- */
 .liste-joueurs { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .5rem; max-width: 560px; }

@@ -1,8 +1,12 @@
 import type { Role } from "../types";
 import ancien from "./ancien";
+import arlequin from "./arlequin";
 import chasseur from "./chasseur";
 import cupidon from "./cupidon";
+import fee from "./fee";
+import fou from "./fou";
 import loup from "./loup";
+import loupSavant from "./loup-savant";
 import loupSuccube from "./loup-succube";
 import rat from "./rat";
 import ratGarou from "./rat-garou";
@@ -28,7 +32,11 @@ export const LISTE_ROLES: Role[] = [
   chasseur,
   ancien,
   rat,
-  ratGarou
+  ratGarou,
+  loupSavant,
+  fou,
+  fee,
+  arlequin
 ];
 
 export const ROLES: Record<string, Role> = Object.fromEntries(LISTE_ROLES.map(r => [r.alias, r]));

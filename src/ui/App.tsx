@@ -30,7 +30,7 @@ import { Partie, type Apparence, type JoueurInitial } from "../moteur/partie";
 import { Options } from "./Options";
 import { PartieVue } from "./PartieVue";
 import { Preparation } from "./Preparation";
-import { charger, sauver, type CarteReglage, type Donnees } from "./stockage";
+import { cartesActives, charger, sauver, type CarteReglage, type Donnees } from "./stockage";
 
 /** Les onglets possibles. Une union de chaînes : TypeScript refuse toute autre valeur. */
 type Page = "options" | "preparation" | "partie";
@@ -143,7 +143,13 @@ export function App() {
     const joueurs = construireJoueursDeLaPartie(donnees);
 
     // Le moteur prend le relais : le constructeur prépare les joueurs et commence la nuit 1.
-    const nouvellePartie = new Partie(joueurs, { apparence: apparence });
+    // POURQUOI passer toutes les cartes actives : le moteur en déduit les cartes hors jeu
+    // (Loup savant, Voyante, cartes fantômes) en retirant celles qui ont été distribuées.
+    const nouvellePartie = new Partie(joueurs, {
+      apparence: apparence,
+      cartesActives: cartesActives(donnees),
+      cartesFantomes: donnees.cartesFantomes
+    });
 
     setPartie(nouvellePartie);
     setPage("partie");

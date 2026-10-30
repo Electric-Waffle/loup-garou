@@ -42,7 +42,8 @@ import { ChoixImage, Visuel } from "./Visuel";
 const LIBELLES_CAMPS: Record<Camp, string> = {
   village: "Village",
   loups: "Loups",
-  solo: "Solo"
+  solo: "Solo",
+  fou: "Fou"
 };
 
 /**

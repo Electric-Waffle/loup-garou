@@ -1,6 +1,6 @@
 import type { Partie } from "./partie";
 
-export type Camp = "village" | "loups" | "solo";
+export type Camp = "village" | "loups" | "solo" | "fou";
 
 export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote" | "resultat_vote" | "fin";
 

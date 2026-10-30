@@ -389,7 +389,7 @@ export default template;
  *    partie.partenaireDe(joueur)         son amoureux (tag "amoureux"), ou undefined
  *    partie.roleDe(joueur)               l'objet Role de sa carte (pour lire son camp…)
  *    partie.titre(alias) / image(alias)  titre et image, en tenant compte des Options
- *    partie.ciblesPossibles(type, moi)   les joueurs sélectionnables pour un type de cible
+ *    partie.ciblesPossibles(type, moi)   les joueurs sélectionnables pour un type de cible (restreints si moi est lié par l'Arlequin)
  *    partie.auHasard(liste)              un élément tiré au sort (undefined si liste vide)
  *    partie.journal                      toutes les entrées du journal
  *

@@ -8,7 +8,7 @@ import type { Joueur, Role } from "../types";
  * Déroulé :
  *   1. Chaque nuit, il se réveille avec les loups (rejoint: ["loup"]) mais ne vote pas :
  *      le meneur ne tient pas compte de son avis, et passe la carte s'il est seul.
- *   2. À l'aube, s'il est le dernier participant au vote des loups, il meurt (crochet aube).
+ *   2. À l'aube, s'il est le dernier vivant du camp des loups, il meurt (crochet aube).
  *   3. S'il est éliminé par le vote, le maire attrape la peste.
  *
  * POURQUOI ce code ressemble à rat.ts sans le réutiliser : chaque carte reste indépendante,
@@ -28,8 +28,10 @@ const ratGarou: Role = {
   },
 
   aube(partie, moi) {
-    const meute = partie.porteursDe("loup");
-    const estLeDernier = meute.length === 1 && meute[0].id === moi.id;
+    // POURQUOI le camp et pas porteursDe("loup") : le Fou vote avec les loups sans en être un.
+    // Avec porteursDe, un Fou vivant empêcherait le rat-garou d'être jamais « le dernier ».
+    const loupsVivants = partie.vivants().filter(j => partie.roleDe(j).camp === "loups");
+    const estLeDernier = loupsVivants.length === 1 && loupsVivants[0].id === moi.id;
     if (estLeDernier) {
       return { donner: [{ tag: "mort", a: moi.id, meta: { cause: "isole" } }] };
     }

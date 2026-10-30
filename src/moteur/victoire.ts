@@ -17,6 +17,10 @@ export function verifierVictoire(partie: Partie): string | undefined {
   if (vivants.length === 2 && resteUnRatGarou && resteUnNonLoup) return "Le village";
 
   if (nbLoups === 0) return "Le village";
-  if (nbLoups >= vivants.length - nbLoups) return "Les loups-garous";
+  if (nbLoups >= vivants.length - nbLoups) {
+    // Le Fou voulait cette victoire des loups : s'il est encore en vie, elle lui revient.
+    const fouVivant = vivants.some(j => partie.roleDe(j).camp === "fou");
+    return fouVivant ? "Le fou" : "Les loups-garous";
+  }
   return undefined;
 }

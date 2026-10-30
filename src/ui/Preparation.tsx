@@ -24,7 +24,7 @@
 import { useState } from "react";
 import { distribuer } from "../moteur/distribution";
 import { ROLES } from "../moteur/roles";
-import type { Donnees } from "./stockage";
+import { cartesActives, type Donnees } from "./stockage";
 import { Table, type Siege } from "./Table";
 import { Visuel } from "./Visuel";
 
@@ -66,19 +66,8 @@ export function Preparation({
   // (un joueur supprimé dans Options pendant qu'il était assis).
   const table = donnees.table.filter(idJoueur => joueursParId.has(idJoueur));
 
-  // Les alias des cartes activées, qui servent à la distribution.
-  // Transformation en chaîne, étape par étape :
-  //   Object.entries(donnees.cartes) → [["loup", { active: true }], ["voyante", { active: false }], ...]
-  //   .filter(...)                   → on ne garde que les paires activées ET connues du code
-  //   .map(...)                      → on ne garde que l'alias : ["loup", ...]
-  const toutesLesCartes = Object.entries(donnees.cartes);
-  const cartesActivees = toutesLesCartes.filter(([alias, reglage]) => {
-    const existeDansLeCode = ROLES[alias] !== undefined;
-    // POURQUOI vérifier l'existence : les réglages enregistrés peuvent contenir un rôle
-    // supprimé du code depuis. Le distribuer ferait planter le moteur ("Rôle inconnu").
-    return reglage.active && existeDansLeCode;
-  });
-  const actifs = cartesActivees.map(([alias]) => alias);
+  // Les alias des cartes activées, qui servent à la distribution (détail dans stockage.ts).
+  const actifs = cartesActives(donnees);
 
   // La distribution est utilisable si au moins un joueur est assis ET que chaque joueur
   // assis a reçu une carte.
@@ -299,6 +288,17 @@ export function Preparation({
               value={donnees.nbLoups}
               onChange={evenement => changerNbLoups(evenement.target.value)}
             />
+          </label>
+
+          {/* Les cartes activées mais non distribuées sont appelées la nuit, avec seulement « Passer »,
+              pour que personne ne sache quelles cartes sont réellement en jeu. */}
+          <label className="champ-ligne">
+            <input
+              type="checkbox"
+              checked={donnees.cartesFantomes}
+              onChange={evenement => modifier({ ...donnees, cartesFantomes: evenement.target.checked })}
+            />
+            Cartes fantômes
           </label>
         </div>
 

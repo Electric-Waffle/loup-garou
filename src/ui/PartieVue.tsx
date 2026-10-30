@@ -56,6 +56,8 @@ const TAGS: Record<string, string> = {
   peste_imminente: "🦠 peste (2 aubes)",
   peste_mortelle: "🦠 peste (dernière aube)",
   maire: "🎖️ maire",
+  enchante: "✨ enchanté",
+  lie: "🎭 lié",
   mort: "⚰️ mort"
 };
 
@@ -214,7 +216,8 @@ export function PartieVue({
   // Vide tant qu'aucune option n'est choisie, ou s'il n'y a pas de décision en cours.
   let possibles: string[] = [];
   if (option !== null && courante !== undefined) {
-    const joueursCiblables = partie.ciblesPossibles(option.cible, courante.moi);
+    // Les porteurs servent à la règle de l'Arlequin (seulement quand la carte n'a qu'un porteur).
+    const joueursCiblables = partie.ciblesPossibles(option.cible, courante.moi, courante.porteurs);
     possibles = joueursCiblables.map(joueur => joueur.id);
   }
 

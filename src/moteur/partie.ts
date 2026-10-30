@@ -1,5 +1,5 @@
 import { aube } from "./aube";
-import type { Aleatoire } from "./distribution";
+import { melanger, type Aleatoire } from "./distribution";
 import { appliquerResultat, tourDeCarte } from "./donner";
 import { EVENEMENTS, LISTE_EVENEMENTS } from "./evenements";
 import { ROLES } from "./roles";
@@ -18,9 +18,16 @@ export interface JoueurInitial {
 
 export type Apparence = Record<string, { titre?: string; image?: string }>;
 
+export interface OptionsPartie {
+  apparence?: Apparence;
+  aleatoire?: Aleatoire;
+  cartesActives?: string[];  // cartes activées dans Options, distribuées ou non
+  cartesFantomes?: boolean;  // appeler la nuit les cartes activées que personne n'a reçues
+}
+
 export interface DecisionCourante {
   alias: string;
-  moi: Joueur;
+  moi?: Joueur;             // absent pour une carte fantôme : personne ne la porte
   porteurs: Joueur[];
   decision: Decision;
   urgente: boolean; // décision en attente (ex. le Chasseur qui meurt)
@@ -50,15 +57,32 @@ export class Partie {
   aleatoire: Aleatoire;
   private apparence: Apparence;
 
-  constructor(joueurs: JoueurInitial[], options: { apparence?: Apparence; aleatoire?: Aleatoire } = {}) {
+  cartesHorsJeu: string[];    // cartes activées que personne n'a reçues
+  cartesDuSavant: string[];   // 3 cartes hors jeu, tirées seulement si le Loup savant est actif
+  private cartesFantomes: boolean;
+
+  constructor(joueurs: JoueurInitial[], options: OptionsPartie = {}) {
     this.apparence = options.apparence ?? {};
     this.aleatoire = options.aleatoire ?? Math.random;
+    this.cartesFantomes = options.cartesFantomes ?? false;
     this.joueurs = joueurs.map(j => ({
       ...j,
       vivant: true,
       tags: [],
       memoire: this.role(j.role).init?.() ?? {}
     }));
+
+    const cartesActives = options.cartesActives ?? [];
+    const distribuees = new Set(joueurs.map(j => j.role));
+    this.cartesHorsJeu = cartesActives.filter(alias => !distribuees.has(alias));
+
+    // ATTENTION : exception à « aucune règle de rôle ici ». Les 3 cartes doivent exister dès que
+    // le Loup savant est ACTIF, même s'il n'est pas distribué (la Voyante peut les sonder) :
+    // aucun joueur ne peut donc les tirer, c'est la partie qui le fait au lancement.
+    const loupSavantActif = cartesActives.includes("loup-savant");
+    this.cartesDuSavant = loupSavantActif ? melanger(this.cartesHorsJeu, this.aleatoire).slice(0, 3) : [];
+
+    // ATTENTION : en dernier, car la file de la nuit 1 lit cartesHorsJeu et cartesFantomes.
     this.commencerNuit();
   }
 
@@ -108,6 +132,12 @@ export class Partie {
     return typeof id === "string" ? this.joueur(id) : undefined;
   }
 
+  /** Le joueur auquel l'Arlequin l'a lié cette nuit (tag "lie"), mort ou vivant. */
+  partenaireLie(j: Joueur): Joueur | undefined {
+    const id = j.tags.find(t => t.type === "lie")?.partenaire;
+    return typeof id === "string" ? this.joueur(id) : undefined;
+  }
+
   auHasard<T>(liste: T[]): T | undefined {
     return liste.length ? liste[Math.floor(this.aleatoire() * liste.length)] : undefined;
   }
@@ -122,10 +152,35 @@ export class Partie {
   }
 
   mettreEnAttente(alias: string, moi: Joueur): void {
+    // Un joueur enchanté ne fait rien de la nuit : aucune décision, aucune réaction
+    // (le Chasseur tué ne tire pas, le Rat mordu ne choisit pas). Valable pour tous les rôles.
+    if (this.aTag(moi, "enchante")) {
+      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est enchanté : ${this.titre(alias)} ne se réveille pas.` });
+      return;
+    }
     this.attente.push({ alias, joueur: moi.id });
   }
 
-  ciblesPossibles(type: TypeCible = "aucune", moi?: Joueur): Joueur[] {
+  /**
+   * Les joueurs sélectionnables pour une option.
+   * @param porteurs les joueurs qui jouent la carte ; par défaut, moi seul.
+   *
+   * Règle de l'Arlequin : un joueur lié qui joue SEUL sa carte ne peut viser que lui-même
+   * et son partenaire (même mort : le Chasseur lié dont le partenaire est mort ne peut plus tirer).
+   * POURQUOI pas pour une carte de groupe : un seul loup lié ne doit pas restreindre toute la
+   * meute ; le meneur applique la règle de tête.
+   */
+  ciblesPossibles(type: TypeCible = "aucune", moi?: Joueur, porteurs: Joueur[] = moi ? [moi] : []): Joueur[] {
+    const cibles = this.ciblesDuType(type, moi);
+
+    const joueSeul = porteurs.length === 1;
+    const partenaire = moi && joueSeul ? this.partenaireLie(moi) : undefined;
+    if (!moi || !partenaire) return cibles;
+
+    return cibles.filter(j => j.id === moi.id || j.id === partenaire.id);
+  }
+
+  private ciblesDuType(type: TypeCible, moi?: Joueur): Joueur[] {
     switch (type) {
       case "aucune": return [];
       case "un_autre": return this.vivants().filter(j => j.id !== moi?.id);
@@ -151,11 +206,32 @@ export class Partie {
     // ATTENTION : pour une carte de groupe, `moi` peut être un joueur qui la « rejoint »
     // (un Loup succube pendant le tour des loups). Ne pas lire sa memoire en croyant tenir un loup.
     const moi = porteurs[0];
-    if (!moi) {                // plus personne pour jouer cette carte : on la saute
+    if (!moi) {
+      // Carte fantôme : activée mais jamais distribuée, on l'appelle pour faire semblant.
+      if (this.estFantome(alias)) {
+        return { alias, porteurs, decision: this.decisionSansAction(alias, "carte fantôme : personne ne l'a reçue, faites semblant"), urgente: false };
+      }
+      // Plus personne pour jouer cette carte (porteur mort) : on la saute.
       this.file.shift();
       return this.decisionCourante();
     }
-    return { alias, moi, porteurs, decision: this.role(alias).decision!(this, moi), urgente: false };
+
+    // POURQUOI ici et pas dans chaque rôle : tous les rôles, présents et futurs, se comportent
+    // pareil sous l'enchantement de la Fée, sans une ligne de code de leur côté.
+    const tousEnchantes = porteurs.every(j => this.aTag(j, "enchante"));
+    const decision = tousEnchantes
+      ? this.decisionSansAction(alias, "enchanté, il garde les yeux fermés")
+      : this.role(alias).decision!(this, moi);
+    return { alias, moi, porteurs, decision, urgente: false };
+  }
+
+  private estFantome(alias: string): boolean {
+    return this.cartesFantomes && this.cartesHorsJeu.includes(alias);
+  }
+
+  /** Une décision sans aucun choix : l'interface n'affiche que « Passer ». */
+  private decisionSansAction(alias: string, raison: string): Decision {
+    return { message: `${this.titre(alias)} se réveille… (${raison}).`, choix: [] };
   }
 
   /** Le meneur valide un choix pour la décision courante (étapes 2 → 3 → 4). */
@@ -167,6 +243,9 @@ export class Partie {
     if (choix.cibles.length !== nbCibles(option.cible)) {
       throw new Error(`« ${option.label} » demande ${nbCibles(option.cible)} cible(s).`);
     }
+
+    // Une carte fantôme n'a aucun choix : l'option a déjà été refusée plus haut. Ce test rassure TypeScript.
+    if (!courante.moi) throw new Error("Carte fantôme : seul « Passer » est possible.");
 
     if (courante.urgente) this.attente.shift();
     else this.file.shift();
@@ -210,6 +289,10 @@ export class Partie {
     for (const joueur of this.vivants()) {
       aliasPresents.add(joueur.role);
       for (const carteRejointe of this.roleDe(joueur).rejoint ?? []) aliasPresents.add(carteRejointe);
+    }
+    // Cartes fantômes : appelées comme les autres (priorité, tours), sans porteur.
+    if (this.cartesFantomes) {
+      for (const alias of this.cartesHorsJeu) aliasPresents.add(alias);
     }
     const presents = [...aliasPresents].map(alias => this.role(alias));
     this.file = presents

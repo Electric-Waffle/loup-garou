@@ -19,7 +19,7 @@
  *  (un état "chargement en cours", puis l'appel dans un useEffect).
  * ===================================================================================== */
 
-import { LISTE_ROLES } from "../moteur/roles";
+import { LISTE_ROLES, ROLES } from "../moteur/roles";
 
 /* -------------------------------------------------------------------------------------
  *  Les formes des données enregistrées
@@ -51,6 +51,27 @@ export interface Donnees {
   distribution: Record<string, string>;   // clé = id du joueur, valeur = alias de sa carte
   dureeDebat: number;                     // en minutes
   nbLoups: number;                        // cartes du camp des loups à distribuer
+  cartesFantomes: boolean;                // la nuit, appeler aussi les cartes activées non distribuées
+}
+
+/**
+ * Les alias des cartes activées ET connues du code.
+ * Utilisée par Preparation.tsx (distribution) et App.tsx (cartes hors jeu de la partie).
+ *
+ * Transformation en chaîne, étape par étape :
+ *   Object.entries(donnees.cartes) → [["loup", { active: true }], ["voyante", { active: false }], ...]
+ *   .filter(...)                   → on ne garde que les paires activées ET connues du code
+ *   .map(...)                      → on ne garde que l'alias : ["loup", ...]
+ */
+export function cartesActives(donnees: Donnees): string[] {
+  const toutesLesCartes = Object.entries(donnees.cartes);
+  const cartesActivees = toutesLesCartes.filter(([alias, reglage]) => {
+    const existeDansLeCode = ROLES[alias] !== undefined;
+    // POURQUOI vérifier l'existence : les réglages enregistrés peuvent contenir un rôle
+    // supprimé du code depuis. Le distribuer ferait planter le moteur ("Rôle inconnu").
+    return reglage.active && existeDansLeCode;
+  });
+  return cartesActivees.map(([alias]) => alias);
 }
 
 /**
@@ -102,7 +123,8 @@ function parDefaut(): Donnees {
     dureeDebat: 3,
     // ATTENTION : des réglages enregistrés avant ce champ n'ont pas de nbLoups.
     // charger() le complète avec cette valeur grâce à la fusion « ...defaut, ...lu ».
-    nbLoups: 2
+    nbLoups: 2,
+    cartesFantomes: false
   };
 }
 

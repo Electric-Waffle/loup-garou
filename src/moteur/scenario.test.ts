@@ -246,3 +246,113 @@ test("Rat voté par le village : le maire attrape la peste", () => {
   p.voter("david");
   assert.ok(p.aTag(p.joueur("jules"), "peste"));
 });
+
+/* ---------- Fou, Loup savant, Fée, Arlequin, cartes fantômes ---------- */
+
+const ROLES_DE_LA_TABLE = TABLE.map(j => j.role);
+
+/** Une petite partie à partir d'une liste de rôles : joueurs j0, j1, j2… */
+function partieAvec(roles: string[], options = {}): Partie {
+  const joueurs = roles.map((role, i) => ({ id: `j${i}`, nom: `J${i}`, image: "", role }));
+  return new Partie(joueurs, options);
+}
+
+test("Fou : il vote avec les loups et leur vole la victoire s'il est vivant", () => {
+  const p = partieAvec(["loup", "fou", "villageois"]);
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["j0", "j1"]);
+  assert.equal(verifierVictoire(p), undefined);
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le fou");
+});
+
+test("Rat-garou : un Fou vivant ne l'empêche pas d'être le dernier loup", () => {
+  const p = partieAvec(["rat-garou", "fou", "villageois", "villageois"]);
+  aube(p);
+  assert.equal(p.joueur("j0").vivant, false);
+});
+
+test("Loup savant : 3 cartes hors jeu, que la Voyante peut sonder", () => {
+  const horsJeu = ["fee", "arlequin", "rat", "fou"];
+  const table = TABLE.map(j => j.id === "david" ? { ...j, role: "loup-savant" } : j);
+  const p = new Partie(table, { aleatoire: () => 0, cartesActives: [...table.map(j => j.role), ...horsJeu] });
+
+  assert.equal(p.cartesDuSavant.length, 3);
+  assert.ok(p.cartesDuSavant.every(alias => horsJeu.includes(alias)));
+
+  p.jouer({ id: "lier", cibles: ["emma", "hugo"] }); // Cupidon
+  const voyante = p.decisionCourante();
+  assert.equal(voyante?.alias, "voyante");
+  const carte = p.cartesDuSavant[0];
+  assert.ok(voyante?.decision.choix.some(c => c.id === `carte:${carte}`));
+  p.jouer({ id: `carte:${carte}`, cibles: [] });
+  assert.ok(p.infos.some(i => i.pour === "jules" && i.texte.endsWith("n'a été distribuée à personne.")));
+});
+
+test("Loup savant inactif : aucune carte hors jeu tirée", () => {
+  const p = new Partie(TABLE, { cartesActives: [...ROLES_DE_LA_TABLE, "fee", "rat"] });
+  assert.deepEqual(p.cartesDuSavant, []);
+});
+
+test("Fée : un joueur enchanté ne peut que passer, et un Chasseur enchanté ne tire pas", () => {
+  const p = new Partie(TABLE);
+  donnerTag(p, p.joueur("jules"), "enchante", { expire: "aube" });
+  donnerTag(p, p.joueur("hugo"), "enchante", { expire: "aube" });
+
+  p.jouer({ id: "lier", cibles: ["alice", "bob"] }); // Cupidon
+  const voyante = p.decisionCourante();
+  assert.equal(voyante?.alias, "voyante");
+  assert.deepEqual(voyante?.decision.choix, []);
+  p.passer();
+
+  p.jouer({ id: "proteger", cibles: ["alice"] });
+  p.jouer({ id: "devorer", cibles: ["hugo"] });
+  p.jouer({ id: "rien", cibles: [] });
+  p.leverLeJour();
+  assert.equal(p.joueur("hugo").vivant, false);
+  assert.equal(p.attente.length, 0); // pas de tir
+  assert.ok(!p.aTag(p.joueur("jules"), "enchante")); // expiré à la fin de l'aube
+});
+
+test("Fée : un Rat enchanté mordu ne choisit pas et peut être sauvé", () => {
+  const p = morsureDuRatEnchante();
+  const sorciere = p.decisionCourante();
+  assert.equal(sorciere?.alias, "sorciere");
+  assert.ok(sorciere?.decision.choix.some(c => c.id === "sauver"));
+});
+
+function morsureDuRatEnchante(): Partie {
+  const p = new Partie(tableAvecRat());
+  donnerTag(p, p.joueur("david"), "enchante", { expire: "aube" });
+  p.jouer({ id: "sonder", cibles: ["bob"] });
+  p.jouer({ id: "proteger", cibles: ["alice"] });
+  p.jouer({ id: "devorer", cibles: ["david"] });
+  return p;
+}
+
+test("Arlequin : un joueur lié ne vise que lui-même et son partenaire, sauf en groupe", () => {
+  const p = new Partie(TABLE);
+  const alice = p.joueur("alice");
+  const jules = p.joueur("jules");
+  donnerTag(p, alice, "lie", { partenaire: "jules", expire: "aube" });
+  donnerTag(p, jules, "lie", { partenaire: "alice", expire: "aube" });
+
+  assert.deepEqual(p.ciblesPossibles("un_joueur", alice).map(j => j.id), ["alice", "jules"]);
+  assert.deepEqual(p.ciblesPossibles("un_autre", jules).map(j => j.id), ["alice"]);
+  // Carte de groupe (deux porteurs) : aucune restriction.
+  assert.equal(p.ciblesPossibles("un_joueur", alice, [alice, jules]).length, 8);
+});
+
+test("Cartes fantômes : appelées avec seulement « Passer », et seulement si l'option est active", () => {
+  const actifs = [...ROLES_DE_LA_TABLE, "arlequin", "fee"];
+  const sansOption = new Partie(TABLE, { cartesActives: actifs });
+  assert.ok(!sansOption.file.includes("arlequin"));
+
+  const p = new Partie(TABLE, { cartesActives: actifs, cartesFantomes: true });
+  assert.ok(!p.file.includes("fee")); // la Fée n'agit qu'à partir de la nuit 2
+  const fantome = p.decisionCourante();
+  assert.equal(fantome?.alias, "arlequin");
+  assert.deepEqual(fantome?.porteurs, []);
+  assert.deepEqual(fantome?.decision.choix, []);
+  p.passer();
+  assert.equal(p.decisionCourante()?.alias, "cupidon");
+});
