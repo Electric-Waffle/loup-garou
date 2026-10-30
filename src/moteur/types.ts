@@ -100,6 +100,7 @@ export interface Role {
   priorite?: number;    // ordre d'appel la nuit (petit = d'abord)
   appelNuit?: boolean;  // le meneur appelle-t-il cette carte la nuit ?
   tours?: Tours;        // absent = toutes les nuits
+  rejoint?: string[];   // cartes de groupe que ce rôle joue aussi (ex. ["loup"] : il vote avec les loups)
 
   /** État initial du rôle, stocké dans joueur.memoire */
   init?(): Record<string, any>;

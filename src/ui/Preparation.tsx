@@ -172,11 +172,11 @@ export function Preparation({
   /** Bouton "Distribuer les cartes" / "Redistribuer". */
   function lancerDistribution() {
     // POURQUOI un try/catch : le moteur lève une Error si la distribution est impossible
-    // (moins de 3 joueurs, carte Loup désactivée, pas assez de cartes...). On transforme
+    // (moins de 3 joueurs, trop de loups, pas assez de cartes loups ou de cartes...). On transforme
     // cette erreur en message affiché, au lieu de laisser l'application planter.
     try {
       setErreur(null);
-      const nouvelleDistribution = distribuer(table, actifs);
+      const nouvelleDistribution = distribuer(table, donnees.nbLoups, actifs);
       modifier({ ...donnees, distribution: nouvelleDistribution });
     } catch (e) {
       // En TypeScript, ce qui est attrapé est de type "unknown" (on peut lancer n'importe quoi
@@ -194,6 +194,16 @@ export function Preparation({
     // Et jamais moins d'une minute (un nombre négatif saisi au clavier, par exemple).
     const duree = Math.max(1, nombreSaisi);
     modifier({ ...donnees, dureeDebat: duree });
+  }
+
+  /** Champ "Loups". */
+  function changerNbLoups(texteSaisi: string) {
+    // Même lecture que la durée du débat : jamais moins d'un loup.
+    // Le maximum (moins de loups que de joueurs) est vérifié par le moteur à la distribution.
+    const nombreSaisi = Number(texteSaisi) || 1;
+    const nbLoups = Math.max(1, nombreSaisi);
+    // POURQUOI vider la distribution : elle ne respecte plus le nombre de loups demandé.
+    modifier({ ...donnees, nbLoups: nbLoups, distribution: {} });
   }
 
   /* -----------------------------------------------------------------------------------
@@ -276,6 +286,18 @@ export function Preparation({
               max={20}
               value={donnees.dureeDebat}
               onChange={evenement => changerDureeDebat(evenement.target.value)}
+            />
+          </label>
+
+          <label className="champ-ligne">
+            Loups
+            <input
+              className="champ champ-court"
+              type="number"
+              min={1}
+              max={Math.max(1, table.length - 1)}
+              value={donnees.nbLoups}
+              onChange={evenement => changerNbLoups(evenement.target.value)}
             />
           </label>
         </div>

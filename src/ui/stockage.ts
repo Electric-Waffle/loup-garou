@@ -50,6 +50,7 @@ export interface Donnees {
   table: string[];                        // ids des joueurs assis, dans l'ordre autour de la table
   distribution: Record<string, string>;   // clé = id du joueur, valeur = alias de sa carte
   dureeDebat: number;                     // en minutes
+  nbLoups: number;                        // cartes du camp des loups à distribuer
 }
 
 /**
@@ -98,7 +99,10 @@ function parDefaut(): Donnees {
     cartes: cartes,
     table: table,
     distribution: {}, // aucune carte distribuée tant qu'on n'a pas cliqué "Distribuer"
-    dureeDebat: 3
+    dureeDebat: 3,
+    // ATTENTION : des réglages enregistrés avant ce champ n'ont pas de nbLoups.
+    // charger() le complète avec cette valeur grâce à la fusion « ...defaut, ...lu ».
+    nbLoups: 2
   };
 }
 

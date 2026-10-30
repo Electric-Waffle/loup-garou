@@ -76,11 +76,6 @@ function construireApparence(cartes: Record<string, CarteReglage>): Apparence {
  */
 function construireJoueursDeLaPartie(donnees: Donnees): JoueurInitial[] {
   const joueursDeLaPartie = donnees.table.map(idJoueur => {
-    // ATTENTION : find() renvoie undefined si aucun joueur n'a cet id. Le "!" affirme à
-    // TypeScript que ça n'arrivera pas. C'est vrai ici parce que le bouton "Lancer la partie"
-    // n'est actif que si chaque id de la table correspond à un joueur ET a une carte
-    // (voir distributionValide dans Preparation.tsx). Si on appelait lancer() depuis
-    // ailleurs, sans cette garantie, profil serait undefined et profil.nom planterait.
     const profil = donnees.joueurs.find(joueur => joueur.id === idJoueur)!;
     const aliasDeSaCarte = donnees.distribution[idJoueur];
 

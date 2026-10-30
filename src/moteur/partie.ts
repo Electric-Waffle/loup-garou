@@ -80,6 +80,19 @@ export class Partie {
   }
   vivants(): Joueur[] { return this.joueurs.filter(j => j.vivant); }
   joueursAvecRole(alias: string): Joueur[] { return this.vivants().filter(j => j.role === alias); }
+
+  /**
+   * Joueurs vivants appelés quand la carte `alias` joue : ceux qui ont ce rôle,
+   * plus ceux dont le rôle la « rejoint » (le Loup succube se réveille avec les loups).
+   * POURQUOI pas joueursAvecRole : un Loup succube seul survivant doit encore pouvoir dévorer.
+   */
+  porteursDe(alias: string): Joueur[] {
+    return this.vivants().filter(j => {
+      const aCeRole = j.role === alias;
+      const rejointCetteCarte = this.roleDe(j).rejoint?.includes(alias) ?? false;
+      return aCeRole || rejointCetteCarte;
+    });
+  }
   joueursAvecTag(tag: string): Joueur[] { return this.vivants().filter(j => this.aTag(j, tag)); }
   aTag(j: Joueur, tag: string): boolean { return j.tags.some(t => t.type === tag); }
 
@@ -134,7 +147,9 @@ export class Partie {
 
     const alias = this.file[0];
     if (!alias) return undefined;
-    const porteurs = this.joueursAvecRole(alias);
+    const porteurs = this.porteursDe(alias);
+    // ATTENTION : pour une carte de groupe, `moi` peut être un joueur qui la « rejoint »
+    // (un Loup succube pendant le tour des loups). Ne pas lire sa memoire en croyant tenir un loup.
     const moi = porteurs[0];
     if (!moi) {                // plus personne pour jouer cette carte : on la saute
       this.file.shift();
@@ -188,7 +203,15 @@ export class Partie {
 
   commencerNuit(): void {
     this.changerPhase("nuit");
-    const presents = [...new Set(this.vivants().map(j => j.role))].map(a => this.role(a));
+    // Cartes à appeler : le rôle de chaque vivant, plus les cartes que ce rôle rejoint.
+    // POURQUOI : sans ça, s'il ne reste que le Loup succube, la carte "loup" disparaît de la file.
+    // CONCEPT : un Set ignore les doublons, comme array_unique en PHP, mais au fil de l'ajout.
+    const aliasPresents = new Set<string>();
+    for (const joueur of this.vivants()) {
+      aliasPresents.add(joueur.role);
+      for (const carteRejointe of this.roleDe(joueur).rejoint ?? []) aliasPresents.add(carteRejointe);
+    }
+    const presents = [...aliasPresents].map(alias => this.role(alias));
     this.file = presents
       .filter(r => r.appelNuit && r.decision && peutAgir(r, this.tour))
       .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99))

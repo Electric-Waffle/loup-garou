@@ -67,10 +67,68 @@ test("champ tours", () => {
   assert.equal(peutAgir({ ...ROLES.loup, tours: { de: 2, chaque: 2 } }, 3), false);
 });
 
-test("distribution : 1 loup pour 4 joueurs, complétée par des villageois", () => {
-  const cartes = composer(8, ["loup", "villageois", "voyante", "sorciere"]);
+test("Cupidon : appelé les nuits 1 et 4 seulement", () => {
+  const nuitsAppelees = [1, 2, 3, 4, 5, 6, 7].filter(tour => peutAgir(ROLES.cupidon, tour));
+  assert.deepEqual(nuitsAppelees, [1, 4]);
+});
+
+test("Cupidon : la nuit 4, il découvre le rôle des amoureux", () => {
+  const p = nuitUn();
+  // shortcut : on saute directement à la nuit 4 au lieu de rejouer les nuits 2 et 3.
+  p.tour = 4;
+  p.commencerNuit();
+
+  const courante = p.decisionCourante();
+  assert.equal(courante?.alias, "cupidon");
+  assert.deepEqual(courante?.decision.choix.map(c => c.id), ["voir"]);
+
+  p.jouer({ id: "voir", cibles: [] });
+  const infoDeCupidon = p.infos.find(i => i.pour === "ines" && i.tour === 4);
+  assert.equal(infoDeCupidon?.texte, "Rôles des amoureux : Ancien, Chasseur.");
+});
+
+test("Loup succube : lie la nuit 1 et dévore même s'il est le seul loup", () => {
+  const table = TABLE.map(j => {
+    if (j.id === "bob") return { ...j, role: "loup-succube" };
+    if (j.id === "ines") return { ...j, role: "villageois" };
+    return j;
+  });
+  const p = new Partie(table, { aleatoire: () => 0 });
+  assert.deepEqual(p.file, ["loup-succube", "voyante", "salvateur", "loup", "sorciere"]);
+
+  p.jouer({ id: "lier", cibles: ["alice", "jules"] });
+  assert.equal(p.partenaireDe(p.joueur("alice"))?.id, "jules");
+
+  p.jouer({ id: "sonder", cibles: ["bob"] });
+  p.jouer({ id: "proteger", cibles: ["chloe"] });
+  assert.deepEqual(p.decisionCourante()?.porteurs.map(j => j.id), ["bob"]);
+  p.jouer({ id: "devorer", cibles: ["david"] });
+  p.jouer({ id: "rien", cibles: [] });
+  p.leverLeJour();
+  assert.equal(p.joueur("david").vivant, false);
+});
+
+test("distribution : le nombre de loups choisi, complétée par des villageois", () => {
+  const cartes = composer(8, 3, ["loup", "villageois", "voyante", "sorciere"]);
   assert.equal(cartes.length, 8);
-  assert.equal(cartes.filter(c => c === "loup").length, 2);
-  assert.equal(cartes.filter(c => c === "villageois").length, 4);
-  assert.throws(() => composer(8, ["loup", "voyante"]));
+  assert.equal(cartes.filter(c => c === "loup").length, 3);
+  assert.equal(cartes.filter(c => c === "villageois").length, 3);
+  assert.throws(() => composer(8, 2, ["loup", "voyante"]));
+  assert.throws(() => composer(8, 8, ["loup", "villageois"]));
+  assert.throws(() => composer(8, 0, ["loup", "villageois"]));
+});
+
+test("distribution : loups spéciaux et Loups-Garous en proportion aléatoire", () => {
+  const actifs = ["loup", "loup-succube", "villageois"];
+  // Hasard toujours à 0 : le tirage donne le minimum, soit aucun loup spécial.
+  assert.deepEqual(composer(8, 2, actifs, () => 0).filter(c => c !== "villageois"), ["loup", "loup"]);
+  // Hasard presque à 1 : le maximum, soit le seul loup spécial activé.
+  const loupsAuMax = composer(8, 2, actifs, () => 0.99).filter(c => c !== "villageois").sort();
+  assert.deepEqual(loupsAuMax, ["loup", "loup-succube"]);
+});
+
+test("distribution : sans Loup-Garou, tous les loups doivent être spéciaux", () => {
+  const actifs = ["loup-succube", "villageois"];
+  assert.deepEqual(composer(5, 1, actifs).filter(c => c !== "villageois"), ["loup-succube"]);
+  assert.throws(() => composer(5, 2, actifs));
 });

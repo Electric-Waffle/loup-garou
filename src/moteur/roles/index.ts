@@ -3,6 +3,7 @@ import ancien from "./ancien";
 import chasseur from "./chasseur";
 import cupidon from "./cupidon";
 import loup from "./loup";
+import loupSuccube from "./loup-succube";
 import salvateur from "./salvateur";
 import sorciere from "./sorciere";
 import villageois from "./villageois";
@@ -22,6 +23,7 @@ export const LISTE_ROLES: Role[] = [
   sorciere,
   salvateur,
   cupidon,
+  loupSuccube,
   chasseur,
   ancien,
   custom

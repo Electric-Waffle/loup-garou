@@ -182,6 +182,13 @@ const template: Role = {
    */
   // tours: { de: 1 },
 
+  /**
+   * Cartes de groupe que ce rôle joue AUSSI, en plus de la sienne.
+   *   ["loup"] → il se réveille et vote avec les loups (comme le Loup succube).
+   * Lu par partie.porteursDe() et commencerNuit().
+   */
+  // rejoint: ["loup"],
+
   /* ===================================================================================
    *  MÉMOIRE DU RÔLE
    * =================================================================================== */
@@ -362,6 +369,7 @@ export default template;
  *    partie.vivants()                    les joueurs vivants
  *    partie.joueur(id)                   un joueur par son id (erreur si inconnu)
  *    partie.joueursAvecRole(alias)       les joueurs VIVANTS qui ont ce rôle
+ *    partie.porteursDe(alias)            idem, plus ceux dont le rôle rejoint cette carte
  *    partie.joueursAvecTag(tag)          les joueurs VIVANTS qui portent ce tag
  *    partie.aTag(joueur, tag)            vrai si le joueur porte ce tag
  *    partie.partenaireDe(joueur)         son amoureux (tag "amoureux"), ou undefined
