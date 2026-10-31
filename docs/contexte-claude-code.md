@@ -1,6 +1,7 @@
 # Contexte du projet Loup-Garou (Paqari)
 
-> Ce document résume tout le contexte d'une longue conversation de conception. Il est écrit pour être lu par Claude Code au début d'une session (ou placé à la racine du dépôt sous le nom `CLAUDE.md`).
+> Ce document résume tout le contexte du projet : ma façon de travailler, l'architecture, les décisions prises et l'état du code. Il est écrit pour être lu par Claude Code au début d'une session (ou placé à la racine du dépôt sous le nom `CLAUDE.md`).
+> **Dernière mise à jour : 31/10/2026, branche `remote`.**
 
 ---
 
@@ -25,7 +26,8 @@
   - `FLUX :` comment les éléments s'enchaînent ;
   - `ATTENTION :` piège, cas limite, effet de bord ;
   - `CONCEPT :` mécanisme du langage ou du framework (commentaire pédagogique, à retirer en production) ;
-  - `RÉUTILISABLE :` bloc à reprendre ailleurs.
+  - `RÉUTILISABLE :` bloc à reprendre ailleurs ;
+  - `shortcut :` un raccourci assumé, à revoir si le besoin grandit.
 - **Décomposer les one-liners** : les transformations en chaîne (`map` / `filter` / `reduce`…) et les ternaires imbriqués deviennent des étapes nommées. Indiquer ce que renvoie chaque étape.
 - Après le code, une courte section **« Points d'étude »** : 3 à 5 notions à retenir, plus un petit exercice.
 - Intensité réglable : léger / standard (« moyen ») / profond / production. Le dernier niveau demandé reste actif. **Niveau actuel : standard.**
@@ -47,25 +49,35 @@
 
 ## 2. Le projet
 
-Un site **local, en full JavaScript / TypeScript**, pour **préparer et animer des parties de Loup-Garou** du point de vue du **meneur** (une seule application, pilotée par le meneur).
+Un site **local, en full JavaScript / TypeScript**, pour **préparer et animer des parties de Loup-Garou** du point de vue du **meneur** (une seule application, pilotée par le meneur, qui voit toutes les cartes).
 
 - **Dépôt** : `Electric-Waffle/loup-garou` (privé).
-  - `main` : le prototype.
-  - `explication` : **un commit de plus que `main`**. Il réécrit les 7 fichiers de `src/ui/` en version d'étude (commentaires, décompositions, petites fonctions et sous-composants extraits), **sans changement de comportement**.
+  - `main` : le premier prototype (8 rôles).
+  - `explication` : l'interface réécrite en version d'étude (commentaires, décompositions), puis toutes les nouvelles cartes et mécaniques.
+  - `remote` : branche créée à partir de `explication`. Elle contient ce document à jour, et la vision des rôles par Cupidon et le Loup succube déplacée à la nuit 3.
 - **Stack** : React 18, TypeScript (mode strict), Vite 8, `tsx` pour les tests (`node:test`, pas de Vitest).
 - **Commandes** :
   - `npm run dev` : serveur de développement, accessible aussi depuis le téléphone via l'adresse réseau ;
-  - `npm test` : scénarios du moteur ;
+  - `npm test` : scénarios du moteur (`src/moteur/scenario.test.ts`) ;
   - `npm run scenario` : affiche le journal du cas particulier ;
   - `npm run build` : `tsc --noEmit` puis `vite build`.
 - **Stockage actuel** : `localStorage`, via un seul fichier, `src/ui/stockage.ts`. **Prévu plus tard** : une API Express + SQLite qui remplacera uniquement `charger()` et `sauver()`. Attention : ces fonctions deviendront asynchrones.
 
 ### Deux pages
 1. **Options** : pour chaque carte, on peut modifier **seulement** le titre, l'image et l'activation. On gère aussi les joueurs (nom, image).
-2. **Préparer** : joueurs présents autour d'une table ronde (échange de places par deux clics), nombre de loups choisi, distribution aléatoire des cartes activées (loups spéciaux et Loups-Garous en proportion aléatoire, 1 exemplaire de chaque rôle spécial, complété par des villageois), bouton Redistribuer, durée du débat, puis lancement.
+2. **Préparer** :
+   - les joueurs présents autour d'une table ronde (échange de places par deux clics) ;
+   - le **nombre de loups** ;
+   - la case **« cartes fantômes »** ;
+   - la distribution aléatoire des cartes activées : dans le camp des loups, loups spéciaux et Loups-Garous en proportion aléatoire ; un exemplaire de chaque autre rôle spécial ; complété par des villageois. Un bouton Redistribuer permet de recommencer ;
+   - la durée du débat, puis le lancement.
 
 ### Le cycle d'une partie
-Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, rapport) → événement → élection du maire (s’il n’y en a pas de vivant) → débat (minuteur) → vote → résultat du vote → nuit suivante. La victoire est vérifiée en ouvrant l'événement et au passage à la nuit suivante.
+Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, crochets `aube()` des rôles, rapport) → événement → **élection du maire** (seulement s'il n'y a pas de maire vivant) → débat (minuteur) → vote → résultat du vote → nuit suivante.
+
+Si l'éliminé paie avec son or, le vote est annulé : **plaidoirie** (un nouveau débat où il parle seul), puis un nouveau vote.
+
+La victoire est vérifiée en ouvrant l'événement et au passage à la nuit suivante.
 
 ---
 
@@ -74,119 +86,205 @@ Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, r
 | Décision | Raison | Alternatives écartées |
 | --- | --- | --- |
 | **Cartes codées en dur**, un fichier par rôle | Simplicité, lisibilité | **Configurateur de comportements** (règles en JSON / mini-langage) : abandonné, trop complexe et code « boîte noire » |
-| **Rôles = objets** respectant l'interface `Role`, avec des **crochets optionnels** (`decision`, `agir`, `recevoir`, `reagir`, `init`) appelés par le moteur | Un rôle prend juste ce dont il a besoin. La Sorcière regarde ET agit | **Héritage** `CarteInfo` / `CarteAction` (mon idée de départ) : un rôle rentre rarement dans une seule catégorie |
+| **Rôles = objets** respectant l'interface `Role`, avec des **crochets optionnels** appelés par le moteur | Un rôle prend juste ce dont il a besoin | **Héritage** `CarteInfo` / `CarteAction` (mon idée de départ) : un rôle rentre rarement dans une seule catégorie |
 | **Moteur séparé de l'interface** (`src/moteur/` sans React, `src/ui/` sans règle de jeu) | Moteur testable sans navigateur, et déplaçable côté serveur plus tard | Logique dans les composants ; logique côté Express à chaque clic |
 | **Architecture « donner / recevoir »** avec des tags (voir §4) | Aucun rôle ne connaît les autres | Résolveur avec un `switch` par carte (approche A), règles en données (B), intercepteurs portés par les tags (C) |
+| **Chaque carte reste indépendante**, même au prix d'un peu de code copié (Cupidon / Loup succube, `contaminerLeMaire` dans Rat / Rat-garou) | Supprimer ou modifier une carte ne casse jamais l'autre | Une fonction partagée entre rôles |
+| **Les règles valables pour tous les rôles vivent dans le moteur** (enchantement, carte fantôme, lien de l'Arlequin, or) | Un nouveau rôle en profite sans une ligne de code | Les réécrire dans chaque rôle |
 | **Journal** en ajout seul ; le rapport est **recalculé** depuis le journal | Rapport, débogage, base pour un futur « annuler » | Comparer l'état avant / après ; variables dédiées |
 | **Moteur mutable + rendu forcé** (`rafraichir()`, un compteur `useReducer` dans `App.tsx`) | Moteur simple à écrire | Moteur immuable ; `useSyncExternalStore`. **Compromis assumé** : appeler `rafraichir()` après chaque méthode qui modifie la partie |
-| **L'interface tire la décision courante** (`partie.decisionCourante()` à chaque rendu) | Le Chasseur peut s'intercaler à tout moment | Un moteur `async` qui attendrait les clics |
+| **L'interface tire la décision courante** (`partie.decisionCourante()` à chaque rendu) | Les décisions urgentes (Chasseur, Rat, Paysan, or) s'intercalent à tout moment | Un moteur `async` qui attendrait les clics |
 
 ---
 
 ## 4. Le moteur : comment ça marche
 
 ### Fichiers de `src/moteur/`
-- `types.ts` : les contrats (`Role`, `Joueur`, `Tag`, `Meta`, `Decision`, `OptionChoix`, `ChoixFait`, `ResultatAction`, `Reponses`, `Entree`, `Phase`, `TypeCible`, `Tours`…).
-- `partie.ts` : la **classe `Partie`**, c'est-à-dire l'état et les transitions de phases. Méthodes principales :
-  - décisions : `decisionCourante()`, `jouer(choix)`, `passer()` ;
-  - phases : `leverLeJour()`, `ouvrirEvenement()`, `ouvrirDebat()`, `ouvrirVote()`, `voter(id | null)`, `nuitSuivante()` ;
-  - lecture : `morts()`, `infosPubliques()`, `ciblesPossibles()` ;
-  - autres : `mettreEnAttente()`, `aTag()`, `retirerTag()`, `partenaireDe()`, `auHasard()`. Le hasard est injectable via l'option `aleatoire`.
-- `donner.ts` : `tourDeCarte()` appelle `role.agir()`, puis `appliquerResultat()` distribue les tags et les infos (les événements et le vote passent aussi par là).
-- `recevoir.ts` : **`donnerTag()`, le point d'entrée unique** de tout tag posé sur un joueur.
-- `aube.ts` : le tableau ordonné `CONSEQUENCES` (`mordu` → `mort`, `empoisonne` → `mort`, `protege` → `protege_hier`). **L'ordre des lignes est une règle du jeu.**
-- `victoire.ts`, `tours.ts` (`peutAgir`), `distribution.ts` (`composer`, `melanger`), `evenements/index.ts`.
-- `roles/index.ts` : le **registre** (`LISTE_ROLES`, `ROLES`).
-- `roles/*.ts` : loup, villageois, voyante, sorcière, salvateur, cupidon, chasseur, ancien, `custom` (voir §6). On y trouve aussi `_template.ts`, le modèle commenté pour créer un rôle, et `ajouter-corbeau.md`, un tutoriel.
+- **`types.ts`** : les contrats.
+  - Principaux types : `Role`, `Joueur`, `Tag`, `Meta`, `Decision`, `OptionChoix`, `ChoixFait`, `ResultatAction`, `Reponses`, `Entree`.
+  - `Phase` : `nuit`, `aube`, `evenement`, `election`, `debat`, `vote`, `resultat_vote`, `fin`.
+  - `Camp` : `village`, `loups`, `solo`, `fou`.
+  - `Meta.expire` : `"aube"` ou `"aube_suivante"`.
+- **`partie.ts`** : la **classe `Partie`**, c'est-à-dire l'état et les transitions de phases.
+  - Décisions : `decisionCourante()`, `jouer(choix)`, `passer()`.
+  - Phases : `leverLeJour()`, `ouvrirEvenement()`, `suiteDeLEvenement()`, `elire(id)`, `ouvrirDebat()`, `ouvrirVote()`, `voter(id | null)`, `nuitSuivante()`.
+  - Lecture : `morts()`, `infosPubliques()`, `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
+  - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenaireDe()` (amoureux), `partenaireLie()` (Arlequin).
+  - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
+  - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté), `aTag()`, `retirerTag()`, `auHasard()`.
+  - Le hasard est injectable via l'option `aleatoire`.
+  - Options du constructeur : `apparence`, `aleatoire`, `cartesActives`, `cartesFantomes`.
+- **`donner.ts`** : `tourDeCarte()` appelle `role.agir()`, puis `appliquerResultat()` distribue les tags et les infos. Les événements, le vote, l'élection, `debut()` et `aube()` passent aussi par là.
+- **`recevoir.ts`** : **`donnerTag()`, le point d'entrée unique** de tout tag posé sur un joueur. Il contient aussi `transmettreLOr()`.
+- **`aube.ts`** :
+  1. retire `protege_hier` ;
+  2. applique le tableau ordonné `CONSEQUENCES` ;
+  3. appelle le crochet `aube()` de chaque rôle vivant ;
+  4. fait expirer les tags (`aube` est retiré, `aube_suivante` devient `aube`).
+  - **L'ordre des lignes de `CONSEQUENCES` est une règle du jeu** : `mordu`, `agonisant`, `empoisonne`, `protege`, puis la peste **écrite à l'envers** (`peste_mortelle`, `peste_imminente`, `peste_active`, `peste`), pour qu'un tag posé par une ligne ne soit pas repris par les suivantes dans la même aube.
+- **`victoire.ts`**, dans l'ordre :
+  1. plus aucun vivant ;
+  2. les deux derniers vivants sont amoureux ;
+  3. un rat-garou face à un seul non-loup → le village gagne ;
+  4. plus de loup → le village gagne ;
+  5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
+  6. au moins autant de loups que de non-loups → les loups gagnent, ou **le Fou** s'il est vivant.
+- **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/index.ts`**.
+- **`roles/index.ts`** : le **registre** (`LISTE_ROLES`, `ROLES`).
+- **`roles/_template.ts`** : le modèle commenté pour créer un rôle. **`roles/ajouter-corbeau.md`** : un tutoriel.
+
+### Les crochets d'un rôle
+| Crochet | Quand | Renvoie | Exemple |
+| --- | --- | --- | --- |
+| `init()` | création du joueur | la `memoire` initiale (privée) | potions de la Sorcière |
+| `debut(partie, moi)` | au lancement, avant la nuit 1 | ce qu'il donne (tags visibles) | l'or du Marchand |
+| `decision(partie, moi)` | carte montrée (nuit ou urgence) | message + options | toutes les cartes appelées |
+| `agir(choix, partie, moi)` | choix validé | `{ donner, infos }` | Loup, Voyante… |
+| `recevoir(tag, meta, r, partie, moi)` | AVANT qu'un tag soit posé sur lui | une réponse, ou rien | Ancien |
+| `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
+| `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
+
+Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup succube, Loup savant, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
 
 ### Le cycle en 4 étapes
-1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`.
+1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`. Une décision sans option n'affiche que « Passer ».
 2. **Décision du meneur** : un `ChoixFait { id, cibles }`.
-3. **DONNER** : `role.agir()` **ne modifie rien**. Il renvoie `{ donner: [{ tag, a, meta }], infos: [{ pour, texte }] }`. Un rôle peut regarder (infos), donner (tags), ou les deux.
+3. **DONNER** : `role.agir()` **ne modifie rien**. Il renvoie `{ donner: [{ tag, a, meta }], infos: [{ pour, texte }] }`.
 4. **RECEVOIR** : `donnerTag(partie, joueur, tag, meta, profondeur)` :
-   - a. `role.recevoir()` du **receveur**, appelé AVANT : s'il renvoie une réponse, le traitement s'arrête là (les règles générales ne s'exécutent pas) ;
-   - b. sinon, le **`switch` des règles générales** par tag (`mordu` bloqué par `protege`, `sauve`, `protege` bloqué par `protege_hier`, `mort` + chaîne des amoureux) ; `default` = accepter ;
-   - c. si le tag est accepté : `role.reagir()` du receveur, appelé APRÈS (ex. le Chasseur appelle `mettreEnAttente`, ce qui crée une **décision urgente**).
+   - a. `role.recevoir()` du **receveur**, appelé AVANT : s'il renvoie une réponse, le traitement s'arrête là ;
+   - b. sinon, le **`switch` des règles générales** par tag (voir ci-dessous) ; `default` = accepter ;
+   - c. si le tag est accepté : `role.reagir()` du receveur, appelé APRÈS.
    - Cinq réponses possibles, via l'objet `r`, qui écrit toujours au journal : `accepter`, `bloquer`, `consommer`, `transformer`, `rediriger`.
    - **Garde-fou** : `profondeur > 5` lève une erreur (boucle de tags).
+
+### Règles générales du `switch` de `recevoir.ts`
+- `mordu` : bloqué si le joueur porte `protege`.
+- `sauve` : retire `mordu`, puis il est consommé.
+- `agonisant` (Rat qui mord) : retire `mordu`, donc la Sorcière ne voit plus la victime. Mort certaine à l'aube.
+- `devient` : change la carte du joueur (`meta.role`). Tags et mémoire sont conservés. Rat → Rat-garou.
+- `protege` : bloqué par `protege_hier`, expire à l'aube.
+- `mort` :
+  - bloqué si le joueur est déjà mort ;
+  - **mort par vote d'un porteur d'or** : l'or est dépensé et la mort est consommée (puis plaidoirie et nouveau vote) ;
+  - sinon la mort est acceptée, l'or passe à un tueur vivant (ou au choix du mourant, via la décision urgente de la carte Marchand), et la chaîne des amoureux s'applique.
+
+### Règles appliquées par le moteur à tous les rôles
+- **`enchante`** (Fée, Paysan) :
+  - une carte dont tous les porteurs sont enchantés n'offre que « Passer » ;
+  - `mettreEnAttente()` ignore un joueur enchanté : un Chasseur enchanté ne tire pas, un Rat enchanté ne choisit pas.
+- **Cartes fantômes** (option de préparation) : les cartes activées mais non distribuées sont appelées la nuit, avec seulement « Passer », pour que personne ne sache lesquelles sont réellement en jeu.
+- **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
+
+### Tags existants
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`.
+
+**Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
 ### Où mettre une règle ?
 - Elle dépend de ce que le rôle actif décide → `agir()` de ce rôle.
 - Elle dépend de la carte du receveur → `recevoir()` (avant) ou `reagir()` (après) du rôle receveur.
   - Leçon apprise avec le Chasseur : pour « faire quelque chose quand je meurs », utiliser `reagir()`. Un `recevoir()` qui accepte lui-même court-circuite la chaîne des amoureux.
-- Elle dépend des tags déjà présents → un `case` dans `recevoir.ts`.
-- Elle se déclenche au passage de la nuit au jour → une ligne de `CONSEQUENCES` dans `aube.ts`.
+- Elle dépend des tags déjà présents, ou elle suit un objet qui change de main (l'or) → un `case` dans `recevoir.ts`.
+- Elle se déclenche au passage de la nuit au jour → une ligne de `CONSEQUENCES`, ou le crochet `aube()` du rôle si elle dépend de l'état de la partie.
+- Elle vaut pour tous les rôles → le moteur (`partie.ts`).
 
 ### Ajouter un rôle (checklist)
 1. Copier `roles/_template.ts` en `roles/<alias>.ts`.
-2. L'enregistrer dans `roles/index.ts`. Il apparaît alors automatiquement dans Options et dans la distribution, et il est appelé la nuit s'il a `appelNuit: true` et une méthode `decision()`.
+2. L'enregistrer dans `roles/index.ts`. Il apparaît alors automatiquement dans Options et dans la distribution. Il est appelé la nuit s'il a `appelNuit: true` et une méthode `decision()`.
 3. Si le rôle invente un nouveau tag : un `case` dans `recevoir.ts`, éventuellement une ligne dans `aube.ts`, et un libellé dans `TAGS` de `PartieVue.tsx`.
-4. Si un tag doit durer au-delà de l'aube : un nouveau moment dans `Meta.expire` (`types.ts`), et son retrait au bon moment dans `partie.ts`. Exemple étudié : le Corbeau, avec `"fin_vote"` retiré au début de `nuitSuivante()`.
-5. Nouveau type de cible : `TypeCible`, `ciblesPossibles()`, `nbCibles()`.
-6. Nouveau camp ou condition de victoire : `victoire.ts`. Nouvelle cause de mort : `CAUSES` dans `PartieVue.tsx`.
+4. Si un tag doit durer au-delà de l'aube : un nouveau moment dans `Meta.expire` (`types.ts`), et son retrait au bon moment.
+5. Nouveau type de cible : `TypeCible`, `ciblesDuType()`, `nbCibles()`.
+6. Nouveau camp ou condition de victoire : `types.ts` (`Camp`), `victoire.ts`, `LIBELLES_CAMPS` dans `Options.tsx`. Nouvelle cause de mort : `CAUSES` dans `PartieVue.tsx`.
 7. Écrire un test dans `scenario.test.ts`.
 
-### Champs d'un rôle
-`alias` (immuable), `titre`, `image` et `description` (valeurs par défaut), `camp` (`village` / `loups` / `solo`), `priorite` (ordre d'appel la nuit : Cupidon 1, Voyante 5, Salvateur 10, Loup 20, Sorcière 30), `appelNuit`, `tours` (optionnel : `{ de: 2 }`, `{ de: 1, a: 1 }`, `{ de: 2, chaque: 2 }`).
+### Ordre d'appel la nuit (`priorite`)
+| Priorité | Carte | Nuits |
+| --- | --- | --- |
+| -2 | Fée | à partir de la 2 |
+| -1 | Arlequin | 1, 3, 5… |
+| 1 | Cupidon | 1 (lier) et 3 (voir) |
+| 2 | Loup succube | 1 (lier) et 3 (voir) |
+| 5 | Voyante, Bâtisseur | toutes |
+| 10 | Salvateur | toutes |
+| 19 | Loup savant | 1 |
+| 20 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
+| 30 | Sorcière | toutes |
 
 **L'état d'un joueur va dans `joueur.memoire`** (créé par `init()`), **jamais dans l'objet rôle**, qui est partagé par tous les joueurs ayant ce rôle.
 
 ---
 
-## 5. Le cas d'étude de référence
+## 5. Les rôles
+
+| Rôle | Camp | Règle |
+| --- | --- | --- |
+| Loup-Garou | loups | Dévore une victime chaque nuit. Ne chasse pas si tous les loups sont `blesse`. |
+| Villageois | village | Aucun pouvoir. |
+| Voyante | village | Voit la carte d'un joueur, ou une des 3 cartes hors jeu du Loup savant. |
+| Sorcière | village | Une potion de vie, une potion de mort. |
+| Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
+| Chasseur | village | En mourant, abat un joueur (décision urgente). |
+| Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). |
+| Cupidon | village | Nuit 1 : lie deux amoureux. Nuit 3 : voit leurs rôles. |
+| Loup succube | loups | Comme Cupidon (nuits 1 et 3), et vote avec les loups. |
+| Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
+| Rat | village | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou. Éliminé par le vote, il contamine le maire. |
+| Rat-garou | loups | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |
+| Fou | fou | Se réveille et vote avec les loups, mais son vote ne compte pas. Ne compte pas comme loup. Si les loups devraient gagner alors qu'il est vivant, il gagne seul. |
+| Fée | village | À partir de la nuit 2, enchante un joueur, qui ne fait rien de la nuit. |
+| Arlequin | village | Nuits 1, 3, 5… : lie deux joueurs jusqu'à l'aube ; ils ne peuvent viser qu'eux-mêmes ou l'autre. |
+| Marchand | village | Commence avec de l'or. Voté, il le dépense pour une plaidoirie et un second vote. Tué, l'or passe à son tueur. |
+| Paysan | village | Voté : assomme 2 joueurs (`enchante` la nuit suivante). Dévoré : tous les loups sont `blesse` et ne chassent pas la nuit suivante. |
+| Prêtre | village | Mort, il continue de faire semblant de jouer et peut chuchoter au maire (rappel affiché pendant le débat). |
+| Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
+
+> [!note] Le Fou a changé de règle
+> L'idée d'origine (désigner un joueur A puis un joueur B, et faire l'action du rôle de A sur B) **n'est pas implémentée**. Le Fou actuel est celui décrit dans le tableau.
+
+---
+
+## 6. Le cas d'étude de référence
 « L'Ancien amoureux du Chasseur » (`docs/cas-particulier.md`, rejoué par `npm test` et `npm run scenario`). Les loups mordent l'Ancien et la Sorcière empoisonne le Chasseur. À l'aube, l'Ancien transforme sa mort en `vie_perdue`, puis le Chasseur meurt. L'Ancien meurt alors de chagrin (amoureux). Le Chasseur tire sur le loup, et le village gagne.
 
 ---
 
-## 6. Limites connues et points d'attention
-- `decisionCourante()` peut modifier la file : elle saute une carte qui n'a plus de porteur vivant.
+## 7. Limites connues et points d'attention
+- `decisionCourante()` peut modifier la file : elle saute une carte qui n'a plus de porteur vivant (sauf carte fantôme).
+- Pour une carte de groupe, `moi` est le premier porteur vivant, qui peut être un rôle qui la « rejoint » (Loup succube pendant le tour des loups) : ne pas lire sa `memoire` en croyant tenir un loup.
 - `joueur.memoire` est typé `any`.
-- Le vote ne compte pas les voix : le meneur clique directement sur l'éliminé.
-- Pour un rôle en plusieurs exemplaires, `moi` désigne le premier porteur vivant.
+- Le vote ne compte pas les voix : le meneur clique directement sur l'éliminé. Le Fou et le Rat-garou « votent » avec les loups, mais c'est le meneur qui ignore leur avis.
 - `jouer()` vérifie le nombre de cibles, pas leur validité (c'est l'interface qui filtre).
 - Rien n'est sauvegardé pendant une partie.
+- **Alias connus en dehors de leur fichier** (raccourcis assumés) :
+  - `victoire.ts` connaît `rat-garou` ;
+  - `partie.ts` connaît `loup-savant` (tirage des cartes au lancement) ;
+  - `recevoir.ts` connaît la décision de `marchand` ;
+  - `PartieVue.tsx` connaît `pretre`.
+- **Code copié volontairement** : `lierLesAmoureux` / `revelerLesAmoureux` (Cupidon et Loup succube), `contaminerLeMaire` (Rat et Rat-garou). Une correction est à reporter dans les deux fichiers.
 - Le `useEffect([cle])` de `PartieVue` pourrait être remplacé par la prop `key` sur un sous-composant (amélioration possible).
-- **`roles/custom.ts` est mon brouillon en cours**. Problèmes repérés, que je corrige moi-même :
-  - dans `agir()`, `{ donner: [...] }` est lu comme un bloc et non comme un objet : il manque un `return` ;
-  - il n'a ni `appelNuit` ni `priorite` ;
-  - son commentaire d'en-tête est celui du Chasseur.
+- `distribution.ts` importe le registre des rôles pour connaître leur camp.
 
 ---
 
-## 7. Cartes que je veux ajouter : NE PAS LES CODER
-**Méthode** : quand j'aurai assez compris le code, je proposerai moi-même comment les ajouter, et tu me corrigeras. Tu ne les codes pas.
-
-- **Le Fou** : toutes les 2 nuits, il désigne un joueur A puis un joueur B, et fait l'action du rôle de A sur B, sans connaître ce rôle ni savoir s'il a un effet.
-  - A loup → un vote de loup en plus sur B.
-  - A voyante → le Fou voit la carte de B.
-  - A cupidon → rien.
-  - Une liste exhaustive des effets selon le rôle de A sera écrite.
-- **Le Rat** : s'il est dévoré par les loups, il choisit :
-  - soit de mordre un loup aléatoire, qui mourra empoisonné 3 nuits plus tard ;
-  - soit de supplier pour sa vie et devenir **rat-garou** : il voit les loups mais ne participe pas à leur vote. S'il ne reste plus qu'un seul loup, le rat-garou est automatiquement mangé pendant la nuit, voté ou non par ce dernier loup.
-- **Cupidon (nouvelle version)** : Cupidon classique côté village, mais la 3e nuit il voit le rôle des deux joueurs qu'il a liés.
-- **Loup succube** : comme Cupidon, mais du côté des loups. Lui aussi voit le rôle des deux joueurs liés la 3e nuit.
-
-**Questions de règles encore ouvertes** :
-- Le Fou : commence-t-il la nuit 1 ou la nuit 2 ? Et si A est mort ?
-- Le Rat : le loup mordu sait-il qu'il va mourir ? Peut-il être sauvé ou protégé ? De quel camp est le rat-garou, et que se passe-t-il s'il est le dernier « loup » ?
-- Cupidon et le Loup succube dans la même partie : un joueur peut-il être lié deux fois ?
+## 8. Questions de règles encore ouvertes
+- Cupidon et le Loup succube dans la même partie : un joueur peut-il être lié deux fois ? Aujourd'hui, le second lien **remplace** le premier sur ce joueur (`r.accepter()` retire le doublon du tag `amoureux`), et la vision nuit 3 montre tous les amoureux vivants.
+- Le Fou : faut-il un jour revenir à l'idée d'origine (l'action de A sur B) ?
+- Conditions de victoire des futurs rôles solitaires.
 
 ---
 
-## 8. Notes de documentation existantes
-Ces notes sont dans mon projet claude.ai « Paqari » et dans mon vault Obsidian. Dans le dépôt, on trouve seulement `docs/cas-particulier.md` et `src/moteur/roles/ajouter-corbeau.md`.
-- `loup-garou-projet` : vue d'ensemble et points à trancher.
+## 9. Notes de documentation existantes
+Ces notes sont dans mon projet claude.ai « Paqari » et dans mon vault Obsidian. Dans le dépôt, on trouve `docs/cas-particulier.md`, ce document, et `src/moteur/roles/ajouter-corbeau.md`.
+- `loup-garou-projet` : vue d'ensemble.
 - `resolveur-approches` : historique, les approches A / B / C comparées.
 - `donner-recevoir` : l'architecture retenue.
 - `cas-particulier` : l'Ancien amoureux du Chasseur, pas à pas.
 - `ajouter-corbeau` : tutoriel d'ajout d'un rôle avec un nouveau moment d'expiration.
-- `fonctionnement-du-code` : 10 diagrammes Mermaid d'une partie de bout en bout, plus un tableau « je veux changer X → j'ouvre Y ».
+- `fonctionnement-du-code` : 10 diagrammes Mermaid d'une partie de bout en bout, plus un tableau « je veux changer X → j'ouvre Y ». **Écrite avant les nouvelles cartes** : elle ne parle ni du maire, ni des crochets `debut()` / `aube()`, ni de `rejoint`.
 - `design-patterns` : les 21 patterns utilisés, chacun comparé à ses alternatives.
 
-## 9. Encore à trancher pour le projet
-- Conditions de victoire avancées (camps solo, rat-garou…).
-- Format des événements (aujourd'hui : un objet avec `appliquer(partie)` qui renvoie `{ donner, infos }`).
+## 10. Encore à trancher pour le projet
 - Le meneur seul, ou chaque joueur sur son téléphone ? Dans le second cas, le moteur passerait côté serveur.
-- Le comptage réel des votes.
+- Le comptage réel des votes (le Fou et le Rat-garou en dépendent).
 - Le bouton « annuler ».
+- L'API Express + SQLite.

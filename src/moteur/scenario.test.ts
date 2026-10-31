@@ -70,15 +70,16 @@ test("champ tours", () => {
   assert.equal(peutAgir({ ...ROLES.loup, tours: { de: 2, chaque: 2 } }, 3), false);
 });
 
-test("Cupidon : appelé les nuits 1 et 4 seulement", () => {
-  const nuitsAppelees = [1, 2, 3, 4, 5, 6, 7].filter(tour => peutAgir(ROLES.cupidon, tour));
-  assert.deepEqual(nuitsAppelees, [1, 4]);
+test("Cupidon et Loup succube : appelés les nuits 1 et 3 seulement", () => {
+  const nuits = [1, 2, 3, 4, 5, 6, 7];
+  assert.deepEqual(nuits.filter(tour => peutAgir(ROLES.cupidon, tour)), [1, 3]);
+  assert.deepEqual(nuits.filter(tour => peutAgir(ROLES["loup-succube"], tour)), [1, 3]);
 });
 
-test("Cupidon : la nuit 4, il découvre le rôle des amoureux", () => {
+test("Cupidon : la nuit 3, il découvre le rôle des amoureux", () => {
   const p = nuitUn();
-  // shortcut : on saute directement à la nuit 4 au lieu de rejouer les nuits 2 et 3.
-  p.tour = 4;
+  // shortcut : on saute directement à la nuit 3 au lieu de rejouer la nuit 2.
+  p.tour = 3;
   p.commencerNuit();
 
   const courante = p.decisionCourante();
@@ -86,7 +87,7 @@ test("Cupidon : la nuit 4, il découvre le rôle des amoureux", () => {
   assert.deepEqual(courante?.decision.choix.map(c => c.id), ["voir"]);
 
   p.jouer({ id: "voir", cibles: [] });
-  const infoDeCupidon = p.infos.find(i => i.pour === "ines" && i.tour === 4);
+  const infoDeCupidon = p.infos.find(i => i.pour === "ines" && i.tour === 3);
   assert.equal(infoDeCupidon?.texte, "Rôles des amoureux : Ancien, Chasseur.");
 });
 

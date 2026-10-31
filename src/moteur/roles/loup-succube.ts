@@ -2,11 +2,11 @@ import type { Partie } from "../partie";
 import type { Joueur, ResultatAction, Role } from "../types";
 
 /**
- * LOUP SUCCUBE : un loup qui lie deux amoureux la nuit 1 et découvre leurs rôles la nuit 4.
+ * LOUP SUCCUBE : un loup qui lie deux amoureux la nuit 1 et découvre leurs rôles la nuit 3.
  *
  * Déroulé :
  *   1. Nuit 1 : sa propre carte propose « lier » → agir() DONNE "amoureux" aux deux joueurs.
- *   2. Nuit 4 : sa propre carte propose « voir » → agir() produit une info privée avec leurs rôles.
+ *   2. Nuit 3 : sa propre carte propose « voir » → agir() produit une info privée avec leurs rôles.
  *   3. Chaque nuit : il se réveille avec les loups et vote avec eux (rejoint: ["loup"]).
  *   4. Il compte comme un loup pour la victoire (camp: "loups", lu par victoire.ts).
  *
@@ -22,12 +22,12 @@ const loupSuccube: Role = {
   titre: "Loup succube",
   image: "💋",
   camp: "loups",
-  description: "Un loup qui, la première nuit, lie deux joueurs comme Cupidon. La 4e nuit, il découvre leurs rôles.",
+  description: "Un loup qui, la première nuit, lie deux joueurs comme Cupidon. La 3e nuit, il découvre leurs rôles.",
   // POURQUOI 2 : juste après Cupidon (1), avant la Voyante (5), pour que les liens existent dès la nuit 1.
   priorite: 2,
   appelNuit: true,
-  // FLUX : peutAgir() teste (tour - 1) % 3 === 0, soit les nuits 1, 4, 7… ; « a: 4 » coupe après la 4.
-  tours: { de: 1, chaque: 3, a: 4 },
+  // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5… ; « a: 3 » coupe après la 3.
+  tours: { de: 1, chaque: 2, a: 3 },
   // FLUX : partie.porteursDe("loup") l'inclut, donc il vote avec les loups toutes les nuits,
   // même s'il est le dernier loup en vie. Ce n'est PAS lié à `tours`, qui ne concerne que sa propre carte.
   rejoint: ["loup"],
@@ -67,7 +67,7 @@ function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
   };
 }
 
-/** Nuit 4 : une info réservée au Loup succube (moi), avec les rôles sans les noms. */
+/** Nuit 3 : une info réservée au Loup succube (moi), avec les rôles sans les noms. */
 function revelerLesAmoureux(partie: Partie, moi: Joueur): ResultatAction {
   // ATTENTION : joueursAvecTag ne renvoie que les vivants ; voir la même remarque dans cupidon.ts.
   const amoureux = partie.joueursAvecTag("amoureux");

@@ -2,12 +2,12 @@ import type { Partie } from "../partie";
 import type { Joueur, ResultatAction, Role } from "../types";
 
 /**
- * CUPIDON : lie deux amoureux la nuit 1, découvre leurs rôles la nuit 4.
+ * CUPIDON : lie deux amoureux la nuit 1, découvre leurs rôles la nuit 3.
  *
  * Déroulé :
  *   1. Nuit 1 : decision() propose « lier » → agir() DONNE "amoureux" aux deux joueurs.
- *   2. Nuits 2 et 3 : la carte n'est pas appelée (champ tours).
- *   3. Nuit 4 : decision() propose « voir » → agir() produit une info privée avec leurs rôles.
+ *   2. Nuit 2 : la carte n'est pas appelée (champ tours).
+ *   3. Nuit 3 : decision() propose « voir » → agir() produit une info privée avec leurs rôles.
  *
  * PATTERN : une carte, deux usages. decision() choisit l'usage selon la nuit ;
  * agir() exécute l'usage choisi (choix.id) sans relire la nuit. La règle
@@ -21,11 +21,12 @@ const cupidon: Role = {
   titre: "Cupidon",
   image: "💘",
   camp: "village",
-  description: "La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 4e nuit, il découvre leurs rôles.",
+  description: "La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
   priorite: 1,
   appelNuit: true,
-  // FLUX : peutAgir() teste (tour - 1) % 3 === 0, soit les nuits 1, 4, 7… ; « a: 4 » coupe après la 4.
-  tours: { de: 1, chaque: 3, a: 4 },
+  // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5… ; « a: 3 » coupe après la 3.
+  // decision() n'a pas besoin de changer : elle distingue seulement « nuit du lien » et « autre nuit ».
+  tours: { de: 1, chaque: 2, a: 3 },
 
   // POURQUOI le titre lu dans la partie plutôt que « Cupidon » en dur : le meneur peut
   // renommer la carte dans Options.
@@ -65,7 +66,7 @@ function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
 }
 
 /**
- * Nuit 4 : une info réservée au porteur de la carte (moi), avec les rôles sans les noms.
+ * Nuit 3 : une info réservée au porteur de la carte (moi), avec les rôles sans les noms.
  * Le meneur choisit ensuite comment transmettre l'information.
  */
 function revelerLesAmoureux(partie: Partie, moi: Joueur): ResultatAction {
