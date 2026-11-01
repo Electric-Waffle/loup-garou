@@ -424,6 +424,7 @@ export default template;
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
  *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
  *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
+ *    pur / impur   choix du Prêtre la nuit 1 ; impur, il gagne avec les loups mais compte comme villageois (victoire.ts)
  *
  *  CAUSES DE MORT EXISTANTES
  *    "mordu", "poison", "chagrin", "chasseur", "vote"

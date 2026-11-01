@@ -129,6 +129,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   4. plus de loup → le village gagne ;
   5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
   6. au moins autant de loups que de non-loups → les loups gagnent, ou **le Fou** s'il est vivant.
+  - **Prêtre impur** : il est compté comme un villageois (son camp reste `village`), mais il gagne avec les loups (« Les loups-garous et le prêtre impur ») et perd avec le village (« …, sans le prêtre impur »), qu'il soit vivant ou mort. Si le Fou vole la victoire, le prêtre impur perd aussi.
 - **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/index.ts`**.
 - **`roles/index.ts`** : le **registre** (`LISTE_ROLES`, `ROLES`).
 - **`roles/_template.ts`** : le modèle commenté pour créer un rôle. **`roles/ajouter-corbeau.md`** : un tutoriel.
@@ -177,7 +178,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`.
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`.
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -205,6 +206,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 | -1 | Arlequin | 1, 3, 5… |
 | 1 | Cupidon | 1 (lier) et 3 (voir) |
 | 2 | Loup succube | 1 (lier) et 3 (voir) |
+| 3 | Prêtre | 1 (pur ou impur) |
 | 5 | Voyante, Bâtisseur | toutes |
 | 10 | Salvateur | toutes |
 | 19 | Loup savant | 1 |
@@ -237,7 +239,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 | Arlequin | village | Nuits 1, 3, 5… : lie deux joueurs jusqu'à l'aube ; ils ne peuvent viser qu'eux-mêmes ou l'autre. |
 | Marchand | village | Commence avec de l'or. Voté, il le dépense pour une plaidoirie et un second vote. Tué, l'or passe à son tueur. |
 | Paysan | village | Voté : assomme 2 joueurs (`enchante` la nuit suivante). Dévoré : tous les loups sont `blesse` et ne chassent pas la nuit suivante. |
-| Prêtre | village | Mort, il continue de faire semblant de jouer et peut chuchoter au maire (rappel affiché pendant le débat). |
+| Prêtre | village | Nuit 1 : choisit en secret d'être **pur** (gagne avec le village) ou **impur** (gagne avec les loups, tag `impur`). Il compte toujours comme un villageois pour la victoire. Sans choix (« Passer »), il est pur. Mort, il continue de faire semblant de jouer et peut chuchoter au maire pendant le débat, pour l'aider ou pour le tromper. |
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
 
 > [!note] Le Fou a changé de règle

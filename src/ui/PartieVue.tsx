@@ -62,6 +62,8 @@ const TAGS: Record<string, string> = {
   blesse: "🩹 blessé",
   renforce: "🧱 maison renforcée",
   invulnerable: "🦇 invulnérable",
+  pur: "🕊️ pur",
+  impur: "🩸 impur",
   mort: "⚰️ mort"
 };
 

@@ -512,3 +512,55 @@ test("Loup vampire : distribué comme loup spécial", () => {
   const cartes = composer(5, 1, ["loup-vampire", "villageois"]);
   assert.deepEqual(cartes.filter(c => c !== "villageois"), ["loup-vampire"]);
 });
+
+/* ---------- Prêtre pur ou impur ---------- */
+
+test("Prêtre : la nuit 1 seulement, il choisit pur ou impur et reçoit le tag", () => {
+  const p = partieAvec(["loup", "pretre", "villageois", "villageois"]);
+  assert.deepEqual(p.file, ["pretre", "loup"]);
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["pur", "impur"]);
+
+  p.jouer({ id: "impur", cibles: [] });
+  assert.ok(p.aTag(p.joueur("j1"), "impur"));
+  assert.ok(!p.aTag(p.joueur("j1"), "pur"));
+  assert.deepEqual([1, 2, 3].filter(tour => peutAgir(ROLES.pretre, tour)), [1]);
+});
+
+test("Prêtre impur : il compte comme un villageois, les loups ne gagnent pas à 1 contre 2", () => {
+  const p = partieAvec(["loup", "pretre", "villageois"]);
+  p.jouer({ id: "impur", cibles: [] });
+  assert.equal(verifierVictoire(p), undefined);
+});
+
+test("Prêtre impur : il gagne avec les loups, même mort, et perd avec le village", () => {
+  const loups = partieAvec(["loup", "pretre", "villageois", "villageois"]);
+  loups.jouer({ id: "impur", cibles: [] });
+  donnerTag(loups, loups.joueur("j1"), "mort", { cause: "vote" });  // le prêtre meurt
+  donnerTag(loups, loups.joueur("j2"), "mort", { cause: "vote" });  // 1 loup contre 1 villageois
+  assert.equal(verifierVictoire(loups), "Les loups-garous et le prêtre impur");
+
+  const village = partieAvec(["loup", "pretre", "villageois"]);
+  village.jouer({ id: "impur", cibles: [] });
+  donnerTag(village, village.joueur("j0"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(village), "Le village, sans le prêtre impur");
+});
+
+test("Prêtre pur (ou sans choix) : victoires inchangées", () => {
+  const pur = partieAvec(["loup", "pretre", "villageois"]);
+  pur.jouer({ id: "pur", cibles: [] });
+  donnerTag(pur, pur.joueur("j0"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(pur), "Le village");
+
+  const sansChoix = partieAvec(["loup", "pretre", "villageois"]);
+  sansChoix.passer();
+  donnerTag(sansChoix, sansChoix.joueur("j2"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(sansChoix), "Les loups-garous");
+});
+
+test("Prêtre impur et Fou vivant : le Fou gagne seul", () => {
+  const p = partieAvec(["loup", "fou", "pretre", "villageois"]);
+  p.jouer({ id: "impur", cibles: [] });
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le fou");
+});
