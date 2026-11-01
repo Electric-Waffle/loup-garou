@@ -429,3 +429,86 @@ test("Bâtisseur : toutes les maisons villageoises vivantes renforcées, avant l
   // [].every() vaut true : sans villageois vivant, pas de victoire du Bâtisseur.
   assert.equal(verifierVictoire(partieAvec(["loup", "fou"])), "Le fou");
 });
+
+/* ---------- Loup vampire ---------- */
+
+/** Une petite table : un Loup vampire, un Loup-Garou, et des villageois. */
+function tableAvecVampire() {
+  return [
+    { id: "v", nom: "Vlad", image: "", role: "loup-vampire" },
+    { id: "b", nom: "Bob", image: "", role: "loup" },
+    { id: "x", nom: "Xavier", image: "", role: "villageois" },
+    { id: "y", nom: "Yasmine", image: "", role: "villageois" },
+    { id: "z", nom: "Zoé", image: "", role: "villageois" }
+  ];
+}
+
+/** Lie deux joueurs comme le ferait Cupidon. */
+function lierAmoureux(p: Partie, a: string, b: string) {
+  donnerTag(p, p.joueur(a), "amoureux", { partenaire: b });
+  donnerTag(p, p.joueur(b), "amoureux", { partenaire: a });
+}
+
+test("Loup vampire : invulnérable dès le lancement, et il vote avec les loups", () => {
+  const p = new Partie(tableAvecVampire());
+  assert.ok(p.aTag(p.joueur("v"), "invulnerable"));
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id).sort(), ["b", "v"]);
+});
+
+test("Loup vampire : aucune mort ne passe, sauf le vote du village", () => {
+  const p = new Partie(tableAvecVampire());
+  const vampire = p.joueur("v");
+
+  for (const cause of ["poison", "chasseur", "chagrin", "peste", "mordu"]) {
+    const issue = donnerTag(p, vampire, "mort", { cause });
+    assert.equal(issue, "bloque", `cause ${cause}`);
+    assert.equal(vampire.vivant, true, `toujours vivant après : ${cause}`);
+  }
+
+  p.voter("v");
+  assert.equal(vampire.vivant, false);
+  assert.deepEqual(p.morts().map(m => [m.joueur.id, m.cause]), [["v", "vote"]]);
+});
+
+test("Loup vampire : empoisonné ou pestiféré, il survit à l'aube sans boucle", () => {
+  const p = new Partie(tableAvecVampire());
+  const vampire = p.joueur("v");
+  donnerTag(p, vampire, "empoisonne", { source: "sorciere" });
+  donnerTag(p, vampire, "peste", { source: "rat" });
+
+  // 4 aubes : le poison est bloqué à la 1re, la peste à la 4e.
+  for (let i = 1; i <= 4; i++) aube(p);
+
+  assert.equal(vampire.vivant, true);
+  assert.ok(!p.aTag(vampire, "empoisonne") && !p.aTag(vampire, "peste_mortelle"));
+  const bloquees = p.journal.filter(e => e.type === "bloque" && e.joueur === "v" && e.tag === "mort");
+  assert.deepEqual(bloquees.map(e => e.cause), ["poison", "peste"]);
+});
+
+test("Loup vampire amoureux : il survit au chagrin, mais son vote entraîne la mort de l'autre", () => {
+  const p = new Partie(tableAvecVampire());
+  lierAmoureux(p, "v", "x");
+  donnerTag(p, p.joueur("x"), "mort", { cause: "poison" });
+  assert.equal(p.joueur("x").vivant, false);
+  assert.equal(p.joueur("v").vivant, true);
+
+  const p2 = new Partie(tableAvecVampire());
+  lierAmoureux(p2, "v", "y");
+  p2.voter("v");
+  assert.equal(p2.joueur("v").vivant, false);
+  assert.equal(p2.joueur("y").vivant, false);
+  assert.deepEqual(p2.morts().map(m => [m.joueur.id, m.cause]), [["v", "vote"], ["y", "chagrin"]]);
+});
+
+test("Loup vampire : avec de l'or, il rachète son vote comme n'importe qui", () => {
+  const p = new Partie(tableAvecVampire());
+  donnerTag(p, p.joueur("v"), "or", { source: "x", cause: "heritage" });
+  p.voter("v");
+  assert.equal(p.joueur("v").vivant, true);
+  assert.equal(p.plaidoirie, "v");
+});
+
+test("Loup vampire : distribué comme loup spécial", () => {
+  const cartes = composer(5, 1, ["loup-vampire", "villageois"]);
+  assert.deepEqual(cartes.filter(c => c !== "villageois"), ["loup-vampire"]);
+});

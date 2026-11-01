@@ -423,6 +423,7 @@ export default template;
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
  *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
+ *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
  *
  *  CAUSES DE MORT EXISTANTES
  *    "mordu", "poison", "chagrin", "chasseur", "vote"

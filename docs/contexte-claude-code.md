@@ -1,7 +1,7 @@
 # Contexte du projet Loup-Garou (Paqari)
 
 > Ce document résume tout le contexte du projet : ma façon de travailler, l'architecture, les décisions prises et l'état du code. Il est écrit pour être lu par Claude Code au début d'une session (ou placé à la racine du dépôt sous le nom `CLAUDE.md`).
-> **Dernière mise à jour : 31/10/2026, branche `remote`.**
+> **Dernière mise à jour : 01/11/2026, branche `remote`.**
 
 ---
 
@@ -137,14 +137,14 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | Crochet | Quand | Renvoie | Exemple |
 | --- | --- | --- | --- |
 | `init()` | création du joueur | la `memoire` initiale (privée) | potions de la Sorcière |
-| `debut(partie, moi)` | au lancement, avant la nuit 1 | ce qu'il donne (tags visibles) | l'or du Marchand |
+| `debut(partie, moi)` | au lancement, avant la nuit 1 | ce qu'il donne (tags visibles) | l'or du Marchand, l'invulnérabilité du Loup vampire |
 | `decision(partie, moi)` | carte montrée (nuit ou urgence) | message + options | toutes les cartes appelées |
 | `agir(choix, partie, moi)` | choix validé | `{ donner, infos }` | Loup, Voyante… |
 | `recevoir(tag, meta, r, partie, moi)` | AVANT qu'un tag soit posé sur lui | une réponse, ou rien | Ancien |
 | `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
 | `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
 
-Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup succube, Loup savant, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
+Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup succube, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
 
 ### Le cycle en 4 étapes
 1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`. Une décision sans option n'affiche que « Passer ».
@@ -165,6 +165,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - `protege` : bloqué par `protege_hier`, expire à l'aube.
 - `mort` :
   - bloqué si le joueur est déjà mort ;
+  - **bloqué si le joueur porte `invulnerable`** (Loup vampire), sauf si la cause est le vote du village. Liste blanche : toute future cause de mort est bloquée d'office ;
   - **mort par vote d'un porteur d'or** : l'or est dépensé et la mort est consommée (puis plaidoirie et nouveau vote) ;
   - sinon la mort est acceptée, l'or passe à un tueur vivant (ou au choix du mourant, via la décision urgente de la carte Marchand), et la chaîne des amoureux s'applique.
 
@@ -176,7 +177,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`.
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`.
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -228,6 +229,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 | Cupidon | village | Nuit 1 : lie deux amoureux. Nuit 3 : voit leurs rôles. |
 | Loup succube | loups | Comme Cupidon (nuits 1 et 3), et vote avec les loups. |
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
+| Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou. Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |
 | Fou | fou | Se réveille et vote avec les loups, mais son vote ne compte pas. Ne compte pas comme loup. Si les loups devraient gagner alors qu'il est vivant, il gagne seul. |

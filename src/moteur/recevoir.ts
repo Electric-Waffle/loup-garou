@@ -58,6 +58,18 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
     case "mort": {
       if (!joueur.vivant) return r.bloquer("déjà mort");
 
+      // Invulnérable (Loup vampire) : seul le vote du village peut le tuer.
+      // POURQUOI une liste BLANCHE (« seul le vote passe ») plutôt qu'une liste noire (« bloquer
+      // poison, Chasseur, chagrin… ») : toute FUTURE cause de mort sera bloquée d'office.
+      // POURQUOI ici, avant l'or et la mort : bloquer AVANT d'accepter évite de déclencher le
+      // chagrin de l'amoureux, le tir du Chasseur ou la transmission de l'or.
+      // FLUX : un vote n'est pas bloqué et continue plus bas, or compris (un vampire qui a hérité
+      // de l'or peut racheter son vote).
+      const parLeVillage = meta.cause === "vote";
+      if (partie.aTag(joueur, "invulnerable") && !parLeVillage) {
+        return r.bloquer("invulnérable : seul le vote du village peut le tuer");
+      }
+
       // L'or rachète un vote. POURQUOI ici et pas dans marchand.ts : l'or change de main,
       // la règle doit valoir pour TOUT porteur (un loup qui en a hérité, le Fou…).
       // POURQUOI consommer et pas accepter-puis-annuler : une fois acceptée, la mort a déjà

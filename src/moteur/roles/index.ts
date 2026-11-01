@@ -9,6 +9,7 @@ import fou from "./fou";
 import loup from "./loup";
 import loupSavant from "./loup-savant";
 import loupSuccube from "./loup-succube";
+import loupVampire from "./loup-vampire";
 import marchand from "./marchand";
 import paysan from "./paysan";
 import pretre from "./pretre";
@@ -38,6 +39,7 @@ export const LISTE_ROLES: Role[] = [
   rat,
   ratGarou,
   loupSavant,
+  loupVampire,
   fou,
   fee,
   arlequin,
