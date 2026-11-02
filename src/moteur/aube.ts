@@ -50,8 +50,9 @@ export function aube(partie: Partie): void {
   }
 
   // 4. Les tags restants qui expirent à l'aube disparaissent.
-  //    Un tag posé PENDANT cette aube avec "aube_suivante" (les loups blessés par le Paysan)
-  //    n'y passe pas : il devient "aube" et tiendra jusqu'à l'aube suivante.
+  //    Un tag "aube_suivante" n'y passe pas : il devient "aube" et tiendra jusqu'à l'aube suivante.
+  //    Ex. : les loups blessés par le Paysan (posé pendant l'aube), le silence du Loup hypnotiseur
+  //    (posé la nuit, il doit durer pendant tout le vote du jour).
   for (const j of partie.joueurs) {
     for (const t of j.tags) {
       if (t.expire === "aube") partie.retirerTag(j, t.type);

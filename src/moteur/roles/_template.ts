@@ -173,6 +173,7 @@ const template: Role = {
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)
    *   110  Loup savant
+   *   115  Loup hypnotiseur         (APRÈS le Salvateur : il lit sa protection)
    *   120  Loup-Garou
    *   125  Corbeau                 (si ajouté)
    *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)
@@ -438,6 +439,8 @@ export default template;
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
+ *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
+ *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
  *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
  *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
  *    pur / impur   choix du Prêtre la nuit 1 ; impur, il gagne avec les loups mais compte comme villageois (victoire.ts)

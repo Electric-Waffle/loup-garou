@@ -108,7 +108,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 - **`partie.ts`** : la **classe `Partie`**, c'est-à-dire l'état et les transitions de phases.
   - Décisions : `decisionCourante()`, `jouer(choix)`, `passer()`.
   - Phases : `leverLeJour()`, `ouvrirEvenement()`, `suiteDeLEvenement()`, `elire(id)`, `ouvrirDebat()`, `ouvrirVote()`, `voter(id | null)`, `nuitSuivante()`.
-  - Lecture : `morts()`, `infosPubliques()`, `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
+  - Lecture : `morts()`, `infosPubliques(phases?)` (filtrées par phase : la nuit va au rapport de l'aube, l'événement à l'événement), `rappelsDuVote()` (tags `silence` / `dirige`), `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
   - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenairesDe()` (tous les amoureux d'un joueur, réseau), `partenaireLie()` (Arlequin).
   - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
   - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté), `aTag()`, `retirerTag()`, `auHasard()`.
@@ -180,7 +180,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`.
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`.
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -217,6 +217,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 90 | Bâtisseur | toutes |
 | 100 | Salvateur | toutes |
 | 110 | Loup savant | 1 |
+| 115 | Loup hypnotiseur | toutes, tant qu'il lui reste un médaillon |
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
 | 130 | Sorcière | toutes |
 
@@ -239,6 +240,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Vote avec les loups. |
 | Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Vote avec les loups. Ne vient pas à la Réunion des amoureux. |
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
+| Loup hypnotiseur | loups | Vote avec les loups. Deux médaillons à usage unique (`memoire`), un par nuit au plus : silence (tag `silence`) ou suggestion (tag `dirige`), qui durent jusqu'à l'aube suivante. Au vote seulement, `partie.rappelsDuVote()` rappelle au meneur de ne pas compter le vote du silencé et de faire voter le dirigé comme l'hypnotiseur (sauf s'il est mort). Sur une cible protégée par le Salvateur : rien, médaillon perdu, et annonce publique au rapport de l'aube. |
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou. Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |

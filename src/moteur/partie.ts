@@ -49,7 +49,7 @@ export class Partie {
   tour = 1;
   phase: Phase = "nuit";
   journal: Entree[] = [];
-  infos: (Info & { tour: number })[] = [];
+  infos: (Info & { tour: number; phase: Phase })[] = [];
   file: string[] = [];                               // cartes restant à appeler cette nuit
   attente: { alias: string; joueur: string }[] = []; // décisions urgentes (Chasseur…)
   evenement?: Evenement;
@@ -168,7 +168,7 @@ export class Partie {
   }
 
   ajouterInfo(info: Info): void {
-    this.infos.push({ ...info, tour: this.tour });
+    this.infos.push({ ...info, tour: this.tour, phase: this.phase });
     this.log({ type: "info", joueur: info.pour === "tous" ? undefined : info.pour, texte: info.texte });
   }
 
@@ -402,7 +402,37 @@ export class Partie {
       .map(e => ({ joueur: this.joueur(e.joueur!), cause: e.cause }));
   }
 
-  infosPubliques(): string[] {
-    return this.infos.filter(i => i.pour === "tous" && i.tour === this.tour).map(i => i.texte);
+  /**
+   * Infos publiques du tour, limitées aux phases demandées (par défaut : toutes).
+   * POURQUOI le filtre de phase : une annonce de la NUIT (échec du Loup hypnotiseur) va au rapport
+   * de l'aube ; celles de l'événement (la rumeur) restent à l'événement, sans doublon.
+   */
+  infosPubliques(phases?: Phase[]): string[] {
+    return this.infos
+      .filter(i => i.pour === "tous" && i.tour === this.tour)
+      .filter(i => !phases || phases.includes(i.phase))
+      .map(i => i.texte);
+  }
+
+  /**
+   * Ce que le meneur doit appliquer au vote, d'après les tags "silence" et "dirige"
+   * (Loup hypnotiseur). Lu seulement pendant la phase de vote : rien n'est révélé au débat.
+   * POURQUOI ici et pas dans loup-hypnotiseur.ts : ce sont des règles de TAGS, valables pour tout
+   * futur rôle qui les donnerait (comme "enchante" dans decisionCourante).
+   * ATTENTION : un dirigé dont l'hypnotiseur est mort vote librement (il n'y a plus de vote à copier).
+   */
+  rappelsDuVote(): string[] {
+    const rappels: string[] = [];
+    for (const joueur of this.joueursAvecTag("silence")) {
+      rappels.push(`Ne pas compter le vote de ${joueur.nom} : il est réduit au silence.`);
+    }
+    for (const joueur of this.joueursAvecTag("dirige")) {
+      const idHypnotiseur = joueur.tags.find(t => t.type === "dirige")?.par;
+      const hypnotiseur = typeof idHypnotiseur === "string" ? this.joueur(idHypnotiseur) : undefined;
+      if (hypnotiseur?.vivant) {
+        rappels.push(`Faire pointer ${joueur.nom} vers le même joueur que ${hypnotiseur.nom} : il est dirigé.`);
+      }
+    }
+    return rappels;
   }
 }

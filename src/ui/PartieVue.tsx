@@ -64,6 +64,8 @@ const TAGS: Record<string, string> = {
   invulnerable: "🦇 invulnérable",
   pur: "🕊️ pur",
   impur: "🩸 impur",
+  silence: "🤐 silencé",
+  dirige: "🌀 dirigé",
   mort: "⚰️ mort"
 };
 
@@ -517,8 +519,9 @@ function EtapeDeJour({
 
     case "evenement": {
       const evenement = partie.evenement;
-      // Les infos publiques du tour (ex. la rumeur), affichées l'une sous l'autre.
-      const infosPubliques = partie.infosPubliques();
+      // Les infos publiques de l'événement (ex. la rumeur), affichées l'une sous l'autre.
+      // Celles de la nuit ont déjà été lues au rapport de l'aube.
+      const infosPubliques = partie.infosPubliques(["evenement"]);
       return (
         <section>
           <h2>Événement</h2>
@@ -579,6 +582,10 @@ function EtapeDeJour({
       return (
         <section>
           <h2>Vote</h2>
+          {/* Rappels du Loup hypnotiseur : affichés seulement maintenant, jamais pendant le débat. */}
+          {partie.rappelsDuVote().map((rappel, index) => (
+            <p key={index} className="aide">⚠️ {rappel}</p>
+          ))}
           <p>Clique sur le joueur éliminé par le village.</p>
           <button className="bouton bouton-discret" onClick={() => agir(() => partie.voter(null))}>
             Personne n'est éliminé
@@ -643,6 +650,10 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
           ))}
         </ul>
       )}
+      {/* Annonces publiques de la nuit (ex. le Salvateur a bloqué un médaillon du Loup hypnotiseur). */}
+      {estLAube && partie.infosPubliques(["nuit", "aube"]).map((texte, index) => (
+        <p key={index} className="info-publique">{texte}</p>
+      ))}
       <button className="bouton bouton-principal bouton-large" onClick={() => agir(passerALaSuite)}>
         {libelleBouton}
       </button>

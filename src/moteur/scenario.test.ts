@@ -652,3 +652,76 @@ test("Victoire des amoureux : majorité stricte, liés ou pas, quel que soit le 
   donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
   assert.equal(verifierVictoire(p), "Les amoureux"); // 2 contre 1
 });
+
+/* ---------- Loup hypnotiseur ---------- */
+
+/** Hypnotiseur j0, Salvateur j1, villageois j2 à j4. */
+function tableAvecHypnotiseur(): Partie {
+  return partieAvec(["loup-hypnotiseur", "salvateur", "villageois", "villageois", "villageois"]);
+}
+
+test("Loup hypnotiseur : appelé après le Salvateur, chaque médaillon ne sert qu'une fois", () => {
+  const p = tableAvecHypnotiseur();
+  assert.deepEqual(p.file, ["reunion-amoureux", "salvateur", "loup-hypnotiseur", "loup"]);
+
+  p.jouer({ id: "proteger", cibles: ["j4"] });
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["silence", "suggestion", "rien"]);
+  p.jouer({ id: "silence", cibles: ["j2"] });
+  assert.ok(p.aTag(p.joueur("j2"), "silence"));
+
+  p.passer(); // loups
+  p.leverLeJour();
+  p.tour = 2;
+  p.commencerNuit();
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["suggestion", "rien"]);
+});
+
+test("Loup hypnotiseur : le tag dure tout le vote du jour, puis disparaît à l'aube suivante", () => {
+  const p = tableAvecHypnotiseur();
+  p.jouer({ id: "proteger", cibles: ["j4"] });
+  p.jouer({ id: "suggestion", cibles: ["j2"] });
+  p.passer(); // loups
+  p.leverLeJour();
+
+  // Au vote : le meneur est prévenu, pas avant (le débat n'affiche rien).
+  assert.deepEqual(p.rappelsDuVote(), ["Faire pointer J2 vers le même joueur que J0 : il est dirigé."]);
+
+  p.tour = 2;
+  p.commencerNuit();
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  p.jouer({ id: "rien", cibles: [] });
+  p.passer(); // loups
+  p.leverLeJour();
+  assert.ok(!p.aTag(p.joueur("j2"), "dirige"));
+  assert.deepEqual(p.rappelsDuVote(), []);
+});
+
+test("Loup hypnotiseur : silence et dirigé au vote ; un dirigé vote librement si l'hypnotiseur est mort", () => {
+  const p = tableAvecHypnotiseur();
+  donnerTag(p, p.joueur("j2"), "silence", { par: "j0" });
+  donnerTag(p, p.joueur("j3"), "dirige", { par: "j0" });
+  assert.deepEqual(p.rappelsDuVote(), [
+    "Ne pas compter le vote de J2 : il est réduit au silence.",
+    "Faire pointer J3 vers le même joueur que J0 : il est dirigé."
+  ]);
+
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
+  assert.deepEqual(p.rappelsDuVote(), ["Ne pas compter le vote de J2 : il est réduit au silence."]);
+});
+
+test("Loup hypnotiseur : bloqué par le Salvateur, le médaillon est perdu et c'est annoncé à l'aube", () => {
+  const p = tableAvecHypnotiseur();
+  p.jouer({ id: "proteger", cibles: ["j2"] });
+  p.jouer({ id: "silence", cibles: ["j2"] });
+  assert.ok(!p.aTag(p.joueur("j2"), "silence"));
+  assert.equal(p.joueur("j0").memoire.silence, false);
+
+  p.passer(); // loups
+  p.leverLeJour();
+  assert.deepEqual(p.infosPubliques(["nuit", "aube"]), [
+    "Le Salvateur a empêché le Loup hypnotiseur d'utiliser le médaillon de silence sur J2."
+  ]);
+  // L'annonce n'est pas répétée à l'événement.
+  assert.deepEqual(p.infosPubliques(["evenement"]), []);
+});

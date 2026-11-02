@@ -8,7 +8,7 @@ export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote
 export interface Meta {
   source?: string;
   cause?: string;
-  expire?: "aube" | "aube_suivante"; // aube_suivante : survit à l'aube en cours (tag posé PENDANT une aube)
+  expire?: "aube" | "aube_suivante"; // aube_suivante : survit à la PROCHAINE aube, disparaît à celle d'après
   [cle: string]: unknown;
 }
 
