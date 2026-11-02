@@ -165,11 +165,14 @@ const template: Role = {
    * simple (ex. 125), sans décimales. Absente : la carte joue en fin de nuit.
    * Valeurs actuelles, pour situer le nouveau rôle :
    *    10  Fée                     (avant toute carte qu'elle pourrait bloquer)
+   *    12  Conciliabule des maudits (étape)
+   *    15  Pleureuse               (tôt : le maudit perd son rôle dès cette nuit)
    *    20  Arlequin
    *    30  Loup amoureux, 40 Loup succube, 50 Cupidon   (les liens)
    *    60  Réunion des amoureux    (après tous les liens)
    *    70  Prêtre
    *    80  Voyante
+   *    85  Loup voyante
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)
    *   110  Loup savant
@@ -250,6 +253,7 @@ const template: Role = {
    *   "un_autre"      → un joueur vivant, sauf soi-même
    *   "un_mordu"      → un joueur vivant qui porte le tag "mordu"
    *   "deux_joueurs"  → deux joueurs vivants distincts
+   *   "n_importe_qui" → n'importe quel joueur, MORTS COMPRIS
    *
    * L'interface ajoute d'elle-même un bouton "Passer" pour les cartes appelées la nuit.
    */
@@ -441,6 +445,9 @@ export default template;
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
  *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
  *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
+ *    maudit        Pleureuse ; le porteur ne fait plus son rôle (TAGS_BLOQUANTS, partie.ts), sans expiration
+ *    delivre       Conciliabule ; retire "maudit" puis est consommé (comme "sauve" pour "mordu")
+ *    apaisee       Conciliabule, sur la Pleureuse démasquée ; elle ne marque plus personne
  *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
  *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
  *    pur / impur   choix du Prêtre la nuit 1 ; impur, il gagne avec les loups mais compte comme villageois (victoire.ts)

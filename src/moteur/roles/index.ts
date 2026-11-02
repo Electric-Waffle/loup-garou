@@ -3,6 +3,7 @@ import ancien from "./ancien";
 import arlequin from "./arlequin";
 import batisseur from "./batisseur";
 import chasseur from "./chasseur";
+import conciliabule from "./conciliabule";
 import cupidon from "./cupidon";
 import fee from "./fee";
 import fou from "./fou";
@@ -12,8 +13,10 @@ import loupHypnotiseur from "./loup-hypnotiseur";
 import loupSavant from "./loup-savant";
 import loupSuccube from "./loup-succube";
 import loupVampire from "./loup-vampire";
+import loupVoyante from "./loup-voyante";
 import marchand from "./marchand";
 import paysan from "./paysan";
+import pleureuse from "./pleureuse";
 import pretre from "./pretre";
 import rat from "./rat";
 import ratGarou from "./rat-garou";
@@ -45,13 +48,15 @@ export const LISTE_ROLES: Role[] = [
   loupSavant,
   loupVampire,
   loupHypnotiseur,
+  loupVoyante,
   fou,
   fee,
   arlequin,
   marchand,
   pretre,
   paysan,
-  batisseur
+  batisseur,
+  pleureuse
 ];
 
 /**
@@ -59,6 +64,6 @@ export const LISTE_ROLES: Role[] = [
  * Absentes de LISTE_ROLES (donc d'Options et de la distribution), présentes dans ROLES
  * pour que le moteur les retrouve par leur alias.
  */
-const ETAPES: Role[] = [reunionAmoureux];
+const ETAPES: Role[] = [reunionAmoureux, conciliabule];
 
 export const ROLES: Record<string, Role> = Object.fromEntries([...LISTE_ROLES, ...ETAPES].map(r => [r.alias, r]));

@@ -21,7 +21,7 @@ test("nuit 1 : le salvateur bloque la morsure, Cupidon lie Emma et Hugo", () => 
 
 test("nuit 2 : Cupidon n'est plus appelé", () => {
   const p = nuitUn();
-  assert.deepEqual(p.file, ["reunion-amoureux", "voyante", "salvateur", "loup", "sorciere"]);
+  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "voyante", "salvateur", "loup", "sorciere"]);
 });
 
 test("cas particulier : l'Ancien survit à la morsure mais meurt de chagrin", () => {
@@ -98,7 +98,7 @@ test("Loup succube : se lie la nuit 1 et dévore même s'il est le seul loup", (
     return j;
   });
   const p = new Partie(table, { aleatoire: () => 0 });
-  assert.deepEqual(p.file, ["loup-succube", "reunion-amoureux", "voyante", "salvateur", "loup", "sorciere"]);
+  assert.deepEqual(p.file, ["conciliabule", "loup-succube", "reunion-amoureux", "voyante", "salvateur", "loup", "sorciere"]);
 
   p.jouer({ id: "lier", cibles: ["jules"] });
   assert.deepEqual(p.partenairesDe(p.joueur("bob")).map(j => j.id), ["jules"]);
@@ -522,7 +522,7 @@ test("Loup vampire : distribué comme loup spécial", () => {
 
 test("Prêtre : la nuit 1 seulement, il choisit pur ou impur et reçoit le tag", () => {
   const p = partieAvec(["loup", "pretre", "villageois", "villageois"]);
-  assert.deepEqual(p.file, ["reunion-amoureux", "pretre", "loup"]);
+  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "pretre", "loup"]);
   assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["pur", "impur"]);
 
   p.jouer({ id: "impur", cibles: [] });
@@ -574,7 +574,7 @@ test("Prêtre impur et Fou vivant : le Fou gagne seul", () => {
 
 test("Loup amoureux : se lie la nuit 1, avant Cupidon, et le partenaire est prévenu", () => {
   const p = partieAvec(["loup-amoureux", "cupidon", "villageois", "villageois", "villageois"]);
-  assert.deepEqual(p.file, ["loup-amoureux", "cupidon", "reunion-amoureux", "loup"]);
+  assert.deepEqual(p.file, ["conciliabule", "loup-amoureux", "cupidon", "reunion-amoureux", "loup"]);
 
   p.jouer({ id: "lier", cibles: ["j2"] });
   assert.deepEqual(p.partenairesDe(p.joueur("j0")).map(j => j.id), ["j2"]);
@@ -662,7 +662,7 @@ function tableAvecHypnotiseur(): Partie {
 
 test("Loup hypnotiseur : appelé après le Salvateur, chaque médaillon ne sert qu'une fois", () => {
   const p = tableAvecHypnotiseur();
-  assert.deepEqual(p.file, ["reunion-amoureux", "salvateur", "loup-hypnotiseur", "loup"]);
+  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "salvateur", "loup-hypnotiseur", "loup"]);
 
   p.jouer({ id: "proteger", cibles: ["j4"] });
   assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["silence", "suggestion", "rien"]);
@@ -724,4 +724,81 @@ test("Loup hypnotiseur : bloqué par le Salvateur, le médaillon est perdu et c'
   ]);
   // L'annonce n'est pas répétée à l'événement.
   assert.deepEqual(p.infosPubliques(["evenement"]), []);
+});
+
+/* ---------- Pleureuse et Conciliabule ---------- */
+
+/** Pleureuse j0, Chasseur j1, Voyante j2, loup j3, villageois j4. */
+function tableAvecPleureuse(): Partie {
+  return partieAvec(["pleureuse", "chasseur", "voyante", "loup", "villageois"]);
+}
+
+/** Passe directement à la nuit n (on ne rejoue pas le jour). */
+function allerALaNuit(p: Partie, n: number) {
+  p.tour = n;
+  p.commencerNuit();
+}
+
+test("Pleureuse : rien la nuit 1 ; nuit 2, Conciliabule sauté puis malédiction", () => {
+  const p = tableAvecPleureuse();
+  assert.ok(!p.file.includes("pleureuse"));
+
+  allerALaNuit(p, 2);
+  // Personne n'est maudit : le Conciliabule est sauté, la Pleureuse joue la première.
+  assert.equal(p.decisionCourante()?.alias, "pleureuse");
+  p.jouer({ id: "maudire", cibles: ["j2"] });
+  assert.ok(p.aTag(p.joueur("j2"), "maudit"));
+
+  // La Voyante maudite ne fait pas son rôle, dès cette nuit.
+  const voyante = p.decisionCourante();
+  assert.equal(voyante?.alias, "voyante");
+  assert.deepEqual(voyante?.decision.choix, []);
+});
+
+test("Pleureuse : un maudit ne réagit plus (le Chasseur ne tire pas)", () => {
+  const p = tableAvecPleureuse();
+  donnerTag(p, p.joueur("j1"), "maudit");
+  p.voter("j1");
+  assert.equal(p.decisionCourante(), undefined);
+});
+
+test("Conciliabule : mauvais vote, puis bon vote sur la Pleureuse morte", () => {
+  const p = tableAvecPleureuse();
+  donnerTag(p, p.joueur("j2"), "maudit");
+  donnerTag(p, p.joueur("j4"), "maudit");
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" }); // la Pleureuse meurt
+
+  allerALaNuit(p, 3);
+  const conciliabule = p.decisionCourante();
+  assert.equal(conciliabule?.alias, "conciliabule");
+  assert.deepEqual(conciliabule?.porteurs.map(j => j.id), ["j2", "j4"]);
+  assert.equal(conciliabule?.decision.minuteur, 60);
+  // Les morts sont désignables.
+  assert.ok(p.ciblesPossibles("n_importe_qui", conciliabule?.moi, conciliabule?.porteurs).some(j => j.id === "j0"));
+
+  p.jouer({ id: "designer", cibles: ["j1"] }); // mauvais choix
+  assert.ok(p.aTag(p.joueur("j2"), "maudit"));
+
+  allerALaNuit(p, 4);
+  p.jouer({ id: "designer", cibles: ["j0"] }); // la Pleureuse, morte
+  assert.ok(!p.aTag(p.joueur("j2"), "maudit") && !p.aTag(p.joueur("j4"), "maudit"));
+  assert.ok(p.aTag(p.joueur("j0"), "apaisee"));
+});
+
+test("Pleureuse démasquée : elle ne marque plus personne", () => {
+  const p = tableAvecPleureuse();
+  donnerTag(p, p.joueur("j0"), "apaisee");
+  allerALaNuit(p, 2);
+  assert.equal(p.decisionCourante()?.alias, "pleureuse");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Loup voyante : sonde comme la Voyante, avant les loups, et vote avec eux", () => {
+  const p = partieAvec(["loup-voyante", "voyante", "villageois", "villageois"]);
+  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "voyante", "loup-voyante", "loup"]);
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["j0"]);
+
+  p.jouer({ id: "sonder", cibles: ["j0"] });  // Voyante
+  p.jouer({ id: "sonder", cibles: ["j1"] });  // Loup voyante
+  assert.ok(p.infos.some(i => i.pour === "j0" && i.texte === "J1 est Voyante."));
 });

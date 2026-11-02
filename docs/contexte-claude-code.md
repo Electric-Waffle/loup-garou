@@ -90,7 +90,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | **Moteur séparé de l'interface** (`src/moteur/` sans React, `src/ui/` sans règle de jeu) | Moteur testable sans navigateur, et déplaçable côté serveur plus tard | Logique dans les composants ; logique côté Express à chaque clic |
 | **Architecture « donner / recevoir »** avec des tags (voir §4) | Aucun rôle ne connaît les autres | Résolveur avec un `switch` par carte (approche A), règles en données (B), intercepteurs portés par les tags (C) |
 | **Chaque carte reste indépendante**, même au prix d'un peu de code copié (`contaminerLeMaire` dans Rat / Rat-garou) | Supprimer ou modifier une carte ne casse jamais l'autre | Une fonction partagée entre rôles |
-| **Les règles valables pour tous les rôles vivent dans le moteur** (enchantement, carte fantôme, lien de l'Arlequin, or) | Un nouveau rôle en profite sans une ligne de code | Les réécrire dans chaque rôle |
+| **Les règles valables pour tous les rôles vivent dans le moteur** (enchantement et malédiction, carte fantôme, lien de l'Arlequin, or) | Un nouveau rôle en profite sans une ligne de code | Les réécrire dans chaque rôle |
 | **Journal** en ajout seul ; le rapport est **recalculé** depuis le journal | Rapport, débogage, base pour un futur « annuler » | Comparer l'état avant / après ; variables dédiées |
 | **Moteur mutable + rendu forcé** (`rafraichir()`, un compteur `useReducer` dans `App.tsx`) | Moteur simple à écrire | Moteur immuable ; `useSyncExternalStore`. **Compromis assumé** : appeler `rafraichir()` après chaque méthode qui modifie la partie |
 | **L'interface tire la décision courante** (`partie.decisionCourante()` à chaque rendu) | Les décisions urgentes (Chasseur, Rat, Paysan, or) s'intercalent à tout moment | Un moteur `async` qui attendrait les clics |
@@ -111,7 +111,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   - Lecture : `morts()`, `infosPubliques(phases?)` (filtrées par phase : la nuit va au rapport de l'aube, l'événement à l'événement), `rappelsDuVote()` (tags `silence` / `dirige`), `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
   - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenairesDe()` (tous les amoureux d'un joueur, réseau), `partenaireLie()` (Arlequin).
   - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
-  - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté), `aTag()`, `retirerTag()`, `auHasard()`.
+  - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté ou maudit), `aTag()`, `retirerTag()`, `auHasard()`.
   - Le hasard est injectable via l'option `aleatoire`.
   - Options du constructeur : `apparence`, `aleatoire`, `cartesActives`, `cartesFantomes`.
 - **`donner.ts`** : `tourDeCarte()` appelle `role.agir()`, puis `appliquerResultat()` distribue les tags et les infos. Les événements, le vote, l'élection, `debut()` et `aube()` passent aussi par là.
@@ -145,12 +145,12 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
 | `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
 
-Champ **`porteurs(partie)`** : pour une **étape** de la nuit qu'aucun joueur ne reçoit (Réunion des amoureux). Elle calcule qui se réveille, entre dans la file de chaque nuit et est sautée si la liste est vide. Rangée dans `ETAPES` (`roles/index.ts`) : présente dans `ROLES`, absente de `LISTE_ROLES`, donc ni dans Options ni dans la distribution.
+Champ **`porteurs(partie)`** : pour une **étape** de la nuit qu'aucun joueur ne reçoit (Réunion des amoureux, Conciliabule des maudits). Elle calcule qui se réveille, entre dans la file de chaque nuit et est sautée si la liste est vide. Rangée dans `ETAPES` (`roles/index.ts`) : présente dans `ROLES`, absente de `LISTE_ROLES`, donc ni dans Options ni dans la distribution.
 
 Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup amoureux, Loup succube, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
 
 ### Le cycle en 4 étapes
-1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`. Une décision sans option n'affiche que « Passer ».
+1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`, `n_importe_qui` (morts compris). Une décision sans option n'affiche que « Passer ».
 2. **Décision du meneur** : un `ChoixFait { id, cibles }`.
 3. **DONNER** : `role.agir()` **ne modifie rien**. Il renvoie `{ donner: [{ tag, a, meta }], infos: [{ pour, texte }] }`.
 4. **RECEVOIR** : `donnerTag(partie, joueur, tag, meta, profondeur)` :
@@ -173,14 +173,16 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
   - sinon la mort est acceptée, l'or passe à un tueur vivant (ou au choix du mourant, via la décision urgente de la carte Marchand), et la chaîne des amoureux s'applique.
 
 ### Règles appliquées par le moteur à tous les rôles
-- **`enchante`** (Fée, Paysan) :
-  - une carte dont tous les porteurs sont enchantés n'offre que « Passer » ;
-  - `mettreEnAttente()` ignore un joueur enchanté : un Chasseur enchanté ne tire pas, un Rat enchanté ne choisit pas.
+- **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan) et `maudit` (Pleureuse).
+  - une carte dont tous les porteurs sont bloqués n'offre que « Passer » ;
+  - `mettreEnAttente()` ignore un joueur bloqué : un Chasseur enchanté ou maudit ne tire pas, un Rat ne choisit pas ;
+  - les pouvoirs passifs continuent (`recevoir` de l'Ancien, invulnérabilité, or) ;
+  - une **étape** (carte avec `porteurs`) n'est bloquée que par `enchante` : sinon le Conciliabule, dont tous les porteurs sont maudits, ne se jouerait jamais.
 - **Cartes fantômes** (option de préparation) : les cartes activées mais non distribuées sont appelées la nuit, avec seulement « Passer », pour que personne ne sache lesquelles sont réellement en jeu.
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`.
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`.
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -207,6 +209,8 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Priorité | Carte | Nuits |
 | --- | --- | --- |
 | 10 | Fée | à partir de la 2 |
+| 12 | Conciliabule des maudits (étape) | toutes, s'il y a au moins un maudit vivant ; minuteur de 60 s |
+| 15 | Pleureuse | à partir de la 2 |
 | 20 | Arlequin | 1, 3, 5… |
 | 30 | Loup amoureux | 1 (se lier) |
 | 40 | Loup succube | toutes ; choix seulement sans compagnon vivant |
@@ -214,6 +218,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 60 | Réunion des amoureux (étape) | toutes, s'il y a au moins 2 amoureux vivants hors Loup succube ; minuteur de 60 s |
 | 70 | Prêtre | 1 (pur ou impur) |
 | 80 | Voyante | toutes |
+| 85 | Loup voyante | toutes |
 | 90 | Bâtisseur | toutes |
 | 100 | Salvateur | toutes |
 | 110 | Loup savant | 1 |
@@ -232,6 +237,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup-Garou | loups | Dévore une victime chaque nuit. Ne chasse pas si tous les loups sont `blesse`. |
 | Villageois | village | Aucun pouvoir. |
 | Voyante | village | Voit la carte d'un joueur, ou une des 3 cartes hors jeu du Loup savant. |
+| Loup voyante | loups | Comme la Voyante (copie indépendante de `voyante.ts`), et vote avec les loups. |
 | Sorcière | village | Une potion de vie, une potion de mort. |
 | Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
 | Chasseur | village | En mourant, abat un joueur (décision urgente). |
@@ -251,6 +257,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Paysan | village | Voté : assomme 2 joueurs (`enchante` la nuit suivante). Dévoré : tous les loups sont `blesse` et ne chassent pas la nuit suivante. |
 | Prêtre | village | Nuit 1 : choisit en secret d'être **pur** (gagne avec le village) ou **impur** (gagne avec les loups, tag `impur`). Il compte toujours comme un villageois pour la victoire. Sans choix (« Passer »), il est pur. Mort, il continue de faire semblant de jouer et peut chuchoter au maire pendant le débat, pour l'aider ou pour le tromper. |
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
+| Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |
 
 > [!note] Le Fou a changé de règle
 > L'idée d'origine (désigner un joueur A puis un joueur B, et faire l'action du rôle de A sur B) **n'est pas implémentée**. Le Fou actuel est celui décrit dans le tableau.
@@ -274,7 +281,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
   - `partie.ts` connaît `loup-savant` (tirage des cartes au lancement) ;
   - `recevoir.ts` connaît la décision de `marchand` ;
   - `PartieVue.tsx` connaît `pretre`.
-- **Code copié volontairement** : `contaminerLeMaire` (Rat et Rat-garou). Une correction est à reporter dans les deux fichiers.
+- **Code copié volontairement** : `contaminerLeMaire` (Rat et Rat-garou), la logique « sonder » (Voyante et Loup voyante). Une correction est à reporter dans les deux fichiers.
 - Le `useEffect([cle])` de `PartieVue` pourrait être remplacé par la prop `key` sur un sous-composant (amélioration possible).
 - `distribution.ts` importe le registre des rôles pour connaître leur camp.
 

@@ -34,6 +34,15 @@ export interface DecisionCourante {
   urgente: boolean; // décision en attente (ex. le Chasseur qui meurt)
 }
 
+/**
+ * Tags qui empêchent un joueur de faire son rôle, avec le libellé affiché au meneur.
+ * RÉUTILISABLE : une nouvelle cause de blocage = une ligne ici, rien dans les rôles.
+ */
+const TAGS_BLOQUANTS: Record<string, string> = {
+  enchante: "enchanté, il garde les yeux fermés",
+  maudit: "maudit par la pleureuse, il ne fait pas son rôle"
+};
+
 export function nbCibles(type: TypeCible = "aucune"): number {
   if (type === "aucune") return 0;
   if (type === "deux_joueurs") return 2;
@@ -173,13 +182,23 @@ export class Partie {
   }
 
   mettreEnAttente(alias: string, moi: Joueur): void {
-    // Un joueur enchanté ne fait rien de la nuit : aucune décision, aucune réaction
+    // Un joueur enchanté ou maudit ne fait pas son rôle : aucune décision, aucune réaction
     // (le Chasseur tué ne tire pas, le Rat mordu ne choisit pas). Valable pour tous les rôles.
-    if (this.aTag(moi, "enchante")) {
-      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est enchanté : ${this.titre(alias)} ne se réveille pas.` });
+    const raison = this.raisonDuBlocage(moi, TAGS_BLOQUANTS);
+    if (raison) {
+      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est ${raison} : ${this.titre(alias)} ne se réveille pas.` });
       return;
     }
     this.attente.push({ alias, joueur: moi.id });
+  }
+
+  /**
+   * Pourquoi j ne peut pas jouer : le libellé du premier tag bloquant qu'il porte, ou undefined.
+   * @param tags les tags qui comptent ici (une étape n'est bloquée que par l'enchantement).
+   */
+  private raisonDuBlocage(j: Joueur, tags: Record<string, string>): string | undefined {
+    const tagBloquant = Object.keys(tags).find(tag => this.aTag(j, tag));
+    return tagBloquant ? tags[tagBloquant] : undefined;
   }
 
   /**
@@ -206,6 +225,7 @@ export class Partie {
       case "aucune": return [];
       case "un_autre": return this.vivants().filter(j => j.id !== moi?.id);
       case "un_mordu": return this.joueursAvecTag("mordu");
+      case "n_importe_qui": return this.joueurs; // morts compris (Conciliabule)
       default: return this.vivants();
     }
   }
@@ -238,10 +258,16 @@ export class Partie {
     }
 
     // POURQUOI ici et pas dans chaque rôle : tous les rôles, présents et futurs, se comportent
-    // pareil sous l'enchantement de la Fée, sans une ligne de code de leur côté.
-    const tousEnchantes = porteurs.every(j => this.aTag(j, "enchante"));
-    const decision = tousEnchantes
-      ? this.decisionSansAction(alias, "enchanté, il garde les yeux fermés")
+    // pareil sous l'enchantement de la Fée ou la malédiction de la Pleureuse, sans une ligne de
+    // code de leur côté. Une carte de groupe n'est bloquée que si TOUS ses porteurs le sont.
+    // ATTENTION : une étape (Conciliabule, Réunion) n'est pas un rôle, la malédiction ne la bloque
+    // pas ; sinon le Conciliabule, dont tous les porteurs sont maudits, ne se jouerait jamais.
+    const estUneEtape = this.role(alias).porteurs !== undefined;
+    const tags = estUneEtape ? { enchante: TAGS_BLOQUANTS.enchante } : TAGS_BLOQUANTS;
+    const raisons = porteurs.map(j => this.raisonDuBlocage(j, tags));
+    const tousBloques = raisons.every(raison => raison !== undefined);
+    const decision = tousBloques
+      ? this.decisionSansAction(alias, raisons[0]!)
       : this.role(alias).decision!(this, moi);
     return { alias, moi, porteurs, decision, urgente: false };
   }

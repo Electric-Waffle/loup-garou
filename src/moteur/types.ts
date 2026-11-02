@@ -34,7 +34,8 @@ export type TypeCible =
   | "un_joueur"     // n'importe quel joueur vivant
   | "un_autre"      // un joueur vivant autre que soi
   | "un_mordu"      // un joueur vivant portant le tag "mordu"
-  | "deux_joueurs"; // deux joueurs vivants distincts
+  | "deux_joueurs"   // deux joueurs vivants distincts
+  | "n_importe_qui"; // n'importe quel joueur, MORTS COMPRIS (Conciliabule)
 
 export interface OptionChoix {
   id: string;

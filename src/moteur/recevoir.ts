@@ -51,6 +51,13 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
       return r.consommer(`devient ${partie.titre(nouveauRole)}`);
     }
 
+    // Levée de la malédiction de la Pleureuse (même principe que "sauve" pour "mordu") :
+    // le tag de levée retire l'état, puis disparaît lui-même.
+    case "delivre":
+      if (!partie.aTag(joueur, "maudit")) return r.bloquer("n'était pas maudit");
+      partie.retirerTag(joueur, "maudit", profondeur + 1);
+      return r.consommer("malédiction levée");
+
     case "protege":
       if (partie.aTag(joueur, "protege_hier")) return r.bloquer("déjà protégé la nuit dernière");
       return r.accepter({ expire: "aube" });
