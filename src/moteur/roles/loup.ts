@@ -8,7 +8,7 @@ const loup: Role = {
   image: "🐺",
   camp: "loups",
   description: "Chaque nuit, les loups désignent ensemble une victime.",
-  priorite: 20,
+  priorite: 120,
   appelNuit: true,
 
   decision: (partie) => {

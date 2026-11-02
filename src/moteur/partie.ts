@@ -120,6 +120,12 @@ export class Partie {
    * POURQUOI pas joueursAvecRole : un Loup succube seul survivant doit encore pouvoir dévorer.
    */
   porteursDe(alias: string): Joueur[] {
+    // Carte sans porteur fixe (Réunion des amoureux) : elle calcule elle-même qui se réveille.
+    // ATTENTION : ROLES[alias] et pas this.role(alias), car alias peut être une source qui
+    // n'est pas une carte ("vote", l'id d'un joueur…), voir transmettreLOr dans recevoir.ts.
+    const calculerLesPorteurs = ROLES[alias]?.porteurs;
+    if (calculerLesPorteurs) return calculerLesPorteurs(this);
+
     return this.vivants().filter(j => {
       const aCeRole = j.role === alias;
       const rejointCetteCarte = this.roleDe(j).rejoint?.includes(alias) ?? false;
@@ -136,9 +142,15 @@ export class Partie {
     if (profondeur !== undefined) this.log({ type: "retire", joueur: j.id, tag, profondeur });
   }
 
-  partenaireDe(j: Joueur): Joueur | undefined {
-    const id = j.tags.find(t => t.type === "amoureux")?.partenaire;
-    return typeof id === "string" ? this.joueur(id) : undefined;
+  /**
+   * Les joueurs (morts ou vivants) que la mort de j entraîne par chagrin : meta.partenaires de son tag "amoureux".
+   * Réseau : Cupidon, le Loup amoureux et le Loup succube peuvent tous lier le même joueur,
+   * la liste s'allonge (voir recevoir.ts, case "amoureux"). Liste vide = lien à sens unique.
+   */
+  partenairesDe(j: Joueur): Joueur[] {
+    const ids = j.tags.find(t => t.type === "amoureux")?.partenaires;
+    if (!Array.isArray(ids)) return [];
+    return ids.map(id => this.joueur(id));
   }
 
   /** Le joueur auquel l'Arlequin l'a lié cette nuit (tag "lie"), mort ou vivant. */
@@ -303,10 +315,18 @@ export class Partie {
     if (this.cartesFantomes) {
       for (const alias of this.cartesHorsJeu) aliasPresents.add(alias);
     }
+    // Cartes à porteurs calculés (Réunion des amoureux) : toujours dans la file.
+    // POURQUOI pas seulement si elles ont des porteurs maintenant : la nuit 1, personne n'est
+    // encore amoureux au début de la nuit. Leurs porteurs sont relus à leur tour de jouer,
+    // et decisionCourante() saute la carte si la liste est vide.
+    for (const role of Object.values(ROLES)) {
+      if (role.porteurs) aliasPresents.add(role.alias);
+    }
     const presents = [...aliasPresents].map(alias => this.role(alias));
     this.file = presents
       .filter(r => r.appelNuit && r.decision && peutAgir(r, this.tour))
-      .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99))
+      // Sans priorité : en fin de nuit, après toutes les cartes numérotées.
+      .sort((a, b) => (a.priorite ?? 999) - (b.priorite ?? 999))
       .map(r => r.alias);
   }
 

@@ -5,13 +5,13 @@ import type { Role } from "../types";
  *
  * Déroulé :
  *   1. Nuit 1 : decision() propose « Se lier » → agir() DONNE "amoureux" à lui et à sa cible,
- *      chacun avec l'id de l'autre en meta.partenaire : le chagrin marche dans les deux sens
+ *      chacun avec l'id de l'autre dans meta.partenaires : le chagrin marche dans les deux sens
  *      (règle générale de recevoir.ts, case "mort").
  *   2. Son partenaire est prévenu par une info privée : il sait qu'il aime un loup.
  *   3. Chaque nuit : il se réveille avec les loups et vote avec eux (rejoint: ["loup"]).
  *
- * POURQUOI priorité 0 : son lien passe AVANT celui de Cupidon (1). Si Cupidon vise ensuite
- * un joueur déjà amoureux, c'est cupidon.ts qui renonce à son lien.
+ * Si sa cible est ensuite liée par Cupidon, les liens s'additionnent (réseau, recevoir.ts),
+ * et la Réunion des amoureux leur permet de s'en rendre compte.
  */
 const loupAmoureux: Role = {
   alias: "loup-amoureux",
@@ -19,7 +19,7 @@ const loupAmoureux: Role = {
   image: "💞",
   camp: "loups",
   description: "Un loup qui, la première nuit, se lie à un joueur. Si l'un meurt, l'autre meurt de chagrin.",
-  priorite: 0,
+  priorite: 30,
   appelNuit: true,
   tours: { de: 1, a: 1 },
   rejoint: ["loup"],
@@ -33,8 +33,8 @@ const loupAmoureux: Role = {
     const aime = choix.cibles[0];
     return {
       donner: [
-        { tag: "amoureux", a: moi.id, meta: { partenaire: aime } },
-        { tag: "amoureux", a: aime, meta: { partenaire: moi.id } }
+        { tag: "amoureux", a: moi.id, meta: { partenaires: [aime] } },
+        { tag: "amoureux", a: aime, meta: { partenaires: [moi.id] } }
       ],
       infos: [
         { pour: aime, texte: `Tu es amoureux de ${moi.nom}, le ${partie.titre(moi.role)}. Si l'un meurt, l'autre aussi.` }

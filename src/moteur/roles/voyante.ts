@@ -11,7 +11,7 @@ const voyante: Role = {
   image: "🔮",
   camp: "village",
   description: "Chaque nuit, elle découvre la carte d'un joueur, ou une des cartes hors jeu connues du Loup savant.",
-  priorite: 5,
+  priorite: 80,
   appelNuit: true,
 
   decision(partie) {

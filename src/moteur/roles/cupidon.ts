@@ -22,7 +22,7 @@ const cupidon: Role = {
   image: "💘",
   camp: "village",
   description: "La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
-  priorite: 1,
+  priorite: 50,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5… ; « a: 3 » coupe après la 3.
   // decision() n'a pas besoin de changer : elle distingue seulement « nuit du lien » et « autre nuit ».
@@ -51,23 +51,18 @@ const cupidon: Role = {
 };
 
 /**
- * Nuit 1 : chacun reçoit "amoureux", avec l'id de son partenaire en métadonnée.
+ * Nuit 1 : chacun reçoit "amoureux", avec l'id de son partenaire dans meta.partenaires.
  *
- * Le Loup amoureux et le Loup succube se lient AVANT Cupidon (priorités 0 et 0.5). Si l'une des
- * cibles est déjà amoureuse, le lien casse : rien n'est donné, et Cupidon ne l'apprend qu'à la
- * nuit 3 (un rôle inattendu parmi les amoureux) ou à une mort sans chagrin.
- * POURQUOI vérifier ici et pas bloquer dans recevoir.ts : on donne DEUX tags. Si le second
- * était bloqué après que le premier a été accepté, il resterait un demi-lien.
+ * Une cible déjà amoureuse (Loup amoureux, Loup succube, appelés avant) n'empêche rien :
+ * recevoir.ts AJOUTE le nouveau partenaire à sa liste. Cupidon crée ainsi un réseau, et la
+ * mort d'un seul de ses amoureux peut emporter tout le monde : c'est une cible à abattre.
  */
 function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
   const [a, b] = cibles;
-  const dejaAmoureux = cibles.some(id => partie.aTag(partie.joueur(id), "amoureux"));
-  if (dejaAmoureux) return {};
-
   return {
     donner: [
-      { tag: "amoureux", a, meta: { partenaire: b } },
-      { tag: "amoureux", a: b, meta: { partenaire: a } }
+      { tag: "amoureux", a, meta: { partenaires: [b] } },
+      { tag: "amoureux", a: b, meta: { partenaires: [a] } }
     ],
     infos: [
       { pour: a, texte: `Tu es amoureux de ${partie.joueur(b).nom}.` },
@@ -83,7 +78,7 @@ function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
 function revelerLesAmoureux(partie: Partie, moi: Joueur): ResultatAction {
   // Tous les amoureux VIVANTS, quel que soit le lien : ceux de Cupidon, le Loup amoureux et son
   // partenaire, le Loup succube et son compagnon. C'est voulu : un rôle de loup dans la liste
-  // apprend à Cupidon que son propre lien a cassé.
+  // apprend à Cupidon que le réseau dépasse son propre couple.
   // ATTENTION : un Loup succube dont le compagnon est mort garde son tag, il est révélé seul.
   const amoureux = partie.joueursAvecTag("amoureux");
 

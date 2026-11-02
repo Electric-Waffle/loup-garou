@@ -161,16 +161,24 @@ const template: Role = {
 
   /**
    * Ordre d'appel la nuit : le plus petit joue en premier.
+   * Toujours une dizaine (10, 20, 30…) : un nouveau rôle s'insère entre deux avec un nombre
+   * simple (ex. 125), sans décimales. Absente : la carte joue en fin de nuit.
    * Valeurs actuelles, pour situer le nouveau rôle :
-   *     1  Cupidon
-   *     5  Voyante
-   *    10  Salvateur   (doit protéger AVANT que les loups mordent)
-   *    20  Loup-Garou
-   *    25  Corbeau     (si ajouté)
-   *    30  Sorcière    (doit voir les mordus, donc APRÈS les loups)
+   *    10  Fée                     (avant toute carte qu'elle pourrait bloquer)
+   *    20  Arlequin
+   *    30  Loup amoureux, 40 Loup succube, 50 Cupidon   (les liens)
+   *    60  Réunion des amoureux    (après tous les liens)
+   *    70  Prêtre
+   *    80  Voyante
+   *    90  Bâtisseur
+   *   100  Salvateur               (doit protéger AVANT que les loups mordent)
+   *   110  Loup savant
+   *   120  Loup-Garou
+   *   125  Corbeau                 (si ajouté)
+   *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)
    * Ignoré si appelNuit vaut false.
    */
-  priorite: 50,
+  priorite: 140,
 
   /**
    * Champ optionnel : à quelles nuits le rôle peut agir. Supprimer la ligne = toutes les nuits.
@@ -188,6 +196,14 @@ const template: Role = {
    * Lu par partie.porteursDe() et commencerNuit().
    */
   // rejoint: ["loup"],
+
+  /**
+   * Champ optionnel, pour une ÉTAPE de la nuit qu'aucun joueur ne reçoit (ex. Réunion des amoureux) :
+   * renvoie les joueurs qui se réveillent pour elle, recalculés à son tour de jouer (vide = sautée).
+   * Une telle carte entre dans la file de chaque nuit. L'enregistrer dans ETAPES (roles/index.ts),
+   * pas dans LISTE_ROLES, pour qu'elle n'apparaisse ni dans Options ni dans la distribution.
+   */
+  // porteurs: (partie) => partie.joueursAvecTag("amoureux"),
 
   /* ===================================================================================
    *  MÉMOIRE DU RÔLE
@@ -396,7 +412,7 @@ export default template;
  *    partie.porteursDe(alias)            idem, plus ceux dont le rôle rejoint cette carte
  *    partie.joueursAvecTag(tag)          les joueurs VIVANTS qui portent ce tag
  *    partie.aTag(joueur, tag)            vrai si le joueur porte ce tag
- *    partie.partenaireDe(joueur)         son amoureux (tag "amoureux"), ou undefined
+ *    partie.partenairesDe(joueur)        ses amoureux (tag "amoureux", réseau), liste vide sinon
  *    partie.roleDe(joueur)               l'objet Role de sa carte (pour lire son camp…)
  *    partie.titre(alias) / image(alias)  titre et image, en tenant compte des Options
  *    partie.ciblesPossibles(type, moi)   les joueurs sélectionnables pour un type de cible (restreints si moi est lié par l'Arlequin)
@@ -417,7 +433,7 @@ export default template;
  *    protege_hier  posé à l'aube si le Salvateur avait protégé ; bloque "protege" une nuit
  *    sauve         donné par la Sorcière ; retire "mordu" puis est consommé
  *    empoisonne    donné par la Sorcière ; devient "mort" (cause "poison") à l'aube
- *    amoureux      Cupidon, Loup amoureux, Loup succube ; la mort d'un porteur tue meta.partenaire (absent = sens unique)
+ *    amoureux      Cupidon, Loup amoureux, Loup succube ; meta.partenaires (liste, réseau) meurent de chagrin avec le porteur ; liste absente = sens unique
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)

@@ -45,6 +45,7 @@ export interface OptionChoix {
 export interface Decision {
   message?: string;
   choix: OptionChoix[];
+  minuteur?: number; // en secondes : l'interface affiche un compte à rebours (Réunion des amoureux)
 }
 
 export interface ChoixFait {
@@ -101,6 +102,12 @@ export interface Role {
   appelNuit?: boolean;  // le meneur appelle-t-il cette carte la nuit ?
   tours?: Tours;        // absent = toutes les nuits
   rejoint?: string[];   // cartes de groupe que ce rôle joue aussi (ex. ["loup"] : il vote avec les loups)
+
+  /**
+   * Carte sans porteur fixe : renvoie les joueurs qui se réveillent pour elle (vide = sautée).
+   * Lu par porteursDe() ; une telle carte entre dans la file de CHAQUE nuit (commencerNuit).
+   */
+  porteurs?(partie: Partie): Joueur[];
 
   /** État initial du rôle, stocké dans joueur.memoire */
   init?(): Record<string, any>;

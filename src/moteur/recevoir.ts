@@ -81,17 +81,37 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
 
       const issue = r.accepter();
       if (partie.aTag(joueur, "or")) transmettreLOr(partie, joueur, meta, profondeur);
-      // Chaîne des amoureux : la mort de l'un entraîne celle de l'autre.
-      const partenaire = partie.partenaireDe(joueur);
-      if (partenaire?.vivant) {
+      // Chaîne des amoureux : la mort de l'un entraîne celle de TOUS ses partenaires.
+      // FLUX : en réseau, c'est une cascade (A → B → C). Elle s'arrête d'elle-même :
+      // un partenaire déjà mort est ignoré ici, et "déjà mort" bloque plus haut.
+      for (const partenaire of partie.partenairesDe(joueur)) {
+        if (!partenaire.vivant) continue;
         donnerTag(partie, partenaire, "mort", { cause: "chagrin", source: joueur.id }, profondeur + 1);
       }
       return issue;
     }
 
+    // Réseau d'amoureux : un nouveau lien S'AJOUTE aux anciens au lieu de les remplacer.
+    // POURQUOI ici : sans cette règle, accepter() retire l'ancien tag (pas de doublon) et
+    // le premier lien serait perdu. Valable pour toutes les cartes qui lient, présentes et futures.
+    // CONCEPT : un Set retire les doublons (un même partenaire lié deux fois).
+    case "amoureux": {
+      const ancienTag = joueur.tags.find(t => t.type === "amoureux");
+      const anciens = idsDe(ancienTag?.partenaires);
+      const nouveaux = idsDe(meta.partenaires);
+      const partenaires = [...new Set([...anciens, ...nouveaux])];
+      return r.accepter({ partenaires });
+    }
+
     default:
       return r.accepter();
   }
+}
+
+/** Une meta est « unknown » : on ne garde la valeur que si c'est bien une liste d'ids. */
+function idsDe(valeur: unknown): string[] {
+  if (!Array.isArray(valeur)) return [];
+  return valeur.filter((id): id is string => typeof id === "string");
 }
 
 /**

@@ -7,18 +7,18 @@ import type { Joueur, Role } from "../types";
  * Déroulé :
  *   1. Chaque nuit où il n'a pas de compagnon vivant (la nuit 1, puis après la mort du compagnon),
  *      decision() propose « Se lier » → agir() DONNE :
- *        - à lui-même : "amoureux" avec meta.partenaire = le compagnon ;
+ *        - à lui-même : "amoureux" avec le compagnon dans meta.partenaires ;
  *        - au compagnon : "amoureux" SANS partenaire.
  *      Les autres nuits, sa carte n'offre que « Passer ».
- *   2. Le chagrin (recevoir.ts, case "mort") suit le partenaire du MOURANT :
+ *   2. Le chagrin (recevoir.ts, case "mort") suit les partenaires du MOURANT :
  *      le Succube meurt → son compagnon meurt ; le compagnon meurt → personne ne le suit.
  *   3. Chaque nuit : il se réveille avec les loups et vote avec eux (rejoint: ["loup"]).
+ *   4. Il ne vient pas à la Réunion des amoureux : son compagnon, si.
  *
  * PATTERN : un tag existant, une règle existante, un sens unique obtenu par une meta absente.
- * POURQUOI priorité 0.5 : après le Loup amoureux (0), avant Cupidon (1). Son lien de la nuit 1
- * passe donc lui aussi avant celui de Cupidon.
- * ATTENTION : un compagnon déjà amoureux fait échouer le lien, sans rien dire au Succube.
- * Il le comprendra la nuit suivante, quand le meneur le réveillera de nouveau pour choisir.
+ * POURQUOI le compagnon en memoire et pas lu dans le tag : en réseau, le tag "amoureux" du
+ * Succube peut aussi contenir un partenaire donné par Cupidon. Seule la memoire sait lequel
+ * est SON compagnon, celui dont la mort lui permet d'en choisir un autre.
  */
 const loupSuccube: Role = {
   alias: "loup-succube",
@@ -26,9 +26,12 @@ const loupSuccube: Role = {
   image: "💋",
   camp: "loups",
   description: "Un loup qui se lie à un compagnon. S'il meurt, son compagnon meurt aussi ; si le compagnon meurt, il en choisit un autre la nuit suivante.",
-  priorite: 0.5,
+  // POURQUOI 40 : après le Loup amoureux (30), avant Cupidon (50) et la Réunion des amoureux (60).
+  priorite: 40,
   appelNuit: true,
   rejoint: ["loup"],
+
+  init: () => ({ compagnon: null }),
 
   decision(partie, moi) {
     const titre = partie.titre(moi.role);
@@ -43,11 +46,11 @@ const loupSuccube: Role = {
 
   agir(choix, partie, moi) {
     const compagnon = partie.joueur(choix.cibles[0]);
-    if (partie.aTag(compagnon, "amoureux")) return;
+    moi.memoire.compagnon = compagnon.id;
 
     return {
       donner: [
-        { tag: "amoureux", a: moi.id, meta: { partenaire: compagnon.id } },
+        { tag: "amoureux", a: moi.id, meta: { partenaires: [compagnon.id] } },
         { tag: "amoureux", a: compagnon.id }
       ],
       infos: [
@@ -59,8 +62,10 @@ const loupSuccube: Role = {
 
 /** Le compagnon actuel, s'il est encore en vie. */
 function compagnonVivant(partie: Partie, moi: Joueur): Joueur | undefined {
-  const compagnon = partie.partenaireDe(moi);
-  return compagnon?.vivant ? compagnon : undefined;
+  const id = moi.memoire.compagnon;
+  if (typeof id !== "string") return undefined;
+  const compagnon = partie.joueur(id);
+  return compagnon.vivant ? compagnon : undefined;
 }
 
 export default loupSuccube;

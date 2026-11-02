@@ -4,7 +4,7 @@ import type { Role } from "../types";
  * FÉE : à partir de la nuit 2, elle enchante un joueur, qui ne fait rien de la nuit.
  *
  * Déroulé :
- *   1. Elle est appelée la première (priorité -2), avant toute carte qu'elle pourrait bloquer.
+ *   1. Elle est appelée la première (priorité 10), avant toute carte qu'elle pourrait bloquer.
  *   2. Elle DONNE "enchante", qui expire à la toute fin de l'aube.
  *   3. Le MOTEUR fait le reste, pour tous les rôles :
  *      - decisionCourante() : une carte dont tous les porteurs sont enchantés n'offre que « Passer » ;
@@ -19,7 +19,7 @@ const fee: Role = {
   image: "🧚",
   camp: "village",
   description: "À partir de la 2e nuit, elle enchante un joueur : il ne peut rien faire de la nuit.",
-  priorite: -2,
+  priorite: 10,
   appelNuit: true,
   tours: { de: 2 },
 

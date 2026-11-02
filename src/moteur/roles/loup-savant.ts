@@ -15,8 +15,8 @@ const loupSavant: Role = {
   image: "📚",
   camp: "loups",
   description: "Un loup qui, la première nuit, découvre 3 cartes activées que personne n'a reçues.",
-  // POURQUOI 19 : juste avant le tour des loups (20), pour qu'il sache avant de voter.
-  priorite: 19,
+  // POURQUOI 110 : juste avant le tour des loups (120), pour qu'il sache avant de voter.
+  priorite: 110,
   appelNuit: true,
   tours: { de: 1, a: 1 },
   rejoint: ["loup"],

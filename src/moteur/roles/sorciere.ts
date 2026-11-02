@@ -7,7 +7,7 @@ const sorciere: Role = {
   image: "🧪",
   camp: "village",
   description: "Une potion de vie et une potion de mort, chacune utilisable une fois.",
-  priorite: 30,
+  priorite: 130,
   appelNuit: true,
 
   init: () => ({ potionVie: true, potionMort: true }),

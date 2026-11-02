@@ -109,7 +109,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   - Décisions : `decisionCourante()`, `jouer(choix)`, `passer()`.
   - Phases : `leverLeJour()`, `ouvrirEvenement()`, `suiteDeLEvenement()`, `elire(id)`, `ouvrirDebat()`, `ouvrirVote()`, `voter(id | null)`, `nuitSuivante()`.
   - Lecture : `morts()`, `infosPubliques()`, `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
-  - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenaireDe()` (amoureux), `partenaireLie()` (Arlequin).
+  - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenairesDe()` (tous les amoureux d'un joueur, réseau), `partenaireLie()` (Arlequin).
   - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
   - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté), `aTag()`, `retirerTag()`, `auHasard()`.
   - Le hasard est injectable via l'option `aleatoire`.
@@ -144,6 +144,8 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | `recevoir(tag, meta, r, partie, moi)` | AVANT qu'un tag soit posé sur lui | une réponse, ou rien | Ancien |
 | `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
 | `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
+
+Champ **`porteurs(partie)`** : pour une **étape** de la nuit qu'aucun joueur ne reçoit (Réunion des amoureux). Elle calcule qui se réveille, entre dans la file de chaque nuit et est sautée si la liste est vide. Rangée dans `ETAPES` (`roles/index.ts`) : présente dans `ROLES`, absente de `LISTE_ROLES`, donc ni dans Options ni dans la distribution.
 
 Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup amoureux, Loup succube, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
 
@@ -200,19 +202,23 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 7. Écrire un test dans `scenario.test.ts`.
 
 ### Ordre d'appel la nuit (`priorite`)
+Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombre simple (ex. 125), jamais de décimales. Sans priorité, une carte joue en fin de nuit (999).
+
 | Priorité | Carte | Nuits |
 | --- | --- | --- |
-| -2 | Fée | à partir de la 2 |
-| -1 | Arlequin | 1, 3, 5… |
-| 0 | Loup amoureux | 1 (se lier) |
-| 0.5 | Loup succube | toutes ; choix seulement sans compagnon vivant |
-| 1 | Cupidon | 1 (lier) et 3 (voir) |
-| 3 | Prêtre | 1 (pur ou impur) |
-| 5 | Voyante, Bâtisseur | toutes |
-| 10 | Salvateur | toutes |
-| 19 | Loup savant | 1 |
-| 20 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
-| 30 | Sorcière | toutes |
+| 10 | Fée | à partir de la 2 |
+| 20 | Arlequin | 1, 3, 5… |
+| 30 | Loup amoureux | 1 (se lier) |
+| 40 | Loup succube | toutes ; choix seulement sans compagnon vivant |
+| 50 | Cupidon | 1 (lier) et 3 (voir) |
+| 60 | Réunion des amoureux (étape) | toutes, s'il y a au moins 2 amoureux vivants hors Loup succube ; minuteur de 60 s |
+| 70 | Prêtre | 1 (pur ou impur) |
+| 80 | Voyante | toutes |
+| 90 | Bâtisseur | toutes |
+| 100 | Salvateur | toutes |
+| 110 | Loup savant | 1 |
+| 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
+| 130 | Sorcière | toutes |
 
 **L'état d'un joueur va dans `joueur.memoire`** (créé par `init()`), **jamais dans l'objet rôle**, qui est partagé par tous les joueurs ayant ce rôle.
 
@@ -229,9 +235,9 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 | Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
 | Chasseur | village | En mourant, abat un joueur (décision urgente). |
 | Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). |
-| Cupidon | village | Nuit 1 : lie deux amoureux, sauf si l'un est déjà amoureux (le lien casse sans qu'il le sache). Nuit 3 : voit les rôles de tous les amoureux vivants. |
+| Cupidon | village | Nuit 1 : lie deux amoureux, même déjà liés à quelqu'un d'autre (réseau). Nuit 3 : voit les rôles de tous les amoureux vivants. |
 | Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Vote avec les loups. |
-| Loup succube | loups | Se lie à un compagnon à sens unique : `amoureux` avec `partenaire` pour lui, sans `partenaire` pour le compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante. Vote avec les loups. |
+| Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Vote avec les loups. Ne vient pas à la Réunion des amoureux. |
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou. Éliminé par le vote, il contamine le maire. |
@@ -273,7 +279,8 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 ---
 
 ## 8. Questions de règles encore ouvertes
-- Un joueur n'est jamais lié deux fois : Cupidon et le Loup succube renoncent à leur lien si une cible a déjà le tag `amoureux`. Le Loup amoureux, appelé en premier, n'a pas ce test.
+- **Réseau d'amoureux** : un joueur peut être lié par plusieurs cartes. `recevoir.ts` (case `"amoureux"`) ajoute le nouveau partenaire à `meta.partenaires` au lieu de remplacer le tag, et la mort d'un amoureux emporte tous ses partenaires, en cascade. La cascade s'arrête sur les morts ; la limite `PROFONDEUR_MAX` (5) suffit tant qu'il n'y a que trois cartes de lien.
+- **Réunion des amoureux** : chaque nuit (priorité 60), tous les amoureux vivants sauf le Loup succube se réveillent 60 secondes pour se reconnaître et comploter, s'ils sont au moins 2.
 - Le meneur choisit selon le nombre de joueurs quelles cartes de lien activer : trois liens dans une petite partie peuvent donner la majorité aux amoureux dès la première aube.
 - Le Fou : faut-il un jour revenir à l'idée d'origine (l'action de A sur B) ?
 - Conditions de victoire des futurs rôles solitaires.

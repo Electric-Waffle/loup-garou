@@ -4,7 +4,7 @@ import type { Role } from "../types";
  * ARLEQUIN : la nuit 1, puis une nuit sur deux, il lie deux joueurs jusqu'à l'aube.
  *
  * Déroulé :
- *   1. Appelé juste après la Fée (priorité -1) et avant tous les autres.
+ *   1. Appelé juste après la Fée (priorité 20) et avant tous les autres.
  *   2. Il DONNE "lie" aux deux joueurs, chacun avec l'id de son partenaire, expirant à l'aube.
  *   3. Le MOTEUR applique la règle : partie.ciblesPossibles() ne propose à un joueur lié que
  *      lui-même et son partenaire, quand il joue seul sa carte. Pour les loups, le meneur décide de tête.
@@ -18,7 +18,7 @@ const arlequin: Role = {
   image: "🎭",
   camp: "village",
   description: "La 1re nuit, puis une nuit sur deux, il lie deux joueurs : ils ne peuvent agir que sur eux-mêmes ou sur l'autre.",
-  priorite: -1,
+  priorite: 20,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5…
   tours: { de: 1, chaque: 2 },

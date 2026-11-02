@@ -18,6 +18,7 @@ export const TABLE = [
 export function nuitUn(): Partie {
   const p = new Partie(TABLE, { aleatoire: () => 0 });
   p.jouer({ id: "lier",     cibles: ["emma", "hugo"] }); // Cupidon
+  p.passer();                                            // Réunion des amoureux (60 s)
   p.jouer({ id: "sonder",   cibles: ["bob"] });          // Voyante
   p.jouer({ id: "proteger", cibles: ["david"] });        // Salvateur
   p.jouer({ id: "devorer",  cibles: ["david"] });        // Loup
@@ -32,6 +33,7 @@ export function nuitUn(): Partie {
 }
 
 export function nuitDeux(p: Partie): void {
+  p.passer();                                            // Réunion des amoureux (60 s)
   p.jouer({ id: "sonder",   cibles: ["chloe"] });        // Voyante
   p.jouer({ id: "proteger", cibles: ["david"] });        // Salvateur (refusé : protégé hier)
   p.jouer({ id: "devorer",  cibles: ["emma"] });         // Loup

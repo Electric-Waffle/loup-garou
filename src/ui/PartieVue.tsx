@@ -396,6 +396,13 @@ export function PartieVue({
 
             {courante.decision.message && <p>{courante.decision.message}</p>}
 
+            {/* Compte à rebours demandé par la carte (Réunion des amoureux).
+                POURQUOI key : une nouvelle réunion la nuit suivante doit repartir à zéro ; sans
+                key, React garderait le même Minuteur, avec son temps déjà écoulé. */}
+            {courante.decision.minuteur !== undefined && (
+              <Minuteur key={`${courante.alias}-${partie.tour}`} minutes={courante.decision.minuteur / 60} />
+            )}
+
             {/* Les options proposées par role.decision(). */}
             <div className="actions">
               {courante.decision.choix.map(optionProposee => {

@@ -33,7 +33,7 @@ Ce cas fait passer une partie par **tous les mécanismes du moteur** en une seul
 
 ## Ce qui s'est passé la nuit 1
 
-- **Cupidon** lie Emma et Hugo : chacun reçoit le tag `amoureux`, avec en métadonnée `partenaire` l'id de l'autre.
+- **Cupidon** lie Emma et Hugo : chacun reçoit le tag `amoureux`, avec en métadonnée `partenaires` la liste qui contient l'id de l'autre.
 - **Salvateur** protège David → David reçoit `protege` (expire à l'aube).
 - **Loups** attaquent David → la règle du tag `mordu` voit `protege` et **bloque**.
 - **Aube** : `protege` posé par le salvateur devient `protege_hier`. Personne ne meurt, le village n'élimine personne.
@@ -49,19 +49,20 @@ Ce cas fait passer une partie par **tous les mécanismes du moteur** en une seul
 ```ts
 this.file = presents
   .filter(r => r.appelNuit && r.decision && peutAgir(r, this.tour))
-  .sort((a, b) => (a.priorite ?? 99) - (b.priorite ?? 99))
+  .sort((a, b) => (a.priorite ?? 999) - (b.priorite ?? 999))
 ```
 
 | Rôle | `appelNuit` | `tours` | Priorité | Appelé ? |
 | --- | --- | --- | --- | --- |
-| Cupidon | oui | `{ de: 1, a: 1 }` | 1 | ❌ `peutAgir(cupidon, 2)` → `false` |
-| Voyante | oui | — | 5 | ✅ |
-| Salvateur | oui | — | 10 | ✅ |
-| Loup | oui | — | 20 | ✅ |
-| Sorcière | oui | — | 30 | ✅ |
+| Cupidon | oui | `{ de: 1, chaque: 2, a: 3 }` | 50 | ❌ `peutAgir(cupidon, 2)` → `false` |
+| Réunion des amoureux (étape) | oui | — | 60 | ✅ toujours dans la file ; Emma et Hugo sont amoureux, elle se joue (« Passer » après 60 s) |
+| Voyante | oui | — | 80 | ✅ |
+| Salvateur | oui | — | 100 | ✅ |
+| Loup | oui | — | 120 | ✅ |
+| Sorcière | oui | — | 130 | ✅ |
 | Ancien, Chasseur, Villageois | non | | | ❌ jamais appelés la nuit |
 
-File de la nuit : `["voyante", "salvateur", "loup", "sorciere"]`.
+File de la nuit : `["reunion-amoureux", "voyante", "salvateur", "loup", "sorciere"]`.
 
 Pour chaque carte, l'interface suit le même cycle :
 
@@ -154,7 +155,7 @@ const CONSEQUENCES = [
 2. `r.accepter()` :
    - Hugo reçoit `mort`, `vivant = false`, entrée `recu` au journal ;
    - puis `chasseur.reagir("mort")` → `partie.mettreEnAttente("chasseur", Hugo)`. **Le chasseur ne tire pas encore** : sa décision est mise de côté.
-3. Retour dans `case "mort"` : Hugo a un partenaire vivant (Emma) → `donnerTag(Emma, "mort", { cause: "chagrin" }, profondeur 1)` :
+3. Retour dans `case "mort"` : Hugo a une partenaire vivante (Emma, dans `partenairesDe(Hugo)`) → `donnerTag(Emma, "mort", { cause: "chagrin" }, profondeur 1)` :
    - `ancien.recevoir()` : la cause est `chagrin`, pas `mordu` → ne renvoie rien ;
    - `switch` → `case "mort"` → **accepter** : Emma meurt ;
    - son partenaire, Hugo, est déjà mort → la chaîne s'arrête.

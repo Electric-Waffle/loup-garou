@@ -26,7 +26,7 @@ Avant d'écrire du code, on répond à cinq questions. Chaque réponse indique u
 | Question | Réponse pour le Corbeau | Conséquence |
 | --- | --- | --- |
 | Le rôle est-il appelé la nuit ? | Oui, toutes les nuits | `appelNuit: true`, pas de champ `tours` |
-| À quel moment de la nuit ? | Peu importe : personne ne lit sa marque la nuit | `priorite: 25`, après les loups (20), avant la sorcière (30) |
+| À quel moment de la nuit ? | Peu importe : personne ne lit sa marque la nuit | `priorite: 125`, après les loups (120), avant la sorcière (130) |
 | Que **donne**-t-il ? | Un tag `corbeau` au joueur désigné, plus une info publique | `agir()` renvoie `donner` et `infos` |
 | Le receveur a-t-il son mot à dire ? | Non, mais le tag doit **survivre à l'aube** | un `case "corbeau"` dans `recevoir.ts` |
 | Quand l'effet disparaît-il ? | À la fin du vote, un moment qui n'existe pas encore | un nouveau moment `"fin_vote"` dans `types.ts` et `partie.ts` |
@@ -59,8 +59,8 @@ const corbeau: Role = {
 
   description: "Chaque nuit, il désigne un joueur qui aura 2 voix contre lui au vote du lendemain.",
 
-  // Appelé la nuit, après les loups (20) et avant la sorcière (30).
-  priorite: 25,
+  // Appelé la nuit, après les loups (120) et avant la sorcière (130).
+  priorite: 125,
   appelNuit: true,
 
   // Étapes 1-2 : ce que le meneur voit et les choix proposés.
@@ -216,12 +216,13 @@ Le test vérifie les trois moments clés : le tag est posé la nuit, il survit �
 test("corbeau : la marque survit à l'aube et disparaît après le vote", () => {
   // David devient Corbeau pour ce test.
   const p = new Partie(TABLE.map(j => j.id === "david" ? { ...j, role: "corbeau" } : j));
-  p.jouer({ id: "lier", cibles: ["alice", "jules"] });   // Cupidon (priorité 1)
-  p.jouer({ id: "sonder", cibles: ["bob"] });            // Voyante (5)
-  p.jouer({ id: "proteger", cibles: ["alice"] });        // Salvateur (10)
-  p.jouer({ id: "devorer", cibles: ["hugo"] });          // Loup (20)
-  p.jouer({ id: "marquer", cibles: ["bob"] });           // Corbeau (25)
-  p.jouer({ id: "rien", cibles: [] });                   // Sorcière (30)
+  p.jouer({ id: "lier", cibles: ["alice", "jules"] });   // Cupidon (priorité 50)
+  p.passer();                                            // Réunion des amoureux (60)
+  p.jouer({ id: "sonder", cibles: ["bob"] });            // Voyante (80)
+  p.jouer({ id: "proteger", cibles: ["alice"] });        // Salvateur (100)
+  p.jouer({ id: "devorer", cibles: ["hugo"] });          // Loup (120)
+  p.jouer({ id: "marquer", cibles: ["bob"] });           // Corbeau (125)
+  p.jouer({ id: "rien", cibles: [] });                   // Sorcière (130)
   p.leverLeJour();
   assert.ok(p.aTag(p.joueur("bob"), "corbeau"));         // a survécu à l'aube
 

@@ -15,7 +15,7 @@ const batisseur: Role = {
   image: "🧱",
   camp: "village",
   description: "Chaque nuit, il renforce une maison. Quand toutes les maisons des villageois vivants sont renforcées, le village gagne.",
-  priorite: 5,
+  priorite: 90,
   appelNuit: true,
 
   // "un_joueur" et pas "un_autre" : sans sa propre maison, la victoire serait impossible.

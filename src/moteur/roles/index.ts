@@ -17,6 +17,7 @@ import pretre from "./pretre";
 import rat from "./rat";
 import ratGarou from "./rat-garou";
 import salvateur from "./salvateur";
+import reunionAmoureux from "./reunion-amoureux";
 import sorciere from "./sorciere";
 import villageois from "./villageois";
 import voyante from "./voyante";
@@ -51,4 +52,11 @@ export const LISTE_ROLES: Role[] = [
   batisseur
 ];
 
-export const ROLES: Record<string, Role> = Object.fromEntries(LISTE_ROLES.map(r => [r.alias, r]));
+/**
+ * Étapes de la nuit qui se jouent comme une carte, mais qu'aucun joueur ne reçoit.
+ * Absentes de LISTE_ROLES (donc d'Options et de la distribution), présentes dans ROLES
+ * pour que le moteur les retrouve par leur alias.
+ */
+const ETAPES: Role[] = [reunionAmoureux];
+
+export const ROLES: Record<string, Role> = Object.fromEntries([...LISTE_ROLES, ...ETAPES].map(r => [r.alias, r]));
