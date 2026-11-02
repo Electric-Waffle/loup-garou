@@ -89,7 +89,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | **Rôles = objets** respectant l'interface `Role`, avec des **crochets optionnels** appelés par le moteur | Un rôle prend juste ce dont il a besoin | **Héritage** `CarteInfo` / `CarteAction` (mon idée de départ) : un rôle rentre rarement dans une seule catégorie |
 | **Moteur séparé de l'interface** (`src/moteur/` sans React, `src/ui/` sans règle de jeu) | Moteur testable sans navigateur, et déplaçable côté serveur plus tard | Logique dans les composants ; logique côté Express à chaque clic |
 | **Architecture « donner / recevoir »** avec des tags (voir §4) | Aucun rôle ne connaît les autres | Résolveur avec un `switch` par carte (approche A), règles en données (B), intercepteurs portés par les tags (C) |
-| **Chaque carte reste indépendante**, même au prix d'un peu de code copié (Cupidon / Loup succube, `contaminerLeMaire` dans Rat / Rat-garou) | Supprimer ou modifier une carte ne casse jamais l'autre | Une fonction partagée entre rôles |
+| **Chaque carte reste indépendante**, même au prix d'un peu de code copié (`contaminerLeMaire` dans Rat / Rat-garou) | Supprimer ou modifier une carte ne casse jamais l'autre | Une fonction partagée entre rôles |
 | **Les règles valables pour tous les rôles vivent dans le moteur** (enchantement, carte fantôme, lien de l'Arlequin, or) | Un nouveau rôle en profite sans une ligne de code | Les réécrire dans chaque rôle |
 | **Journal** en ajout seul ; le rapport est **recalculé** depuis le journal | Rapport, débogage, base pour un futur « annuler » | Comparer l'état avant / après ; variables dédiées |
 | **Moteur mutable + rendu forcé** (`rafraichir()`, un compteur `useReducer` dans `App.tsx`) | Moteur simple à écrire | Moteur immuable ; `useSyncExternalStore`. **Compromis assumé** : appeler `rafraichir()` après chaque méthode qui modifie la partie |
@@ -124,7 +124,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   - **L'ordre des lignes de `CONSEQUENCES` est une règle du jeu** : `mordu`, `agonisant`, `empoisonne`, `protege`, puis la peste **écrite à l'envers** (`peste_mortelle`, `peste_imminente`, `peste_active`, `peste`), pour qu'un tag posé par une ligne ne soit pas repris par les suivantes dans la même aube.
 - **`victoire.ts`**, dans l'ordre :
   1. plus aucun vivant ;
-  2. les deux derniers vivants sont amoureux ;
+  2. les amoureux (tag `amoureux`, liés entre eux ou pas, quel que soit leur camp) sont en **majorité stricte** parmi les vivants ;
   3. un rat-garou face à un seul non-loup → le village gagne ;
   4. plus de loup → le village gagne ;
   5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
@@ -145,7 +145,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
 | `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
 
-Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup succube, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
+Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup amoureux, Loup succube, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
 
 ### Le cycle en 4 étapes
 1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`. Une décision sans option n'affiche que « Passer ».
@@ -204,8 +204,9 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 | --- | --- | --- |
 | -2 | Fée | à partir de la 2 |
 | -1 | Arlequin | 1, 3, 5… |
+| 0 | Loup amoureux | 1 (se lier) |
+| 0.5 | Loup succube | toutes ; choix seulement sans compagnon vivant |
 | 1 | Cupidon | 1 (lier) et 3 (voir) |
-| 2 | Loup succube | 1 (lier) et 3 (voir) |
 | 3 | Prêtre | 1 (pur ou impur) |
 | 5 | Voyante, Bâtisseur | toutes |
 | 10 | Salvateur | toutes |
@@ -228,8 +229,9 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 | Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
 | Chasseur | village | En mourant, abat un joueur (décision urgente). |
 | Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). |
-| Cupidon | village | Nuit 1 : lie deux amoureux. Nuit 3 : voit leurs rôles. |
-| Loup succube | loups | Comme Cupidon (nuits 1 et 3), et vote avec les loups. |
+| Cupidon | village | Nuit 1 : lie deux amoureux, sauf si l'un est déjà amoureux (le lien casse sans qu'il le sache). Nuit 3 : voit les rôles de tous les amoureux vivants. |
+| Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Vote avec les loups. |
+| Loup succube | loups | Se lie à un compagnon à sens unique : `amoureux` avec `partenaire` pour lui, sans `partenaire` pour le compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante. Vote avec les loups. |
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou. Éliminé par le vote, il contamine le maire. |
@@ -264,14 +266,15 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
   - `partie.ts` connaît `loup-savant` (tirage des cartes au lancement) ;
   - `recevoir.ts` connaît la décision de `marchand` ;
   - `PartieVue.tsx` connaît `pretre`.
-- **Code copié volontairement** : `lierLesAmoureux` / `revelerLesAmoureux` (Cupidon et Loup succube), `contaminerLeMaire` (Rat et Rat-garou). Une correction est à reporter dans les deux fichiers.
+- **Code copié volontairement** : `contaminerLeMaire` (Rat et Rat-garou). Une correction est à reporter dans les deux fichiers.
 - Le `useEffect([cle])` de `PartieVue` pourrait être remplacé par la prop `key` sur un sous-composant (amélioration possible).
 - `distribution.ts` importe le registre des rôles pour connaître leur camp.
 
 ---
 
 ## 8. Questions de règles encore ouvertes
-- Cupidon et le Loup succube dans la même partie : un joueur peut-il être lié deux fois ? Aujourd'hui, le second lien **remplace** le premier sur ce joueur (`r.accepter()` retire le doublon du tag `amoureux`), et la vision nuit 3 montre tous les amoureux vivants.
+- Un joueur n'est jamais lié deux fois : Cupidon et le Loup succube renoncent à leur lien si une cible a déjà le tag `amoureux`. Le Loup amoureux, appelé en premier, n'a pas ce test.
+- Le meneur choisit selon le nombre de joueurs quelles cartes de lien activer : trois liens dans une petite partie peuvent donner la majorité aux amoureux dès la première aube.
 - Le Fou : faut-il un jour revenir à l'idée d'origine (l'action de A sur B) ?
 - Conditions de victoire des futurs rôles solitaires.
 

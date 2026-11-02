@@ -50,9 +50,20 @@ const cupidon: Role = {
   }
 };
 
-/** Nuit 1 : chacun reçoit "amoureux", avec l'id de son partenaire en métadonnée. */
+/**
+ * Nuit 1 : chacun reçoit "amoureux", avec l'id de son partenaire en métadonnée.
+ *
+ * Le Loup amoureux et le Loup succube se lient AVANT Cupidon (priorités 0 et 0.5). Si l'une des
+ * cibles est déjà amoureuse, le lien casse : rien n'est donné, et Cupidon ne l'apprend qu'à la
+ * nuit 3 (un rôle inattendu parmi les amoureux) ou à une mort sans chagrin.
+ * POURQUOI vérifier ici et pas bloquer dans recevoir.ts : on donne DEUX tags. Si le second
+ * était bloqué après que le premier a été accepté, il resterait un demi-lien.
+ */
 function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
   const [a, b] = cibles;
+  const dejaAmoureux = cibles.some(id => partie.aTag(partie.joueur(id), "amoureux"));
+  if (dejaAmoureux) return {};
+
   return {
     donner: [
       { tag: "amoureux", a, meta: { partenaire: b } },
@@ -70,11 +81,10 @@ function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
  * Le meneur choisit ensuite comment transmettre l'information.
  */
 function revelerLesAmoureux(partie: Partie, moi: Joueur): ResultatAction {
-  // ATTENTION : joueursAvecTag ne renvoie que les VIVANTS. C'est sans risque aujourd'hui : la chaîne
-  // des amoureux (recevoir.ts, case "mort") tue l'un avec l'autre, ils sont donc vivants ou morts ensemble.
-  // Si un rôle annule un jour une mort par chagrin, un amoureux survivant serait révélé seul.
-  // Si Cupidon et le Loup succube sont dans la même partie, on voit les 4 rôles : choix assumé.
-  // loup-succube.ts contient une copie volontaire de cette logique : une correction ici est à reporter là-bas.
+  // Tous les amoureux VIVANTS, quel que soit le lien : ceux de Cupidon, le Loup amoureux et son
+  // partenaire, le Loup succube et son compagnon. C'est voulu : un rôle de loup dans la liste
+  // apprend à Cupidon que son propre lien a cassé.
+  // ATTENTION : un Loup succube dont le compagnon est mort garde son tag, il est révélé seul.
   const amoureux = partie.joueursAvecTag("amoureux");
 
   if (amoureux.length === 0) {

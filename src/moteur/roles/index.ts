@@ -7,6 +7,7 @@ import cupidon from "./cupidon";
 import fee from "./fee";
 import fou from "./fou";
 import loup from "./loup";
+import loupAmoureux from "./loup-amoureux";
 import loupSavant from "./loup-savant";
 import loupSuccube from "./loup-succube";
 import loupVampire from "./loup-vampire";
@@ -34,6 +35,7 @@ export const LISTE_ROLES: Role[] = [
   salvateur,
   cupidon,
   loupSuccube,
+  loupAmoureux,
   chasseur,
   ancien,
   rat,

@@ -417,7 +417,7 @@ export default template;
  *    protege_hier  posé à l'aube si le Salvateur avait protégé ; bloque "protege" une nuit
  *    sauve         donné par la Sorcière ; retire "mordu" puis est consommé
  *    empoisonne    donné par la Sorcière ; devient "mort" (cause "poison") à l'aube
- *    amoureux      donné par Cupidon (meta.partenaire) ; la mort de l'un tue l'autre
+ *    amoureux      Cupidon, Loup amoureux, Loup succube ; la mort d'un porteur tue meta.partenaire (absent = sens unique)
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)

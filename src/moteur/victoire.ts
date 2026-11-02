@@ -15,7 +15,11 @@ export function verifierVictoire(partie: Partie): string | undefined {
 
   const nbLoups = vivants.filter(j => partie.roleDe(j).camp === "loups").length;
 
-  if (vivants.length === 2 && vivants.every(j => partie.aTag(j, "amoureux"))) return "Les amoureux";
+  // Amoureux en majorité STRICTE parmi les vivants, liés entre eux ou pas, quel que soit leur camp.
+  // Couvre l'ancien cas « 2 vivants amoureux » (2 contre 0). POURQUOI strict : avec ">=", Cupidon
+  // dans une partie à 4 (2 contre 2) gagnerait dès la première aube.
+  const nbAmoureux = vivants.filter(j => partie.aTag(j, "amoureux")).length;
+  if (nbAmoureux > vivants.length - nbAmoureux) return "Les amoureux";
 
   // Cas particulier : un rat-garou face à un seul joueur hors du camp des loups.
   // POURQUOI ici : le rat-garou compte comme loup, donc « 1 loup contre 1 » ferait gagner les loups

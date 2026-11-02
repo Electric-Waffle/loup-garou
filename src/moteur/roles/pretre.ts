@@ -29,7 +29,7 @@ const pretre: Role = {
   camp: "village",
   description: "La 1re nuit, il choisit en secret d'être pur (il gagne avec le village) ou impur (il gagne avec les loups, mais compte comme un villageois). Mort, il peut chuchoter au maire.",
   // POURQUOI 3 : n'importe quelle place convient (son choix n'affecte personne la nuit 1).
-  // Juste après les liens (Cupidon 1, Loup succube 2) et avant la Voyante (5).
+  // Juste après les liens (Loup amoureux 0, Loup succube 0.5, Cupidon 1) et avant la Voyante (5).
   priorite: 3,
   appelNuit: true,
   tours: { de: 1, a: 1 },

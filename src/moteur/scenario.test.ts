@@ -70,10 +70,9 @@ test("champ tours", () => {
   assert.equal(peutAgir({ ...ROLES.loup, tours: { de: 2, chaque: 2 } }, 3), false);
 });
 
-test("Cupidon et Loup succube : appelés les nuits 1 et 3 seulement", () => {
+test("Cupidon : appelé les nuits 1 et 3 seulement", () => {
   const nuits = [1, 2, 3, 4, 5, 6, 7];
   assert.deepEqual(nuits.filter(tour => peutAgir(ROLES.cupidon, tour)), [1, 3]);
-  assert.deepEqual(nuits.filter(tour => peutAgir(ROLES["loup-succube"], tour)), [1, 3]);
 });
 
 test("Cupidon : la nuit 3, il découvre le rôle des amoureux", () => {
@@ -91,7 +90,7 @@ test("Cupidon : la nuit 3, il découvre le rôle des amoureux", () => {
   assert.equal(infoDeCupidon?.texte, "Rôles des amoureux : Ancien, Chasseur.");
 });
 
-test("Loup succube : lie la nuit 1 et dévore même s'il est le seul loup", () => {
+test("Loup succube : se lie la nuit 1 et dévore même s'il est le seul loup", () => {
   const table = TABLE.map(j => {
     if (j.id === "bob") return { ...j, role: "loup-succube" };
     if (j.id === "ines") return { ...j, role: "villageois" };
@@ -100,8 +99,9 @@ test("Loup succube : lie la nuit 1 et dévore même s'il est le seul loup", () =
   const p = new Partie(table, { aleatoire: () => 0 });
   assert.deepEqual(p.file, ["loup-succube", "voyante", "salvateur", "loup", "sorciere"]);
 
-  p.jouer({ id: "lier", cibles: ["alice", "jules"] });
-  assert.equal(p.partenaireDe(p.joueur("alice"))?.id, "jules");
+  p.jouer({ id: "lier", cibles: ["jules"] });
+  assert.equal(p.partenaireDe(p.joueur("bob"))?.id, "jules");
+  assert.equal(p.partenaireDe(p.joueur("jules")), undefined);
 
   p.jouer({ id: "sonder", cibles: ["bob"] });
   p.jouer({ id: "proteger", cibles: ["chloe"] });
@@ -563,4 +563,64 @@ test("Prêtre impur et Fou vivant : le Fou gagne seul", () => {
   donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
   donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
   assert.equal(verifierVictoire(p), "Le fou");
+});
+
+/* ---------- Loup amoureux, Loup succube, victoire des amoureux ---------- */
+
+test("Loup amoureux : se lie la nuit 1, avant Cupidon, et le partenaire est prévenu", () => {
+  const p = partieAvec(["loup-amoureux", "cupidon", "villageois", "villageois", "villageois"]);
+  assert.deepEqual(p.file, ["loup-amoureux", "cupidon", "loup"]);
+
+  p.jouer({ id: "lier", cibles: ["j2"] });
+  assert.equal(p.partenaireDe(p.joueur("j0"))?.id, "j2");
+  assert.equal(p.partenaireDe(p.joueur("j2"))?.id, "j0");
+  assert.ok(p.infos.some(i => i.pour === "j2" && i.texte.includes("J0")));
+
+  // Chagrin dans les deux sens.
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "poison" });
+  assert.equal(p.joueur("j0").vivant, false);
+});
+
+test("Cupidon : son lien casse si une cible est déjà amoureuse", () => {
+  const p = partieAvec(["loup-amoureux", "cupidon", "villageois", "villageois", "villageois"]);
+  p.jouer({ id: "lier", cibles: ["j2"] });
+  p.jouer({ id: "lier", cibles: ["j2", "j3"] });
+  assert.equal(p.partenaireDe(p.joueur("j2"))?.id, "j0");
+  assert.ok(!p.aTag(p.joueur("j3"), "amoureux"));
+});
+
+test("Loup succube : lien à sens unique, puis nouveau compagnon la nuit suivante", () => {
+  const p = partieAvec(["loup-succube", "villageois", "villageois", "villageois", "villageois"]);
+  p.jouer({ id: "lier", cibles: ["j1"] });
+
+  // Le compagnon meurt : le Succube survit.
+  donnerTag(p, p.joueur("j1"), "mort", { cause: "poison" });
+  assert.equal(p.joueur("j0").vivant, true);
+
+  p.tour = 2;
+  p.commencerNuit();
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["lier"]);
+  p.jouer({ id: "lier", cibles: ["j2"] });
+
+  // Le Succube meurt : son nouveau compagnon le suit.
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.deepEqual(p.morts(0).map(m => m.cause), ["poison", "vote", "chagrin"]);
+});
+
+test("Loup succube : avec un compagnon vivant, il ne fait que passer", () => {
+  const p = partieAvec(["loup-succube", "villageois", "villageois", "villageois"]);
+  p.jouer({ id: "lier", cibles: ["j1"] });
+  p.tour = 2;
+  p.commencerNuit();
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Victoire des amoureux : majorité stricte, liés ou pas, quel que soit le camp", () => {
+  const p = partieAvec(["loup", "villageois", "villageois", "villageois"]);
+  lierAmoureux(p, "j0", "j1");
+  assert.equal(verifierVictoire(p), undefined); // 2 contre 2 : pas encore
+
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Les amoureux"); // 2 contre 1
 });
