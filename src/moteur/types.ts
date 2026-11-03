@@ -130,6 +130,12 @@ export interface Role {
 
   /** À l'aube, après les conséquences des tags : appelé pour chaque joueur vivant qui a ce rôle (ex. le rat-garou seul meurt). */
   aube?(partie: Partie, moi: Joueur): ResultatAction | void;
+
+  /**
+   * Après un vote qui a ÉLIMINÉ quelqu'un : appelé pour chaque joueur vivant qui a ce rôle
+   * (ex. le Fêtard qui a voté contre un loup). Comme reagir(), il agit via mettreEnAttente / appliquerResultat.
+   */
+  apresVote?(partie: Partie, moi: Joueur, elimine: Joueur): void;
 }
 
 /* ---------- Événements ---------- */

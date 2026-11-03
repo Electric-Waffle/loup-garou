@@ -6,6 +6,7 @@ import chasseur from "./chasseur";
 import conciliabule from "./conciliabule";
 import cupidon from "./cupidon";
 import fee from "./fee";
+import fetard from "./fetard";
 import fou from "./fou";
 import loup from "./loup";
 import loupAmoureux from "./loup-amoureux";
@@ -56,7 +57,8 @@ export const LISTE_ROLES: Role[] = [
   pretre,
   paysan,
   batisseur,
-  pleureuse
+  pleureuse,
+  fetard
 ];
 
 /**

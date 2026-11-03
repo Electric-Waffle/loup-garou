@@ -400,6 +400,19 @@ const template: Role = {
    */
   aube(partie: Partie, moi: Joueur): ResultatAction | void {
     // Par défaut : rien.
+  },
+
+  /* ===================================================================================
+   *  APRÈS LE VOTE : apresVote()  —  LE VILLAGE VIENT D'ÉLIMINER QUELQU'UN
+   *  Appelée pour chaque joueur VIVANT qui a ce rôle, seulement si la mort par vote a eu lieu.
+   * =================================================================================== */
+
+  /**
+   * Comme reagir() : ne renvoie rien, agit via partie.mettreEnAttente() ou appliquerResultat().
+   * Exemple (Fêtard) : si l'éliminé est un loup, le meneur indique s'il a voté contre lui.
+   */
+  apresVote(partie: Partie, moi: Joueur, elimine: Joueur): void {
+    // Par défaut : rien.
   }
 };
 
@@ -447,6 +460,7 @@ export default template;
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
  *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
  *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
+ *    fete          Fêtard ; bloque "mordu" (son recevoir) ; posé le jour, expire à l'aube
  *    maudit        Pleureuse ; le porteur ne fait plus son rôle (TAGS_BLOQUANTS, partie.ts), sans expiration
  *    delivre       Conciliabule ; retire "maudit" puis est consommé (comme "sauve" pour "mordu")
  *    apaisee       Conciliabule, sur la Pleureuse démasquée ; elle ne marque plus personne

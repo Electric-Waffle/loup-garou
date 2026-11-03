@@ -417,6 +417,16 @@ export class Partie {
     if (issue === "consomme") {
       this.plaidoirie = id;
       this.changerPhase("debat");
+      return;
+    }
+
+    // Crochet apresVote() : les rôles qui dépendent de QUI a été éliminé (le Fêtard).
+    // POURQUOI pas reagir() : reagir() n'est appelé que sur celui qui reçoit le tag (l'éliminé),
+    // jamais sur les autres joueurs. Rien si la mort a été bloquée (or, invulnérabilité…).
+    if (issue !== "accepte") return;
+    const elimine = this.joueur(id);
+    for (const joueur of this.vivants()) {
+      this.roleDe(joueur).apresVote?.(this, joueur, elimine);
     }
   }
 

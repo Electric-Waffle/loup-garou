@@ -852,3 +852,33 @@ test("Loup voyante : sonde comme la Voyante, avant les loups, et vote avec eux",
   p.jouer({ id: "sonder", cibles: ["j1"] });  // Loup voyante
   assert.ok(p.infos.some(i => i.pour === "j0" && i.texte === "J1 est Voyante."));
 });
+
+/* ---------- Fêtard ---------- */
+
+test("Fêtard : il a voté contre le loup éliminé, les loups ne peuvent pas le mordre cette nuit", () => {
+  const p = partieAvec(["loup", "loup", "fetard", "villageois", "villageois"]);
+  p.voter("j0");
+
+  const question = p.decisionCourante();
+  assert.equal(question?.alias, "fetard");
+  assert.equal(question?.urgente, true);
+  p.jouer({ id: "feter", cibles: [] });
+  assert.ok(p.aTag(p.joueur("j2"), "fete"));
+
+  p.nuitSuivante();
+  p.jouer({ id: "devorer", cibles: ["j2"] });
+  assert.ok(p.journal.some(e => e.type === "bloque" && e.tag === "mordu" && e.joueur === "j2"));
+  p.leverLeJour();
+  assert.equal(p.joueur("j2").vivant, true);
+  assert.ok(!p.aTag(p.joueur("j2"), "fete")); // la fête ne dure qu'une nuit
+});
+
+test("Fêtard : rien si l'éliminé n'est pas un loup, ou s'il n'a pas voté contre lui", () => {
+  const p = partieAvec(["loup", "loup", "fetard", "villageois", "villageois"]);
+  p.voter("j3");
+  assert.equal(p.decisionCourante(), undefined);
+
+  p.voter("j0");
+  p.jouer({ id: "non", cibles: [] });
+  assert.ok(!p.aTag(p.joueur("j2"), "fete"));
+});

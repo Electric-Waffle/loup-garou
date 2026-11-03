@@ -144,6 +144,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
 | `recevoir(tag, meta, r, partie, moi)` | AVANT qu'un tag soit posé sur lui | une réponse, ou rien | Ancien |
 | `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
 | `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
+| `apresVote(partie, moi, elimine)` | après un vote qui a éliminé quelqu'un, pour chaque vivant | rien (il agit via `mettreEnAttente`) | Fêtard |
 
 Champ **`porteurs(partie)`** : pour une **étape** de la nuit qu'aucun joueur ne reçoit (Réunion des amoureux, Conciliabule des maudits). Elle calcule qui se réveille, entre dans la file de chaque nuit et est sautée si la liste est vide. Rangée dans `ETAPES` (`roles/index.ts`) : présente dans `ROLES`, absente de `LISTE_ROLES`, donc ni dans Options ni dans la distribution.
 
@@ -183,7 +184,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`.
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`.
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -258,6 +259,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Paysan | village | Voté : assomme 2 joueurs (`enchante` la nuit suivante). Dévoré : tous les loups sont `blesse` et ne chassent pas la nuit suivante. |
 | Prêtre | village | Nuit 1 : choisit en secret d'être **pur** (gagne avec le village) ou **impur** (gagne avec les loups, tag `impur`). Il compte toujours comme un villageois pour la victoire. Sans choix (« Passer »), il est pur. Mort, il continue de faire semblant de jouer et peut chuchoter au maire pendant le débat, pour l'aider ou pour le tromper. |
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
+| Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
 | Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |
 
 > [!note] Le Fou a changé de règle

@@ -67,6 +67,7 @@ const TAGS: Record<string, string> = {
   silence: "🤐 silencé",
   dirige: "🌀 dirigé",
   maudit: "😢 maudit",
+  fete: "🥳 fait la fête",
   apaisee: "🕊️ démasquée",
   mort: "⚰️ mort"
 };
