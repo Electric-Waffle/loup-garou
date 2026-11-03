@@ -12,10 +12,10 @@ import type { OptionChoix, Role } from "../types";
  *   3. Au vote, partie.rappelsDuVote() rappelle au meneur de ne pas compter le vote du silencé,
  *      et de faire voter le dirigé comme le Loup hypnotiseur. Rien n'est révélé pendant le débat.
  *   4. Cible protégée par le Salvateur : rien n'est donné, le médaillon est perdu quand même,
- *      et une info PUBLIQUE l'annonce au rapport de l'aube.
+ *      et rien n'est annoncé (même règle que les autres loups bloqués par le Salvateur).
  *
- * POURQUOI vérifier la protection ici et pas dans recevoir.ts : l'échec doit produire une
- * annonce publique, et seul le rôle qui agit renvoie des infos (agir → { donner, infos }).
+ * POURQUOI vérifier la protection ici et pas dans recevoir.ts : le médaillon doit être détruit
+ * même en cas d'échec, et c'est le rôle qui agit qui tient sa memoire.
  * POURQUOI priorité 115 : APRÈS le Salvateur (100), sinon sa protection n'existe pas encore,
  * et juste avant le tour des loups (120).
  */
@@ -31,7 +31,7 @@ const loupHypnotiseur: Role = {
   titre: "Loup hypnotiseur",
   image: "🌀",
   camp: "loups",
-  description: "Un loup avec deux médaillons à usage unique. Silence : le vote de la cible ne compte pas. Suggestion : la cible vote comme lui. Le Salvateur bloque l'effet, et c'est annoncé.",
+  description: "Un loup avec deux médaillons à usage unique. Silence : le vote de la cible ne compte pas. Suggestion : la cible vote comme lui. Le Salvateur bloque l'effet, en silence.",
   priorite: 115,
   appelNuit: true,
   rejoint: ["loup"],
@@ -59,11 +59,7 @@ const loupHypnotiseur: Role = {
     moi.memoire[choix.id] = false; // détruit, même si l'effet échoue
 
     const cible = partie.joueur(choix.cibles[0]);
-    const protegeParLeSalvateur = cible.tags.some(t => t.type === "protege" && t.source === "salvateur");
-    if (protegeParLeSalvateur) {
-      const texte = `Le ${partie.titre("salvateur")} a empêché le ${partie.titre(moi.role)} d'utiliser le ${medaillon.libelle.toLowerCase()} sur ${cible.nom}.`;
-      return { infos: [{ pour: "tous", texte }] };
-    }
+    if (partie.aTagDe(cible, "protege", "salvateur")) return {};
 
     return {
       donner: [{ tag: medaillon.tag, a: cible.id, meta: { par: moi.id, expire: "aube_suivante" } }]

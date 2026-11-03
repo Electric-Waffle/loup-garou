@@ -9,9 +9,13 @@ import type { Role } from "../types";
  *      (règle générale de recevoir.ts, case "mort").
  *   2. Son partenaire est prévenu par une info privée : il sait qu'il aime un loup.
  *   3. Chaque nuit : il se réveille avec les loups et vote avec eux (rejoint: ["loup"]).
+ *   4. Cible protégée par le Salvateur : le lien échoue, sans annonce, et sans seconde chance
+ *      (tours : nuit 1 seulement). Il restera sans amoureux toute la partie.
  *
- * Si sa cible est ensuite liée par Cupidon, les liens s'additionnent (réseau, recevoir.ts),
+ * Si sa cible est aussi liée par Cupidon, les liens s'additionnent (réseau, recevoir.ts),
  * et la Réunion des amoureux leur permet de s'en rendre compte.
+ * POURQUOI priorité 102 : APRÈS le Salvateur (100), sinon sa protection n'existe pas encore.
+ * Prix : la Réunion des amoureux (60) est déjà passée, son partenaire n'y vient qu'à partir de la nuit 2.
  */
 const loupAmoureux: Role = {
   alias: "loup-amoureux",
@@ -19,7 +23,7 @@ const loupAmoureux: Role = {
   image: "💞",
   camp: "loups",
   description: "Un loup qui, la première nuit, se lie à un joueur. Si l'un meurt, l'autre meurt de chagrin.",
-  priorite: 30,
+  priorite: 102,
   appelNuit: true,
   tours: { de: 1, a: 1 },
   rejoint: ["loup"],
@@ -31,6 +35,8 @@ const loupAmoureux: Role = {
 
   agir(choix, partie, moi) {
     const aime = choix.cibles[0];
+    if (partie.aTagDe(partie.joueur(aime), "protege", "salvateur")) return {};
+
     return {
       donner: [
         { tag: "amoureux", a: moi.id, meta: { partenaires: [aime] } },

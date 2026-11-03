@@ -168,15 +168,17 @@ const template: Role = {
    *    12  Conciliabule des maudits (étape)
    *    15  Pleureuse               (tôt : le maudit perd son rôle dès cette nuit)
    *    20  Arlequin
-   *    30  Loup amoureux, 40 Loup succube, 50 Cupidon   (les liens)
+   *    50  Cupidon
    *    60  Réunion des amoureux    (après tous les liens)
    *    70  Prêtre
    *    80  Voyante
-   *    85  Loup voyante
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)
+   *   102  Loup amoureux           ┐
+   *   105  Loup succube            │ APRÈS le Salvateur : sa protection fait échouer
+   *   107  Loup voyante            │ le lien, la vision ou le médaillon
    *   110  Loup savant
-   *   115  Loup hypnotiseur         (APRÈS le Salvateur : il lit sa protection)
+   *   115  Loup hypnotiseur        ┘
    *   120  Loup-Garou
    *   125  Corbeau                 (si ajouté)
    *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)

@@ -14,6 +14,8 @@ import type { Joueur, Role } from "../types";
  *      le Succube meurt → son compagnon meurt ; le compagnon meurt → personne ne le suit.
  *   3. Chaque nuit : il se réveille avec les loups et vote avec eux (rejoint: ["loup"]).
  *   4. Il ne vient pas à la Réunion des amoureux : son compagnon, si.
+ *   5. Cible protégée par le Salvateur : le lien échoue, sans annonce. Le Succube reste sans
+ *      compagnon jusqu'à la nuit suivante, où sa carte lui propose de nouveau « Se lier ».
  *
  * PATTERN : un tag existant, une règle existante, un sens unique obtenu par une meta absente.
  * POURQUOI le compagnon en memoire et pas lu dans le tag : en réseau, le tag "amoureux" du
@@ -26,8 +28,10 @@ const loupSuccube: Role = {
   image: "💋",
   camp: "loups",
   description: "Un loup qui se lie à un compagnon. S'il meurt, son compagnon meurt aussi ; si le compagnon meurt, il en choisit un autre la nuit suivante.",
-  // POURQUOI 40 : après le Loup amoureux (30), avant Cupidon (50) et la Réunion des amoureux (60).
-  priorite: 40,
+  // POURQUOI 105 : APRÈS le Salvateur (100), sinon sa protection n'existe pas encore quand le
+  // Succube se lie. Prix : la Réunion des amoureux (60) est déjà passée, un nouveau compagnon
+  // n'y vient qu'à partir de la nuit suivante.
+  priorite: 105,
   appelNuit: true,
   rejoint: ["loup"],
 
@@ -46,6 +50,12 @@ const loupSuccube: Role = {
 
   agir(choix, partie, moi) {
     const compagnon = partie.joueur(choix.cibles[0]);
+
+    // POURQUOI ici et pas dans reagir() : reagir() n'est appelé que sur le joueur qui REÇOIT
+    // un tag. Celui qui agit ne vérifie qu'ici, avant de donner quoi que ce soit (comme le
+    // Loup hypnotiseur). La memoire n'est pas touchée : decision() le reverra sans compagnon.
+    if (partie.aTagDe(compagnon, "protege", "salvateur")) return {};
+
     moi.memoire.compagnon = compagnon.id;
 
     return {

@@ -9,8 +9,10 @@ const PREFIXE_CARTE = "carte:";
  *
  * POURQUOI ce code copie voyante.ts sans le réutiliser : chaque carte reste indépendante.
  * Une correction de la logique « sonder » est donc à reporter dans les deux fichiers.
- * POURQUOI priorité 85 : juste après la Voyante (80), et avant le tour des loups (120),
- * pour qu'elle sache avant de choisir la victime.
+ * POURQUOI priorité 107 : APRÈS le Salvateur (100), pour que sa protection bloque la vision,
+ * et avant le tour des loups (120), pour qu'elle sache avant de choisir la victime.
+ * ATTENTION : un échec ne peut pas être silencieux (le meneur doit lui montrer quelque chose).
+ * Elle apprend donc que sa cible est protégée cette nuit, et la meute peut s'en servir au vote des loups.
  */
 const loupVoyante: Role = {
   alias: "loup-voyante",
@@ -18,7 +20,7 @@ const loupVoyante: Role = {
   image: "👁️",
   camp: "loups",
   description: "Un loup qui, chaque nuit, découvre la carte d'un joueur, comme la Voyante.",
-  priorite: 85,
+  priorite: 107,
   appelNuit: true,
   rejoint: ["loup"],
 
@@ -41,6 +43,9 @@ const loupVoyante: Role = {
       return { infos: [{ pour: moi.id, texte: `${partie.titre(alias)} n'a été distribuée à personne.` }] };
     }
     const cible = partie.joueur(choix.cibles[0]);
+    if (partie.aTagDe(cible, "protege", "salvateur")) {
+      return { infos: [{ pour: moi.id, texte: `La vision échoue : la carte de ${cible.nom} reste cachée.` }] };
+    }
     return {
       infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(cible.role)}.` }]
     };

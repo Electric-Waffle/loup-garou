@@ -111,7 +111,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   - Lecture : `morts()`, `infosPubliques(phases?)` (filtrées par phase : la nuit va au rapport de l'aube, l'événement à l'événement), `rappelsDuVote()` (tags `silence` / `dirige`), `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
   - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenairesDe()` (tous les amoureux d'un joueur, réseau), `partenaireLie()` (Arlequin).
   - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
-  - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté ou maudit), `aTag()`, `retirerTag()`, `auHasard()`.
+  - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté ou maudit), `aTag()`, `aTagDe(j, tag, source)` (ex. protégé PAR le Salvateur), `retirerTag()`, `auHasard()`.
   - Le hasard est injectable via l'option `aleatoire`.
   - Options du constructeur : `apparence`, `aleatoire`, `cartesActives`, `cartesFantomes`.
 - **`donner.ts`** : `tourDeCarte()` appelle `role.agir()`, puis `appliquerResultat()` distribue les tags et les infos. Les événements, le vote, l'élection, `debut()` et `aube()` passent aussi par là.
@@ -173,6 +173,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
   - sinon la mort est acceptée, l'or passe à un tueur vivant (ou au choix du mourant, via la décision urgente de la carte Marchand), et la chaîne des amoureux s'applique.
 
 ### Règles appliquées par le moteur à tous les rôles
+- **Protection du Salvateur contre les loups qui lient ou regardent** : le Loup amoureux, le Loup succube, le Loup voyante et le Loup hypnotiseur jouent après lui (102 à 115) et testent `aTagDe(cible, "protege", "salvateur")` dans leur `agir()`. L'échec n'est jamais annoncé au village.
 - **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan) et `maudit` (Pleureuse).
   - une carte dont tous les porteurs sont bloqués n'offre que « Passer » ;
   - `mettreEnAttente()` ignore un joueur bloqué : un Chasseur enchanté ou maudit ne tire pas, un Rat ne choisit pas ;
@@ -212,15 +213,15 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 12 | Conciliabule des maudits (étape) | toutes, s'il y a au moins un maudit vivant ; minuteur de 60 s |
 | 15 | Pleureuse | à partir de la 2 |
 | 20 | Arlequin | 1, 3, 5… |
-| 30 | Loup amoureux | 1 (se lier) |
-| 40 | Loup succube | toutes ; choix seulement sans compagnon vivant |
 | 50 | Cupidon | 1 (lier) et 3 (voir) |
 | 60 | Réunion des amoureux (étape) | toutes, s'il y a au moins 2 amoureux vivants hors Loup succube ; minuteur de 60 s |
 | 70 | Prêtre | 1 (pur ou impur) |
 | 80 | Voyante | toutes |
-| 85 | Loup voyante | toutes |
 | 90 | Bâtisseur | toutes |
 | 100 | Salvateur | toutes |
+| 102 | Loup amoureux | 1 (se lier) ; après le Salvateur |
+| 105 | Loup succube | toutes ; choix seulement sans compagnon vivant ; après le Salvateur, dont la protection fait échouer le lien |
+| 107 | Loup voyante | toutes ; après le Salvateur |
 | 110 | Loup savant | 1 |
 | 115 | Loup hypnotiseur | toutes, tant qu'il lui reste un médaillon |
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
@@ -237,16 +238,16 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup-Garou | loups | Dévore une victime chaque nuit. Ne chasse pas si tous les loups sont `blesse`. |
 | Villageois | village | Aucun pouvoir. |
 | Voyante | village | Voit la carte d'un joueur, ou une des 3 cartes hors jeu du Loup savant. |
-| Loup voyante | loups | Comme la Voyante (copie indépendante de `voyante.ts`), et vote avec les loups. |
+| Loup voyante | loups | Comme la Voyante (copie indépendante de `voyante.ts`), et vote avec les loups. Sur un joueur protégé par le Salvateur, la vision échoue (« la carte de X reste cachée ») : elle apprend donc qu'il est protégé. |
 | Sorcière | village | Une potion de vie, une potion de mort. |
 | Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
 | Chasseur | village | En mourant, abat un joueur (décision urgente). |
 | Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). |
 | Cupidon | village | Nuit 1 : lie deux amoureux, même déjà liés à quelqu'un d'autre (réseau). Nuit 3 : voit les rôles de tous les amoureux vivants. |
-| Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Vote avec les loups. |
-| Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Vote avec les loups. Ne vient pas à la Réunion des amoureux. |
+| Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Cible protégée par le Salvateur : le lien échoue, sans seconde chance. Son partenaire ne vient à la Réunion des amoureux qu'à partir de la nuit 2. Vote avec les loups. |
+| Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Un compagnon protégé par le Salvateur fait échouer le lien : il reste seul jusqu'à la nuit suivante. Un nouveau compagnon ne vient à la Réunion des amoureux que la nuit d'après. Vote avec les loups. Ne vient pas à la Réunion des amoureux. |
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
-| Loup hypnotiseur | loups | Vote avec les loups. Deux médaillons à usage unique (`memoire`), un par nuit au plus : silence (tag `silence`) ou suggestion (tag `dirige`), qui durent jusqu'à l'aube suivante. Au vote seulement, `partie.rappelsDuVote()` rappelle au meneur de ne pas compter le vote du silencé et de faire voter le dirigé comme l'hypnotiseur (sauf s'il est mort). Sur une cible protégée par le Salvateur : rien, médaillon perdu, et annonce publique au rapport de l'aube. |
+| Loup hypnotiseur | loups | Vote avec les loups. Deux médaillons à usage unique (`memoire`), un par nuit au plus : silence (tag `silence`) ou suggestion (tag `dirige`), qui durent jusqu'à l'aube suivante. Au vote seulement, `partie.rappelsDuVote()` rappelle au meneur de ne pas compter le vote du silencé et de faire voter le dirigé comme l'hypnotiseur (sauf s'il est mort). Sur une cible protégée par le Salvateur : rien, médaillon perdu, sans annonce. |
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou. Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |

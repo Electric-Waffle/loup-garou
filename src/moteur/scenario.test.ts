@@ -98,15 +98,15 @@ test("Loup succube : se lie la nuit 1 et dévore même s'il est le seul loup", (
     return j;
   });
   const p = new Partie(table, { aleatoire: () => 0 });
-  assert.deepEqual(p.file, ["conciliabule", "loup-succube", "reunion-amoureux", "voyante", "salvateur", "loup", "sorciere"]);
-
-  p.jouer({ id: "lier", cibles: ["jules"] });
-  assert.deepEqual(p.partenairesDe(p.joueur("bob")).map(j => j.id), ["jules"]);
-  assert.deepEqual(p.partenairesDe(p.joueur("jules")), []);
-  // Le Succube ne vient pas à la réunion : un seul amoureux (son compagnon), elle est sautée.
+  // Après le Salvateur (100), pour voir sa protection.
+  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "voyante", "salvateur", "loup-succube", "loup", "sorciere"]);
 
   p.jouer({ id: "sonder", cibles: ["bob"] });
   p.jouer({ id: "proteger", cibles: ["chloe"] });
+  p.jouer({ id: "lier", cibles: ["jules"] });
+  assert.deepEqual(p.partenairesDe(p.joueur("bob")).map(j => j.id), ["jules"]);
+  assert.deepEqual(p.partenairesDe(p.joueur("jules")), []);
+
   assert.deepEqual(p.decisionCourante()?.porteurs.map(j => j.id), ["bob"]);
   p.jouer({ id: "devorer", cibles: ["david"] });
   p.jouer({ id: "rien", cibles: [] });
@@ -572,10 +572,12 @@ test("Prêtre impur et Fou vivant : le Fou gagne seul", () => {
 
 /* ---------- Loup amoureux, Loup succube, victoire des amoureux ---------- */
 
-test("Loup amoureux : se lie la nuit 1, avant Cupidon, et le partenaire est prévenu", () => {
+test("Loup amoureux : se lie la nuit 1, après le Salvateur, et le partenaire est prévenu", () => {
   const p = partieAvec(["loup-amoureux", "cupidon", "villageois", "villageois", "villageois"]);
-  assert.deepEqual(p.file, ["conciliabule", "loup-amoureux", "cupidon", "reunion-amoureux", "loup"]);
+  assert.deepEqual(p.file, ["conciliabule", "cupidon", "reunion-amoureux", "loup-amoureux", "loup"]);
 
+  p.jouer({ id: "lier", cibles: ["j3", "j4"] }); // Cupidon
+  p.passer();                                    // Réunion
   p.jouer({ id: "lier", cibles: ["j2"] });
   assert.deepEqual(p.partenairesDe(p.joueur("j0")).map(j => j.id), ["j2"]);
   assert.deepEqual(p.partenairesDe(p.joueur("j2")).map(j => j.id), ["j0"]);
@@ -588,11 +590,16 @@ test("Loup amoureux : se lie la nuit 1, avant Cupidon, et le partenaire est pré
 
 test("Réseau : Cupidon ajoute un lien au Loup amoureux, et la mort se propage en cascade", () => {
   const p = partieAvec(["loup-amoureux", "cupidon", "villageois", "villageois", "villageois", "villageois"]);
-  p.jouer({ id: "lier", cibles: ["j2"] });       // Loup amoureux : j0 ↔ j2
   p.jouer({ id: "lier", cibles: ["j2", "j3"] }); // Cupidon : j2 ↔ j3
-  assert.deepEqual(p.partenairesDe(p.joueur("j2")).map(j => j.id), ["j0", "j3"]);
+  p.passer();                                    // Réunion de la nuit 1 : j2 et j3
+  p.jouer({ id: "lier", cibles: ["j2"] });       // Loup amoureux : j0 ↔ j2
+  assert.deepEqual(p.partenairesDe(p.joueur("j2")).map(j => j.id), ["j3", "j0"]);
 
-  // Réunion : les trois amoureux se réveillent ensemble, avec un minuteur de 60 s.
+  // Nuit 2 : les trois amoureux se réveillent ensemble, avec un minuteur de 60 s.
+  p.passer(); // loups
+  p.leverLeJour();
+  p.tour = 2;
+  p.commencerNuit();
   const reunion = p.decisionCourante();
   assert.equal(reunion?.alias, "reunion-amoureux");
   assert.deepEqual(reunion?.porteurs.map(j => j.id), ["j0", "j2", "j3"]);
@@ -606,15 +613,41 @@ test("Réseau : Cupidon ajoute un lien au Loup amoureux, et la mort se propage e
 
 test("Réunion des amoureux : sans le Loup succube, et sautée s'il reste moins de 2 amoureux", () => {
   const p = partieAvec(["loup-succube", "cupidon", "villageois", "villageois", "villageois"]);
-  p.jouer({ id: "lier", cibles: ["j2"] });       // Succube → j2 (sens unique)
   p.jouer({ id: "lier", cibles: ["j3", "j4"] }); // Cupidon : j3 ↔ j4
+  p.passer();                                    // Réunion : j3 et j4
+  p.jouer({ id: "lier", cibles: ["j2"] });       // Succube → j2, APRÈS la réunion de cette nuit
+
+  // Nuit suivante : son compagnon vient à la réunion, le Succube non.
+  p.tour = 2;
+  p.commencerNuit();
   assert.deepEqual(p.decisionCourante()?.porteurs.map(j => j.id), ["j2", "j3", "j4"]);
   // Une étape de la nuit n'est pas une carte distribuable.
   assert.ok(!LISTE_ROLES.some(r => r.alias === "reunion-amoureux"));
 
+  // Un seul amoureux hors Succube (son compagnon) : la réunion est sautée.
   const seul = partieAvec(["loup-succube", "villageois", "villageois"]);
   seul.jouer({ id: "lier", cibles: ["j1"] });
-  assert.equal(seul.decisionCourante()?.alias, "loup"); // la réunion est sautée
+  seul.tour = 2;
+  seul.commencerNuit();
+  assert.equal(seul.decisionCourante()?.alias, "loup-succube");
+});
+
+test("Loup succube : un compagnon protégé par le Salvateur fait échouer le lien jusqu'à la nuit suivante", () => {
+  const p = partieAvec(["loup-succube", "salvateur", "villageois", "villageois"]);
+  p.jouer({ id: "proteger", cibles: ["j2"] });
+  p.jouer({ id: "lier", cibles: ["j2"] });
+  assert.ok(!p.aTag(p.joueur("j2"), "amoureux"));
+  assert.ok(!p.aTag(p.joueur("j0"), "amoureux"));
+
+  // Pendant le jour, il n'est lié à personne : sa mort n'emporte personne.
+  p.passer(); // loups
+  p.leverLeJour();
+  assert.deepEqual(p.partenairesDe(p.joueur("j0")), []);
+
+  p.tour = 2;
+  p.commencerNuit();
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["lier"]);
 });
 
 test("Loup succube : lien à sens unique, puis nouveau compagnon la nuit suivante", () => {
@@ -710,7 +743,7 @@ test("Loup hypnotiseur : silence et dirigé au vote ; un dirigé vote librement 
   assert.deepEqual(p.rappelsDuVote(), ["Ne pas compter le vote de J2 : il est réduit au silence."]);
 });
 
-test("Loup hypnotiseur : bloqué par le Salvateur, le médaillon est perdu et c'est annoncé à l'aube", () => {
+test("Loup hypnotiseur : bloqué par le Salvateur, le médaillon est perdu, sans annonce", () => {
   const p = tableAvecHypnotiseur();
   p.jouer({ id: "proteger", cibles: ["j2"] });
   p.jouer({ id: "silence", cibles: ["j2"] });
@@ -719,11 +752,28 @@ test("Loup hypnotiseur : bloqué par le Salvateur, le médaillon est perdu et c'
 
   p.passer(); // loups
   p.leverLeJour();
-  assert.deepEqual(p.infosPubliques(["nuit", "aube"]), [
-    "Le Salvateur a empêché le Loup hypnotiseur d'utiliser le médaillon de silence sur J2."
-  ]);
-  // L'annonce n'est pas répétée à l'événement.
-  assert.deepEqual(p.infosPubliques(["evenement"]), []);
+  assert.deepEqual(p.infosPubliques(), []);
+});
+
+test("Loup amoureux : une cible protégée fait échouer le lien, sans seconde chance", () => {
+  const p = partieAvec(["loup-amoureux", "salvateur", "villageois", "villageois"]);
+  p.jouer({ id: "proteger", cibles: ["j2"] });
+  p.jouer({ id: "lier", cibles: ["j2"] });
+  assert.ok(!p.aTag(p.joueur("j0"), "amoureux") && !p.aTag(p.joueur("j2"), "amoureux"));
+  assert.ok(!p.infos.some(i => i.pour === "j2"));
+
+  p.tour = 2;
+  p.commencerNuit();
+  assert.ok(!p.file.includes("loup-amoureux"));
+});
+
+test("Loup voyante : la vision d'un joueur protégé échoue", () => {
+  const p = partieAvec(["loup-voyante", "salvateur", "voyante", "villageois"]);
+  p.jouer({ id: "sonder", cibles: ["j3"] });    // Voyante
+  p.jouer({ id: "proteger", cibles: ["j2"] });  // Salvateur
+  p.jouer({ id: "sonder", cibles: ["j2"] });    // Loup voyante
+  assert.ok(p.infos.some(i => i.pour === "j0" && i.texte === "La vision échoue : la carte de J2 reste cachée."));
+  assert.ok(!p.infos.some(i => i.pour === "j0" && i.texte.includes("est Voyante")));
 });
 
 /* ---------- Pleureuse et Conciliabule ---------- */
@@ -795,7 +845,7 @@ test("Pleureuse démasquée : elle ne marque plus personne", () => {
 
 test("Loup voyante : sonde comme la Voyante, avant les loups, et vote avec eux", () => {
   const p = partieAvec(["loup-voyante", "voyante", "villageois", "villageois"]);
-  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "voyante", "loup-voyante", "loup"]);
+  assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "voyante", "loup-voyante", "loup"]); // 80, 107, 120
   assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["j0"]);
 
   p.jouer({ id: "sonder", cibles: ["j0"] });  // Voyante

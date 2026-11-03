@@ -143,6 +143,13 @@ export class Partie {
   }
   joueursAvecTag(tag: string): Joueur[] { return this.vivants().filter(j => this.aTag(j, tag)); }
   aTag(j: Joueur, tag: string): boolean { return j.tags.some(t => t.type === tag); }
+  /**
+   * j porte-t-il ce tag, posé par cette carte ? Ex. aTagDe(j, "protege", "salvateur") :
+   * seule la protection du Salvateur bloque les loups qui lient ou regardent (pas celle d'un événement).
+   */
+  aTagDe(j: Joueur, tag: string, source: string): boolean {
+    return j.tags.some(t => t.type === tag && t.source === source);
+  }
 
   /** Retire un tag. Avec une profondeur, l'opération est tracée dans le journal. */
   retirerTag(j: Joueur, tag: string, profondeur?: number): void {
