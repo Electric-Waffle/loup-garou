@@ -68,6 +68,9 @@ const TAGS: Record<string, string> = {
   dirige: "🌀 dirigé",
   maudit: "😢 maudit",
   fete: "🥳 fait la fête",
+  sauf_conduit: "📜 sauf-conduit",
+  soupcon: "🧐 soupçonné",
+  eclaire: "🌕 éclairé",
   apaisee: "🕊️ démasquée",
   mort: "⚰️ mort"
 };
@@ -334,7 +337,9 @@ export function PartieVue({
 
     // Cliquable pendant le vote (s'il est vivant), ou s'il fait partie des cibles possibles.
     // L'élection du maire se joue comme le vote : un clic sur un joueur vivant.
-    const cliquablePourLeVote = (enVote || enElection) && joueur.vivant;
+    // Sauf-conduit (événement) : impossible à éliminer aujourd'hui, son siège n'est pas cliquable au vote.
+    const protegeParSaufConduit = enVote && partie.aTag(joueur, "sauf_conduit");
+    const cliquablePourLeVote = (enVote || enElection) && joueur.vivant && !protegeParSaufConduit;
     const cliquableCommeCible = possibles.includes(joueur.id);
     const estCliquable = cliquablePourLeVote || cliquableCommeCible;
 

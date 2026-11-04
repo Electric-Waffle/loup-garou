@@ -461,6 +461,11 @@ export default template;
  *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
  *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
  *    fete          Fêtard ; bloque "mordu" (son recevoir) ; posé le jour, expire à l'aube
+ *    benediction   événement ; retire "protege_hier" et donne "protege" au nom du Salvateur
+ *    recharge      événement Marché noir ; un rôle à charges le reçoit dans son recevoir()
+ *    sauf_conduit  événement ; ne peut pas être éliminé au vote du jour (voter() refuse)
+ *    soupcon       événement ; rappel au vote : 2 voix contre lui, le maire ne vote pas
+ *    eclaire       événement ; la Voyante et le Loup voyante ne voient que ce joueur cette nuit
  *    maudit        Pleureuse ; le porteur ne fait plus son rôle (TAGS_BLOQUANTS, partie.ts), sans expiration
  *    delivre       Conciliabule ; retire "maudit" puis est consommé (comme "sauve" pour "mordu")
  *    apaisee       Conciliabule, sur la Pleureuse démasquée ; elle ne marque plus personne

@@ -168,6 +168,9 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - `agonisant` (Rat qui mord) : retire `mordu`, donc la Sorcière ne voit plus la victime. Mort certaine à l'aube.
 - `devient` : change la carte du joueur (`meta.role`). Tags et mémoire sont conservés. Rat → Rat-garou.
 - `protege` : bloqué par `protege_hier`, expire à l'aube.
+- `benediction` (événement) : retire `protege_hier`, puis donne `protege` avec `source: "salvateur"` (effet complet du Salvateur), puis est consommé.
+- `maire` : un seul maire, le nouveau retire le tag à l'ancien (Passation).
+- `recharge` (Marché noir) : consommé ; la Sorcière et le Loup hypnotiseur l'interceptent dans leur `recevoir()` pour remettre leurs charges.
 - `mort` :
   - bloqué si le joueur est déjà mort ;
   - **bloqué si le joueur porte `invulnerable`** (Loup vampire), sauf si la cause est le vote du village. Liste blanche : toute future cause de mort est bloquée d'office ;
@@ -185,7 +188,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`.
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit).
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -265,6 +268,17 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 
 > [!note] Le Fou a changé de règle
 > L'idée d'origine (désigner un joueur A puis un joueur B, et faire l'action du rôle de A sur B) **n'est pas implémentée**. Le Fou actuel est celui décrit dans le tableau.
+
+### Les événements (`src/moteur/evenements/`, un fichier chacun)
+Tirés après l'élection du maire. Le meneur peut demander « Un autre » ou « Passer » (Soleil) tant que l'événement n'est pas validé. Dans les événements où le maire désigne, il ne peut jamais se désigner (cible `un_autre`, avec le maire comme `moi`).
+
+| Genre | Événements |
+| --- | --- |
+| Rien | Soleil (aussi forcé par « Passer »), Rumeur (révèle le camp d'un joueur au hasard) |
+| Animation (aucun champ de jeu) | Bâillon, Ténèbres, Carnaval, Bâton de parole, Murmures d'outre-tombe, Bouche cousue |
+| Minuteur | Sablier (8 min, temps restant reporté au lendemain, suite imposée), Urgence (2 min), Trêve (pas de minuteur) |
+| Le maire désigne | Sauf-conduit (`sauf_conduit`), Soupçon (`soupcon`), Bénédiction (`benediction`), Passation (`maire`), Contagion (`peste_active` : mort à la 3e aube), Clair de lune (`eclaire`) |
+| Sans choix | Marché noir (`recharge` à tous les vivants) |
 
 ---
 

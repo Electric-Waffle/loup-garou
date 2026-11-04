@@ -529,6 +529,11 @@ export class Partie {
    * nouveau débat où l'accusé parle seul, puis nouveau vote.
    */
   voter(id: string | null): void {
+    // Sauf-conduit : garde-fou du moteur, même si l'interface rend déjà le siège non cliquable.
+    // ATTENTION : vérifié AVANT tout changement d'état, pour que le meneur puisse recliquer.
+    if (id && this.aTag(this.joueur(id), "sauf_conduit")) {
+      throw new Error(`${this.joueur(id).nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
+    }
     this.plaidoirie = undefined;
     // ATTENTION : la phase change AVANT la mort, car morts() liste les morts depuis le début de la phase.
     this.changerPhase("resultat_vote");
@@ -600,6 +605,14 @@ export class Partie {
       if (hypnotiseur?.vivant) {
         rappels.push(`Faire pointer ${joueur.nom} vers le même joueur que ${hypnotiseur.nom} : il est dirigé.`);
       }
+    }
+    for (const joueur of this.joueursAvecTag("sauf_conduit")) {
+      rappels.push(`${joueur.nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
+    }
+    for (const joueur of this.joueursAvecTag("soupcon")) {
+      const maire = this.joueursAvecTag("maire")[0];
+      const leMaire = maire ? `le maire (${maire.nom})` : "le maire";
+      rappels.push(`${joueur.nom} part avec 2 voix contre lui ; ${leMaire} ne vote pas.`);
     }
     return rappels;
   }

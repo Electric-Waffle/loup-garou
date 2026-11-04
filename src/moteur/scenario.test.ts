@@ -962,3 +962,146 @@ test("Soleil : le débat garde la durée réglée par le meneur", () => {
   p.passerEvenement();
   assert.equal(p.dureeDuDebat(5), 5); // Soleil : le réglage du meneur
 });
+
+/* ---------- Les événements un par un ---------- */
+
+/** Jour 1 avec un maire, puis l'événement demandé, désigné sur cible si fourni. */
+function jourAvecEvenement(roles: string[], alias: string, cible?: string): Partie {
+  const p = partieAvec(roles);
+  while (p.decisionCourante()) p.passer(); // toute la nuit 1
+  p.leverLeJour();
+  p.suiteDeLAube();
+  p.elire("j1");
+  p.ouvrirEvenement(alias);
+  if (cible) p.jouer({ id: "designer", cibles: [cible] });
+  else p.appliquerEvenement();
+  return p;
+}
+
+const SIMPLE = ["loup", "villageois", "villageois", "villageois", "villageois"];
+
+test("Événement avec choix : le maire désigne, mais jamais lui-même", () => {
+  const p = partieAvec(SIMPLE);
+  while (p.decisionCourante()) p.passer();
+  p.leverLeJour();
+  p.suiteDeLAube();
+  p.elire("j1");
+  p.ouvrirEvenement("sauf-conduit");
+
+  const courante = p.decisionCourante();
+  assert.equal(courante?.evenement, true);
+  assert.equal(courante?.titre, "Sauf-conduit");
+  assert.equal(courante?.moi?.id, "j1");
+  const cibles = p.ciblesPossibles("un_autre", courante?.moi, courante?.porteurs).map(j => j.id);
+  assert.ok(!cibles.includes("j1"));
+
+  // « Passer » sur la décision d'un événement : Soleil.
+  p.passer();
+  assert.equal(p.evenement?.alias, "soleil");
+});
+
+test("Sauf-conduit : refusé au vote, même pour le second vote d'une plaidoirie", () => {
+  const p = jourAvecEvenement(SIMPLE, "sauf-conduit", "j2");
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  assert.ok(p.rappelsDuVote().some(r => r.includes("J2 a un sauf-conduit")));
+  assert.throws(() => p.voter("j2"), /sauf-conduit/);
+  assert.equal(p.phase, "vote"); // rien n'a changé, le meneur peut recliquer
+  p.voter("j3");
+  assert.equal(p.joueur("j3").vivant, false);
+});
+
+test("Soupçon : rappel au vote, avec le nom du maire", () => {
+  const p = jourAvecEvenement(SIMPLE, "soupcon", "j2");
+  assert.ok(p.rappelsDuVote().includes("J2 part avec 2 voix contre lui ; le maire (J1) ne vote pas."));
+});
+
+test("Bénédiction : protégé comme par le Salvateur, même s'il l'avait été la veille", () => {
+  const p = partieAvec(["loup", "villageois", "villageois", "salvateur", "villageois"]);
+  // Nuit 1 : le Salvateur protège j2.
+  while (p.decisionCourante()?.alias !== "salvateur") p.passer();
+  p.jouer({ id: "proteger", cibles: ["j2"] });
+  while (p.decisionCourante()) p.passer();
+  p.leverLeJour();
+  assert.ok(p.aTag(p.joueur("j2"), "protege_hier"));
+
+  p.suiteDeLAube();
+  p.elire("j1");
+  p.ouvrirEvenement("benediction");
+  p.jouer({ id: "designer", cibles: ["j2"] });
+  assert.ok(p.aTagDe(p.joueur("j2"), "protege", "salvateur"));
+  assert.ok(!p.aTag(p.joueur("j2"), "protege_hier"));
+
+  // La nuit suivante, les loups ne peuvent pas le dévorer.
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  p.voter(null);
+  p.nuitSuivante();
+  while (p.decisionCourante()?.alias !== "loup") p.passer();
+  p.jouer({ id: "devorer", cibles: ["j2"] });
+  while (p.decisionCourante()) p.passer();
+  p.leverLeJour();
+  assert.equal(p.joueur("j2").vivant, true);
+  assert.ok(p.aTag(p.joueur("j2"), "protege_hier")); // comme après une vraie protection
+});
+
+test("Passation : un seul maire", () => {
+  const p = jourAvecEvenement(SIMPLE, "passation", "j3");
+  assert.deepEqual(p.joueursAvecTag("maire").map(j => j.id), ["j3"]);
+});
+
+test("Contagion : la personne désignée meurt à la 3e aube", () => {
+  const p = jourAvecEvenement(SIMPLE, "contagion", "j2");
+  aube(p);
+  aube(p);
+  assert.equal(p.joueur("j2").vivant, true);
+  aube(p);
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.ok(p.morts(0).some(m => m.joueur.id === "j2" && m.cause === "peste"));
+});
+
+test("Clair de lune : la Voyante et le Loup voyante ne voient que le joueur éclairé", () => {
+  const p = jourAvecEvenement(["loup-voyante", "villageois", "voyante", "villageois", "villageois"], "clair-de-lune", "j3");
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  p.voter(null);
+  p.nuitSuivante();
+
+  while (p.decisionCourante()?.alias !== "voyante") p.passer();
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["sonder-eclaire"]);
+  p.jouer({ id: "sonder-eclaire", cibles: [] });
+  assert.ok(p.infos.some(i => i.pour === "j2" && i.texte === "J3 est Villageois."));
+
+  assert.equal(p.decisionCourante()?.alias, "loup-voyante");
+  p.jouer({ id: "sonder-eclaire", cibles: [] });
+  assert.ok(p.infos.some(i => i.pour === "j0" && i.texte === "J3 est Villageois."));
+});
+
+test("Marché noir : la Sorcière retrouve ses potions, le tag ne traîne chez personne", () => {
+  const p = partieAvec(["loup", "villageois", "sorciere", "villageois", "villageois"]);
+  p.joueur("j2").memoire.potionVie = false;
+  p.joueur("j2").memoire.potionMort = false;
+  while (p.decisionCourante()) p.passer();
+  p.leverLeJour();
+  p.suiteDeLAube();
+  p.elire("j1");
+  p.ouvrirEvenement("marche-noir");
+  p.appliquerEvenement();
+
+  assert.equal(p.joueur("j2").memoire.potionVie, true);
+  assert.equal(p.joueur("j2").memoire.potionMort, true);
+  assert.deepEqual(p.joueursAvecTag("recharge"), []);
+});
+
+test("Urgence et Trêve : 2 minutes, puis pas de minuteur", () => {
+  assert.equal(jourAvecEvenement(SIMPLE, "urgence").dureeDuDebat(5), 2);
+  assert.equal(jourAvecEvenement(SIMPLE, "treve").dureeDuDebat(5), null);
+});
+
+test("Animations : aucun effet, la validation suffit", () => {
+  for (const alias of ["baillon", "tenebres", "carnaval", "baton-de-parole", "murmures", "bouche-cousue"]) {
+    const p = jourAvecEvenement(SIMPLE, alias);
+    assert.equal(p.evenementApplique, true, alias);
+    assert.equal(p.dureeDuDebat(5), 5, alias);
+  }
+});

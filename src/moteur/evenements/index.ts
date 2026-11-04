@@ -1,8 +1,22 @@
 import type { Evenement } from "../types";
+import baillon from "./baillon";
+import batonDeParole from "./baton-de-parole";
 import benediction from "./benediction";
+import boucheCousue from "./bouche-cousue";
+import carnaval from "./carnaval";
+import clairDeLune from "./clair-de-lune";
+import contagion from "./contagion";
+import marcheNoir from "./marche-noir";
+import murmures from "./murmures";
+import passation from "./passation";
 import rumeur from "./rumeur";
 import { sablier, sablierSuite } from "./sablier";
+import saufConduit from "./sauf-conduit";
 import soleil from "./soleil";
+import soupcon from "./soupcon";
+import tenebres from "./tenebres";
+import treve from "./treve";
+import urgence from "./urgence";
 
 /**
  * Registre des événements. Ajouter un événement :
@@ -11,7 +25,31 @@ import soleil from "./soleil";
  * Les événements utilisent le même chemin que les rôles : ils renvoient { donner, infos },
  * qui passent par donnerTag() et le journal.
  */
-export const LISTE_EVENEMENTS: Evenement[] = [soleil, rumeur, benediction, sablier];
+export const LISTE_EVENEMENTS: Evenement[] = [
+  // Rien ou presque
+  soleil,
+  rumeur,
+  // Animations : le meneur lit la règle
+  baillon,
+  tenebres,
+  carnaval,
+  batonDeParole,
+  murmures,
+  boucheCousue,
+  // Minuteur du débat
+  sablier,
+  urgence,
+  treve,
+  // Le maire désigne
+  saufConduit,
+  soupcon,
+  benediction,
+  passation,
+  contagion,
+  clairDeLune,
+  // Sans choix
+  marcheNoir
+];
 
 /** Jamais tirés au hasard, seulement imposés par le moteur (la suite du Sablier). */
 const IMPOSES: Evenement[] = [sablierSuite];

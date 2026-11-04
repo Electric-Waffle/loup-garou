@@ -26,6 +26,15 @@ const sorciere: Role = {
     };
   },
 
+  // Marché noir (événement) : les deux potions reviennent. Le rôle décide seul de ce que veut
+  // dire « recharger » ; l'événement ne touche jamais sa memoire.
+  recevoir(tag, _meta, r, _partie, moi) {
+    if (tag !== "recharge") return;
+    moi.memoire.potionVie = true;
+    moi.memoire.potionMort = true;
+    return r.consommer("potions rechargées");
+  },
+
   agir(choix, _partie, moi) {
     switch (choix.id) {
       case "sauver":

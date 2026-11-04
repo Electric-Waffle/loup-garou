@@ -38,6 +38,14 @@ const loupHypnotiseur: Role = {
 
   init: () => ({ silence: true, suggestion: true }),
 
+  // Marché noir (événement) : les deux médaillons reviennent (voir sorciere.ts).
+  recevoir(tag, _meta, r, _partie, moi) {
+    if (tag !== "recharge") return;
+    moi.memoire.silence = true;
+    moi.memoire.suggestion = true;
+    return r.consommer("médaillons rechargés");
+  },
+
   decision(partie, moi) {
     const choix: OptionChoix[] = [];
     for (const medaillon of Object.keys(MEDAILLONS) as Medaillon[]) {

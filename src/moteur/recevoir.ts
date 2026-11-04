@@ -51,6 +51,27 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
       return r.consommer(`devient ${partie.titre(nouveauRole)}`);
     }
 
+    // Bénédiction (événement) : l'effet COMPLET d'une protection du Salvateur.
+    // FLUX : "protege_hier" est d'abord retiré (sinon la règle de "protege" refuserait une personne
+    // protégée la veille), puis "protege" est donné AU NOM du Salvateur : les loups qui lient ou
+    // regardent le voient (aTagDe), et l'aube posera "protege_hier" comme d'habitude.
+    case "benediction":
+      partie.retirerTag(joueur, "protege_hier", profondeur + 1);
+      donnerTag(partie, joueur, "protege", { source: "salvateur", cause: "benediction" }, profondeur + 1);
+      return r.consommer("bénédiction : protégé comme par le Salvateur");
+
+    // Un seul maire : le nouveau prend la place de l'ancien (Passation, et toute future règle).
+    case "maire":
+      for (const ancien of partie.joueursAvecTag("maire")) {
+        if (ancien.id !== joueur.id) partie.retirerTag(ancien, "maire", profondeur + 1);
+      }
+      return r.accepter();
+
+    // Marché noir : seuls les rôles à charges (Sorcière, Loup hypnotiseur) répondent à "recharge"
+    // dans leur recevoir(). Chez les autres, le tag est consommé pour ne pas traîner.
+    case "recharge":
+      return r.consommer("rien à recharger");
+
     // Levée de la malédiction de la Pleureuse (même principe que "sauve" pour "mordu") :
     // le tag de levée retire l'état, puis disparaît lui-même.
     case "delivre":
