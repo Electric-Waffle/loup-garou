@@ -140,12 +140,34 @@ export interface Role {
 
 /* ---------- Événements ---------- */
 
+/**
+ * Un événement du jour, tiré après l'élection du maire et avant le débat.
+ * Deux genres, qui se déduisent des champs présents :
+ *   - ANIMATION : ni appliquer, ni decision. Le meneur lit le texte, le moteur ne fait rien.
+ *   - GAMEPLAY  : appliquer (sans choix), ou decision + agir (le maire désigne quelqu'un),
+ *                 et/ou minuteur (durée du débat).
+ * FLUX : tiré (sans effet) → le meneur peut demander « Un autre » ou « Passer » (Soleil)
+ *        → appliqué à la validation (appliquer, ou agir via partie.jouer) → débat.
+ */
 export interface Evenement {
   alias: string;
   titre: string;
   image: string;
   description: string;
-  appliquer(partie: Partie): ResultatAction | void;
+
+  /** Effet sans choix, à la validation (ex. la Rumeur). Comme agir() : renvoie ce qu'il donne. */
+  appliquer?(partie: Partie): ResultatAction | void;
+
+  /** Le maire désigne : mêmes contrats que pour un rôle, avec le maire à la place de moi. */
+  decision?(partie: Partie, maire: Joueur): Decision;
+  agir?(choix: ChoixFait, partie: Partie, maire: Joueur): ResultatAction | void;
+
+  /** Durée du débat en minutes ; null = pas de minuteur ; absent = le réglage du meneur. */
+  minuteur?: number | null;
+  /** Le temps restant au « Passer au vote » devient la durée du débat du lendemain (Sablier). */
+  reporteLeTempsRestant?: boolean;
+  /** Ne peut être ni remplacé ni passé (la suite du Sablier). */
+  force?: boolean;
 }
 
 /* ---------- Journal ---------- */

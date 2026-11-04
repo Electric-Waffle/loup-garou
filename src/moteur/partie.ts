@@ -28,10 +28,13 @@ export interface OptionsPartie {
 
 export interface DecisionCourante {
   alias: string;
-  moi?: Joueur;             // absent pour une carte fantôme : personne ne la porte
+  titre: string;            // POURQUOI ici : un événement n'est pas dans le registre des rôles,
+  image: string;            // l'interface ne peut donc pas les retrouver avec partie.titre(alias)
+  moi?: Joueur;             // absent pour une carte fantôme : personne ne la porte ; le maire pour un événement
   porteurs: Joueur[];
   decision: Decision;
-  urgente: boolean; // décision en attente (ex. le Chasseur qui meurt)
+  urgente: boolean;         // décision en attente (ex. le Chasseur qui meurt)
+  evenement?: boolean;      // décision d'un événement du jour (le maire désigne)
 }
 
 /**
@@ -62,6 +65,9 @@ export class Partie {
   file: string[] = [];                               // cartes restant à appeler cette nuit
   attente: { alias: string; joueur: string }[] = []; // décisions urgentes (Chasseur…)
   evenement?: Evenement;
+  evenementApplique = false;                         // l'effet de l'événement du jour a eu lieu
+  reportDuSablier?: number;                          // secondes restantes, pour le débat du lendemain
+  private dureeImposee?: number;                     // minutes, imposées par la suite du Sablier
   vainqueur?: string;
   plaidoirie?: string;                               // id du joueur qui a racheté son vote : il parle seul
   debutPhase = 0;                                    // index du journal au début de la phase
@@ -244,8 +250,9 @@ export class Partie {
     if (urgente) {
       const moi = this.joueur(urgente.joueur);
       const role = this.role(urgente.alias);
-      return { alias: urgente.alias, moi, porteurs: [moi], decision: role.decision!(this, moi), urgente: true };
+      return { ...this.carte(urgente.alias), moi, porteurs: [moi], decision: role.decision!(this, moi), urgente: true };
     }
+    if (this.phase === "evenement") return this.decisionDeLEvenement();
     if (this.phase !== "nuit") return undefined;
 
     const alias = this.file[0];
@@ -257,7 +264,7 @@ export class Partie {
     if (!moi) {
       // Carte fantôme : activée mais jamais distribuée, on l'appelle pour faire semblant.
       if (this.estFantome(alias)) {
-        return { alias, porteurs, decision: this.decisionSansAction(alias, "carte fantôme : personne ne l'a reçue, faites semblant"), urgente: false };
+        return { ...this.carte(alias), porteurs, decision: this.decisionSansAction(alias, "carte fantôme : personne ne l'a reçue, faites semblant"), urgente: false };
       }
       // Plus personne pour jouer cette carte (porteur mort) : on la saute.
       this.file.shift();
@@ -276,7 +283,32 @@ export class Partie {
     const decision = tousBloques
       ? this.decisionSansAction(alias, raisons[0]!)
       : this.role(alias).decision!(this, moi);
-    return { alias, moi, porteurs, decision, urgente: false };
+    return { ...this.carte(alias), moi, porteurs, decision, urgente: false };
+  }
+
+  /** Alias, titre et image d'une carte de rôle, tels que l'interface les affiche. */
+  private carte(alias: string): { alias: string; titre: string; image: string } {
+    return { alias, titre: this.titre(alias), image: this.image(alias) };
+  }
+
+  /**
+   * Pendant la phase d'événement : la décision du maire, si l'événement en demande une
+   * et n'a pas encore été appliqué. Sinon undefined, et l'interface affiche l'écran d'événement.
+   */
+  private decisionDeLEvenement(): DecisionCourante | undefined {
+    const evenement = this.evenement;
+    const maire = this.joueursAvecTag("maire")[0];
+    if (!evenement?.decision || this.evenementApplique || !maire) return undefined;
+    return {
+      alias: evenement.alias,
+      titre: evenement.titre,
+      image: evenement.image,
+      moi: maire,
+      porteurs: [maire],
+      decision: evenement.decision(this, maire),
+      urgente: false,
+      evenement: true
+    };
   }
 
   private estFantome(alias: string): boolean {
@@ -301,6 +333,15 @@ export class Partie {
     // Une carte fantôme n'a aucun choix : l'option a déjà été refusée plus haut. Ce test rassure TypeScript.
     if (!courante.moi) throw new Error("Carte fantôme : seul « Passer » est possible.");
 
+    // Un événement n'est pas un rôle : pas de file, pas de tourDeCarte. Son agir() reçoit le maire.
+    if (courante.evenement) {
+      const evenement = this.evenement!;
+      this.log({ type: "action", source: evenement.alias, texte: `${evenement.titre} : ${choix.id}` });
+      appliquerResultat(this, evenement.agir?.(choix, this, courante.moi), `evenement:${evenement.alias}`);
+      this.evenementApplique = true;
+      return;
+    }
+
     if (courante.urgente) this.attente.shift();
     else this.file.shift();
 
@@ -311,6 +352,11 @@ export class Partie {
   passer(): void {
     const courante = this.decisionCourante();
     if (!courante) return;
+    // « Passer » sur la décision d'un événement = Soleil, comme le bouton de l'écran d'événement.
+    if (courante.evenement) {
+      this.passerEvenement();
+      return;
+    }
     if (courante.urgente) this.attente.shift();
     else this.file.shift();
     this.log({ type: "passe", source: courante.alias, texte: `${this.titre(courante.alias)} : passe` });
@@ -369,34 +415,113 @@ export class Partie {
     aube(this);
   }
 
-  ouvrirEvenement(alias?: string): void {
+  /**
+   * Après le rapport de l'aube : victoire ? sinon élection du maire s'il n'y en a pas, puis l'événement.
+   * POURQUOI l'élection AVANT l'événement : les événements où « le maire désigne » ont toujours un maire.
+   */
+  suiteDeLAube(): void {
     if (this.attente.length) throw new Error("Une décision est en attente.");
     if (this.verifier()) return;
-    this.changerPhase("evenement");
-    this.evenement = alias ? EVENEMENTS[alias] : this.auHasard(LISTE_EVENEMENTS);
-    if (this.evenement) {
-      this.log({ type: "evenement", source: this.evenement.alias, texte: this.evenement.titre });
-      appliquerResultat(this, this.evenement.appliquer(this), `evenement:${this.evenement.alias}`);
-    }
+    if (this.aBesoinDUnMaire()) this.changerPhase("election");
+    else this.ouvrirEvenement();
   }
 
   /** Vrai si aucun joueur VIVANT n'a le tag "maire" : il faut en élire un. */
   aBesoinDUnMaire(): boolean { return this.joueursAvecTag("maire").length === 0; }
 
-  /** Après l'événement : élection du maire s'il n'y en a pas, sinon directement le débat. */
-  suiteDeLEvenement(): void {
-    if (this.aBesoinDUnMaire()) this.changerPhase("election");
-    else this.ouvrirDebat();
-  }
-
-  /** Le meneur désigne le maire. Le tag passe par donnerTag, comme le reste, puis le débat s'ouvre. */
+  /** Le meneur désigne le maire. Le tag passe par donnerTag, comme le reste, puis l'événement est tiré. */
   elire(id: string): void {
     appliquerResultat(this, { donner: [{ tag: "maire", a: id }] }, "election");
-    this.ouvrirDebat();
+    this.ouvrirEvenement();
   }
 
-  ouvrirDebat(): void { this.changerPhase("debat"); }
-  ouvrirVote(): void { this.changerPhase("vote"); }
+  /* ---------- Événement du jour : tiré, éventuellement remplacé, puis appliqué ---------- */
+
+  /**
+   * Ouvre la phase d'événement. Le lendemain d'un Sablier, la suite est imposée.
+   * ATTENTION : aucun effet ici. L'événement n'agit qu'à la validation (appliquerEvenement ou
+   * jouer), sinon « Un autre » laisserait derrière lui l'effet de l'événement remplacé.
+   * @param alias pour imposer un événement (tests) ; absent = tiré au hasard
+   */
+  ouvrirEvenement(alias?: string): void {
+    this.changerPhase("evenement");
+    this.evenementApplique = false;
+    this.dureeImposee = undefined;
+
+    if (this.reportDuSablier !== undefined) {
+      this.dureeImposee = this.reportDuSablier / 60;
+      this.reportDuSablier = undefined;
+      this.choisirEvenement(EVENEMENTS["sablier-suite"]);
+      return;
+    }
+    this.choisirEvenement(alias ? EVENEMENTS[alias] : this.tirerEvenement());
+  }
+
+  /** « Un autre » : un nouveau tirage, différent de l'événement actuel. */
+  autreEvenement(): void {
+    this.verifierRemplacable();
+    this.choisirEvenement(this.tirerEvenement(this.evenement?.alias));
+  }
+
+  /** « Passer » : Soleil, il ne se passe rien. */
+  passerEvenement(): void {
+    this.verifierRemplacable();
+    this.choisirEvenement(EVENEMENTS.soleil);
+  }
+
+  /** Valide un événement SANS choix (Rumeur, Sablier, animations) : son effet a lieu maintenant. */
+  appliquerEvenement(): void {
+    const evenement = this.evenement;
+    if (!evenement || this.evenementApplique) return;
+    if (evenement.decision) throw new Error("Cet événement attend que le maire désigne quelqu'un.");
+    appliquerResultat(this, evenement.appliquer?.(this), `evenement:${evenement.alias}`);
+    this.evenementApplique = true;
+  }
+
+  private tirerEvenement(exclure?: string): Evenement | undefined {
+    return this.auHasard(LISTE_EVENEMENTS.filter(e => e.alias !== exclure));
+  }
+
+  private choisirEvenement(evenement: Evenement | undefined): void {
+    this.evenement = evenement;
+    if (evenement) this.log({ type: "evenement", source: evenement.alias, texte: evenement.titre });
+  }
+
+  private verifierRemplacable(): void {
+    if (this.evenementApplique) throw new Error("L'événement a déjà eu lieu.");
+    if (this.evenement?.force) throw new Error(`${this.evenement.titre} ne peut être ni remplacé ni passé.`);
+  }
+
+  /* ---------- Débat et vote ---------- */
+
+  /**
+   * Durée du débat en minutes (null = pas de minuteur), dans l'ordre :
+   * la suite du Sablier, puis le minuteur de l'événement du jour, puis le réglage du meneur.
+   */
+  dureeDuDebat(parDefaut: number): number | null {
+    if (this.dureeImposee !== undefined) return this.dureeImposee;
+    if (this.evenement?.minuteur !== undefined) return this.evenement.minuteur;
+    return parDefaut;
+  }
+
+  /** Ouvre le débat. Refusé tant que l'événement du jour n'a pas eu lieu. */
+  ouvrirDebat(): void {
+    if (this.phase === "evenement" && !this.evenementApplique) {
+      throw new Error("Validez d'abord l'événement du jour.");
+    }
+    this.changerPhase("debat");
+  }
+
+  /**
+   * @param secondesRestantes le temps affiché par le minuteur au moment du clic.
+   * Un jour de Sablier, le PREMIER passage au vote garde ce temps pour le lendemain ; le second
+   * débat d'une plaidoirie (or du Marchand) ne le change pas.
+   */
+  ouvrirVote(secondesRestantes?: number): void {
+    const doitReporter = this.evenement?.reporteLeTempsRestant && this.reportDuSablier === undefined;
+    if (doitReporter && secondesRestantes !== undefined) this.reportDuSablier = secondesRestantes;
+    this.changerPhase("vote");
+  }
 
   /**
    * Élimine un joueur (ou personne). Le "mort" passe par donnerTag, comme le reste.

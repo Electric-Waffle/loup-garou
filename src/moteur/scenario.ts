@@ -24,7 +24,10 @@ export function nuitUn(): Partie {
   p.jouer({ id: "devorer",  cibles: ["david"] });        // Loup
   p.jouer({ id: "rien",     cibles: [] });               // Sorcière
   p.leverLeJour();
-  p.ouvrirEvenement("calme");
+  p.suiteDeLAube();                                      // pas de maire : élection
+  p.elire("jules");                                      // puis l'événement est tiré
+  p.passerEvenement();                                   // Soleil, quel que soit le tirage
+  p.appliquerEvenement();
   p.ouvrirDebat();
   p.ouvrirVote();
   p.voter(null);
@@ -40,5 +43,5 @@ export function nuitDeux(p: Partie): void {
   p.jouer({ id: "tuer",     cibles: ["hugo"] });         // Sorcière
   p.leverLeJour();                                       // aube : la cascade
   p.jouer({ id: "tirer",    cibles: ["bob"] });          // Chasseur (décision urgente)
-  p.ouvrirEvenement("calme");                            // → vérification de victoire
+  p.suiteDeLAube();                                      // → vérification de victoire
 }

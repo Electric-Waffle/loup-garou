@@ -227,8 +227,10 @@ test("corbeau : la marque survit à l'aube et disparaît après le vote", () => 
   assert.ok(p.aTag(p.joueur("bob"), "corbeau"));         // a survécu à l'aube
 
   p.jouer({ id: "rien", cibles: [] });                   // Chasseur : Hugo est mort, décision urgente
-  p.ouvrirEvenement("calme");
+  p.suiteDeLAube();                                      // Jules est déjà maire : pas d'élection
   assert.ok(p.infosPubliques().some(t => t.includes("Bob"))); // annoncé au village
+  p.passerEvenement();                                   // Soleil
+  p.appliquerEvenement();
   p.ouvrirDebat();
   p.ouvrirVote();
   p.voter(null);

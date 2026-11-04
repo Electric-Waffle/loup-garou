@@ -30,7 +30,7 @@
  *  `partie` et APPELER ses méthodes. Toute la logique est dans src/moteur.
  * ===================================================================================== */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { nbCibles, type Partie } from "../moteur/partie";
 import type { Entree, Joueur, OptionChoix } from "../moteur/types";
 import { Table, type Siege } from "./Table";
@@ -391,11 +391,15 @@ export function PartieVue({
         {courante ? (
           <section className={courante.urgente ? "decision decision-urgente" : "decision"}>
             <div className="decision-carte">
-              <Visuel src={partie.image(courante.alias)} nom={partie.titre(courante.alias)} taille={72} />
+              {/* POURQUOI courante.titre et pas partie.titre(alias) : un événement n'est pas un rôle. */}
+              <Visuel src={courante.image} nom={courante.titre} taille={72} />
               <div>
-                <h2>{partie.titre(courante.alias)}</h2>
-                {/* Les noms des joueurs qui portent cette carte. */}
-                <p className="aide">{courante.porteurs.map(porteur => porteur.nom).join(", ")}</p>
+                <h2>{courante.titre}</h2>
+                {/* Les noms des joueurs qui portent cette carte (le maire, pour un événement). */}
+                <p className="aide">
+                  {courante.evenement ? "Le maire désigne : " : ""}
+                  {courante.porteurs.map(porteur => porteur.nom).join(", ")}
+                </p>
               </div>
             </div>
 
@@ -428,7 +432,12 @@ export function PartieVue({
                   option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
               {!courante.urgente && (
                 <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
-                  Passer
+                  {courante.evenement ? "Passer (Soleil)" : "Passer"}
+                </button>
+              )}
+              {courante.evenement && (
+                <button className="bouton bouton-discret" onClick={() => agir(() => partie.autreEvenement())}>
+                  Un autre
                 </button>
               )}
             </div>
@@ -502,6 +511,13 @@ function EtapeDeJour({
   dureeDebat: number;
   quitter: () => void;
 }) {
+  // PATTERN : useRef pour une valeur qu'on lit sans qu'elle redessine l'écran.
+  // POURQUOI : le Minuteur la met à jour chaque seconde ; avec useState, EtapeDeJour serait
+  // redessinée à chaque seconde pour rien. On ne la lit qu'au clic « Passer au vote ».
+  // ATTENTION : déclaré AVANT le switch. Un hook doit être appelé à chaque rendu, dans le même
+  // ordre ; dans un case, il ne le serait que pendant le débat.
+  const secondesRestantes = useRef<number | undefined>(undefined);
+
   switch (partie.phase) {
     // La file de la nuit est vide (sinon une décision serait affichée à la place).
     case "nuit":
@@ -520,8 +536,11 @@ function EtapeDeJour({
     case "resultat_vote":
       return <RapportDesMorts partie={partie} agir={agir} />;
 
+    // FLUX : un événement AVEC choix s'affiche d'abord dans le panneau de décision (le maire désigne).
+    // On arrive ici pour un événement sans choix, ou une fois l'événement appliqué.
     case "evenement": {
       const evenement = partie.evenement;
+      const applique = partie.evenementApplique;
       // Les infos publiques de l'événement (ex. la rumeur), affichées l'une sous l'autre.
       // Celles de la nuit ont déjà été lues au rapport de l'aube.
       const infosPubliques = partie.infosPubliques(["evenement"]);
@@ -541,11 +560,26 @@ function EtapeDeJour({
           {infosPubliques.map((texte, index) => (
             <p key={index} className="info-publique">{texte}</p>
           ))}
-          {/* POURQUOI le moteur décide (suiteDeLEvenement) : « faut-il un maire ? » est une règle
-              du jeu, l'interface se contente d'adapter le libellé. */}
-          <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.suiteDeLEvenement())}>
-            {partie.aBesoinDUnMaire() ? "Élire le maire" : "Ouvrir le débat"}
-          </button>
+          {applique ? (
+            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.ouvrirDebat())}>
+              Ouvrir le débat
+            </button>
+          ) : (
+            <div className="actions">
+              <button className="bouton bouton-principal" onClick={() => agir(() => partie.appliquerEvenement())}>
+                Valider l'événement
+              </button>
+              {/* La suite du Sablier est imposée : ni remplacée, ni passée. */}
+              {!evenement?.force && (
+                <>
+                  <button className="bouton" onClick={() => agir(() => partie.autreEvenement())}>Un autre</button>
+                  <button className="bouton bouton-discret" onClick={() => agir(() => partie.passerEvenement())}>
+                    Passer (Soleil)
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </section>
       );
     }
@@ -565,15 +599,22 @@ function EtapeDeJour({
       // shortcut : l'interface connaît l'alias "pretre" ; à remplacer par un champ de Role si d'autres rappels arrivent.
       const pretreMort = partie.joueurs.some(j => !j.vivant && j.role === "pretre");
       const rappelPretre = pretreMort && !partie.aBesoinDUnMaire();
+      const duree = partie.dureeDuDebat(dureeDebat);
       return (
         <section>
           <h2>{accuse ? `Plaidoirie de ${accuse.nom}` : "Débat"}</h2>
           {accuse && <p className="info-publique">{accuse.nom} a payé avec son or : lui seul a la parole, puis le village revote.</p>}
           {rappelPretre && <p className="aide">⛪ Le prêtre, mort, peut chuchoter au maire.</p>}
           {/* Le minuteur garde son propre état. Il est détruit (et son intervalle arrêté)
-              dès qu'on quitte la phase de débat, puisque ce JSX n'est plus rendu. */}
-          <Minuteur minutes={dureeDebat} />
-          <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.ouvrirVote())}>
+              dès qu'on quitte la phase de débat, puisque ce JSX n'est plus rendu.
+              Durée : celle de l'événement du jour (Sablier, Urgence…) ou le réglage ; null = pas de minuteur. */}
+          {duree !== null && (
+            <Minuteur minutes={duree} surChangement={secondes => { secondesRestantes.current = secondes; }} />
+          )}
+          <button
+            className="bouton bouton-principal bouton-large"
+            onClick={() => agir(() => partie.ouvrirVote(duree === null ? undefined : secondesRestantes.current))}
+          >
             Passer au vote
           </button>
         </section>
@@ -619,12 +660,13 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
   const morts = partie.morts();
 
   const titre = estLAube ? "Rapport de la nuit" : "Résultat du vote";
-  const libelleBouton = estLAube ? "Événement du jour" : "La nuit tombe";
+  let libelleBouton = "La nuit tombe";
+  if (estLAube) libelleBouton = partie.aBesoinDUnMaire() ? "Élire le maire" : "Événement du jour";
 
   /** Passe à la phase suivante. Les deux méthodes vérifient d'abord la victoire. */
   function passerALaSuite() {
     if (estLAube) {
-      partie.ouvrirEvenement();
+      partie.suiteDeLAube();
     } else {
       partie.nuitSuivante();
     }
@@ -670,10 +712,12 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
 
 /**
  * Compte à rebours, avec pause et ajout d'une minute.
- * @param minutes durée de départ
+ * @param minutes durée de départ (peut être fractionnaire : la suite du Sablier)
+ * @param surChangement appelée avec le temps restant à chaque changement (Sablier)
  */
-function Minuteur({ minutes }: { minutes: number }) {
-  const [secondesRestantes, setSecondesRestantes] = useState(minutes * 60);
+function Minuteur({ minutes, surChangement }: { minutes: number; surChangement?: (secondes: number) => void }) {
+  // Math.round : 125 / 60 * 60 peut donner 124,99999… en virgule flottante.
+  const [secondesRestantes, setSecondesRestantes] = useState(Math.round(minutes * 60));
   const [enMarche, setEnMarche] = useState(true);
 
   const estTermine = secondesRestantes <= 0;
@@ -708,6 +752,14 @@ function Minuteur({ minutes }: { minutes: number }) {
       clearInterval(identifiantIntervalle);
     };
   }, [enMarche, estTermine]);
+
+  // FLUX : le temps restant ne vit QUE dans ce composant. Pour que « Passer au vote » le lise,
+  // on le remonte au parent par une fonction de rappel, après chaque changement.
+  // ATTENTION : surChangement n'est pas dans les dépendances : le parent la recrée à chaque rendu,
+  // et l'effet repartirait sans raison. Seul le temps compte.
+  useEffect(() => {
+    surChangement?.(secondesRestantes);
+  }, [secondesRestantes]);
 
   // Affichage "mm:ss". padStart(2, "0") complète à gauche avec des zéros : "7" → "07".
   const minutesAffichees = String(Math.floor(secondesRestantes / 60)).padStart(2, "0");

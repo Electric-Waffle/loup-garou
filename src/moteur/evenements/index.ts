@@ -1,47 +1,21 @@
 import type { Evenement } from "../types";
+import benediction from "./benediction";
+import rumeur from "./rumeur";
+import { sablier, sablierSuite } from "./sablier";
+import soleil from "./soleil";
 
 /**
- * Les événements utilisent le même chemin que les rôles :
- * ils renvoient { donner, infos }, qui passent par donnerTag() et le journal.
+ * Registre des événements. Ajouter un événement :
+ *   1. créer evenements/<alias>.ts
+ *   2. l'ajouter dans LISTE_EVENEMENTS (tirage au hasard)
+ * Les événements utilisent le même chemin que les rôles : ils renvoient { donner, infos },
+ * qui passent par donnerTag() et le journal.
  */
+export const LISTE_EVENEMENTS: Evenement[] = [soleil, rumeur, benediction, sablier];
 
-const calme: Evenement = {
-  alias: "calme",
-  titre: "Journée calme",
-  image: "☀️",
-  description: "Rien de particulier ne se passe.",
-  appliquer: () => ({})
-};
+/** Jamais tirés au hasard, seulement imposés par le moteur (la suite du Sablier). */
+const IMPOSES: Evenement[] = [sablierSuite];
 
-const rumeur: Evenement = {
-  alias: "rumeur",
-  titre: "Rumeur",
-  image: "🗣️",
-  description: "Une rumeur révèle à tous le camp d'un joueur tiré au hasard.",
-  appliquer(partie) {
-    const cible = partie.auHasard(partie.vivants());
-    if (!cible) return {};
-    const texte = partie.roleDe(cible).camp === "loups"
-      ? `La rumeur dit que ${cible.nom} est un loup-garou.`
-      : `La rumeur dit que ${cible.nom} n'est pas un loup-garou.`;
-    return { infos: [{ pour: "tous", texte }] };
-  }
-};
-
-const benediction: Evenement = {
-  alias: "benediction",
-  titre: "Bénédiction",
-  image: "✨",
-  description: "Un joueur tiré au hasard est protégé des loups la nuit suivante.",
-  appliquer(partie) {
-    const cible = partie.auHasard(partie.vivants());
-    if (!cible) return {};
-    return {
-      donner: [{ tag: "protege", a: cible.id }],
-      infos: [{ pour: "tous", texte: "Un villageois a reçu une bénédiction pour la nuit à venir." }]
-    };
-  }
-};
-
-export const LISTE_EVENEMENTS: Evenement[] = [calme, rumeur, benediction];
-export const EVENEMENTS: Record<string, Evenement> = Object.fromEntries(LISTE_EVENEMENTS.map(e => [e.alias, e]));
+export const EVENEMENTS: Record<string, Evenement> = Object.fromEntries(
+  [...LISTE_EVENEMENTS, ...IMPOSES].map(e => [e.alias, e])
+);

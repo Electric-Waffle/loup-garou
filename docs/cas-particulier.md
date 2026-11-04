@@ -199,7 +199,7 @@ agir: (choix) => ({ donner: [{ tag: "mort", a: choix.cibles[0], meta: { cause: "
 ### Rapport et victoire
 
 - Le rapport (`partie.morts()`) lit les entrées `recu mort` du journal depuis le début de l'aube : **Hugo** (empoisonné), **Emma** (morte de chagrin), **Bob** (abattu par le chasseur).
-- Le bouton « Événement du jour » appelle `ouvrirEvenement()`, qui vérifie d'abord la victoire. Il ne reste aucun loup → **le village gagne**.
+- Le bouton après le rapport appelle `suiteDeLAube()`, qui vérifie d'abord la victoire. Il ne reste aucun loup → **le village gagne**.
 
 ---
 

@@ -226,21 +226,19 @@ test("Victoire : un rat-garou face à un seul joueur fait gagner le village", ()
   assert.equal(verifierVictoire(p), "Le village");
 });
 
-test("Maire : élu s'il n'y en a pas, puis plus d'élection", () => {
-  const p = nuitUn(); // tour 2, nuit en cours ; on rejoue un jour complet
+test("Maire : élu AVANT l'événement s'il n'y en a pas, puis plus d'élection", () => {
+  const p = nuitUn(); // jour 1 : aube → élection de Jules → événement → débat
+  assert.ok(p.aTag(p.joueur("jules"), "maire"));
+  assert.ok(p.journal.findIndex(e => e.texte === "election") < p.journal.findIndex(e => e.texte === "evenement"));
+
   p.passer(); // Réunion des amoureux
   p.jouer({ id: "sonder", cibles: ["chloe"] });
   p.jouer({ id: "proteger", cibles: ["alice"] });
   p.jouer({ id: "devorer", cibles: ["david"] });
   p.jouer({ id: "rien", cibles: [] });
   p.leverLeJour();
-  p.ouvrirEvenement("calme");
-
-  p.suiteDeLEvenement();
-  assert.equal(p.phase, "election");
-  p.elire("jules");
-  assert.equal(p.phase, "debat");
-  assert.ok(p.aTag(p.joueur("jules"), "maire"));
+  p.suiteDeLAube();
+  assert.equal(p.phase, "evenement"); // un maire vivant : pas d'élection
   assert.equal(p.aBesoinDUnMaire(), false);
 });
 
@@ -881,4 +879,86 @@ test("Fêtard : rien si l'éliminé n'est pas un loup, ou s'il n'a pas voté con
   p.voter("j0");
   p.jouer({ id: "non", cibles: [] });
   assert.ok(!p.aTag(p.joueur("j2"), "fete"));
+});
+
+/* ---------- Événements : tirage, remplacement, validation, minuteur ---------- */
+
+/** Une partie au jour 1, maire élu (j1), prête pour l'événement. */
+function jourAvecMaire(): Partie {
+  const p = partieAvec(["loup", "villageois", "villageois", "villageois", "villageois"]);
+  p.passer(); // loups
+  p.leverLeJour();
+  p.suiteDeLAube();
+  assert.equal(p.phase, "election");
+  p.elire("j1");
+  assert.equal(p.phase, "evenement");
+  return p;
+}
+
+test("Événement : aucun effet au tirage ; « Un autre » ne laisse rien derrière lui", () => {
+  const p = jourAvecMaire();
+  p.ouvrirEvenement("benediction");
+  assert.deepEqual(p.joueursAvecTag("protege"), []); // tirée, pas encore appliquée
+
+  p.autreEvenement();
+  assert.notEqual(p.evenement?.alias, "benediction");
+  assert.deepEqual(p.joueursAvecTag("protege"), []);
+});
+
+test("Événement : « Passer » force Soleil, et le débat attend la validation", () => {
+  const p = jourAvecMaire();
+  p.passerEvenement();
+  assert.equal(p.evenement?.alias, "soleil");
+  assert.throws(() => p.ouvrirDebat(), /Validez d'abord/);
+
+  p.appliquerEvenement();
+  assert.throws(() => p.autreEvenement(), /déjà eu lieu/);
+  p.ouvrirDebat();
+  assert.equal(p.phase, "debat");
+});
+
+test("Événement : la Rumeur n'est révélée qu'à la validation", () => {
+  const p = jourAvecMaire();
+  p.ouvrirEvenement("rumeur");
+  assert.deepEqual(p.infosPubliques(["evenement"]), []);
+  p.appliquerEvenement();
+  assert.equal(p.infosPubliques(["evenement"]).length, 1);
+});
+
+test("Sablier : 8 min, le temps restant devient le débat du lendemain, sans autre événement", () => {
+  const p = jourAvecMaire();
+  p.ouvrirEvenement("sablier");
+  assert.equal(p.dureeDuDebat(5), 8);
+  p.appliquerEvenement();
+  p.ouvrirDebat();
+  p.ouvrirVote(125); // 2 min 05 restantes
+  p.voter("j2");     // élimine un villageois (le loup j0 reste : la partie continue)
+  p.nuitSuivante();
+  p.passer();        // loups
+  p.leverLeJour();
+  p.suiteDeLAube();
+
+  assert.equal(p.evenement?.alias, "sablier-suite");
+  assert.equal(Math.round(p.dureeDuDebat(5)! * 60), 125);
+  assert.throws(() => p.autreEvenement(), /ni remplacé ni passé/);
+  assert.throws(() => p.passerEvenement(), /ni remplacé ni passé/);
+});
+
+test("Sablier : le second débat d'une plaidoirie ne change pas le report", () => {
+  const p = jourAvecMaire();
+  donnerTag(p, p.joueur("j2"), "or");
+  p.ouvrirEvenement("sablier");
+  p.appliquerEvenement();
+  p.ouvrirDebat();
+  p.ouvrirVote(300);
+  p.voter("j2");          // il paie : nouveau débat
+  assert.equal(p.phase, "debat");
+  p.ouvrirVote(10);
+  assert.equal(p.reportDuSablier, 300);
+});
+
+test("Soleil : le débat garde la durée réglée par le meneur", () => {
+  const p = jourAvecMaire();
+  p.passerEvenement();
+  assert.equal(p.dureeDuDebat(5), 5); // Soleil : le réglage du meneur
 });

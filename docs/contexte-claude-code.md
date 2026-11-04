@@ -73,11 +73,11 @@ Un site **local, en full JavaScript / TypeScript**, pour **préparer et animer d
    - la durée du débat, puis le lancement.
 
 ### Le cycle d'une partie
-Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, crochets `aube()` des rôles, rapport) → événement → **élection du maire** (seulement s'il n'y a pas de maire vivant) → débat (minuteur) → vote → résultat du vote → nuit suivante.
+Nuit (les cartes une par une, par priorité) → aube (conséquences des tags, crochets `aube()` des rôles, rapport) → **élection du maire** (seulement s'il n'y a pas de maire vivant) → **événement** (tiré au hasard ; « Un autre », « Passer » = Soleil ; appliqué seulement à la validation) → débat (minuteur, dont la durée peut venir de l'événement) → vote → résultat du vote → nuit suivante.
 
 Si l'éliminé paie avec son or, le vote est annulé : **plaidoirie** (un nouveau débat où il parle seul), puis un nouveau vote.
 
-La victoire est vérifiée en ouvrant l'événement et au passage à la nuit suivante.
+La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au passage à la nuit suivante.
 
 ---
 
@@ -107,7 +107,8 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   - `Meta.expire` : `"aube"` ou `"aube_suivante"`.
 - **`partie.ts`** : la **classe `Partie`**, c'est-à-dire l'état et les transitions de phases.
   - Décisions : `decisionCourante()`, `jouer(choix)`, `passer()`.
-  - Phases : `leverLeJour()`, `ouvrirEvenement()`, `suiteDeLEvenement()`, `elire(id)`, `ouvrirDebat()`, `ouvrirVote()`, `voter(id | null)`, `nuitSuivante()`.
+  - Phases : `leverLeJour()`, `suiteDeLAube()`, `elire(id)`, `ouvrirEvenement(alias?)`, `autreEvenement()`, `passerEvenement()`, `appliquerEvenement()`, `ouvrirDebat()`, `ouvrirVote(secondesRestantes?)`, `voter(id | null)`, `nuitSuivante()`.
+  - Événements : `dureeDuDebat(parDefaut)` (suite du Sablier, puis minuteur de l'événement, puis réglage), `reportDuSablier`. Un événement avec `decision` passe par `decisionCourante()` / `jouer()`, avec le maire comme `moi` (`DecisionCourante.evenement`, et `titre` / `image` fournis par le moteur).
   - Lecture : `morts()`, `infosPubliques(phases?)` (filtrées par phase : la nuit va au rapport de l'aube, l'événement à l'événement), `rappelsDuVote()` (tags `silence` / `dirige`), `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
   - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenairesDe()` (tous les amoureux d'un joueur, réseau), `partenaireLie()` (Arlequin).
   - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
@@ -130,7 +131,7 @@ La victoire est vérifiée en ouvrant l'événement et au passage à la nuit sui
   5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
   6. au moins autant de loups que de non-loups → les loups gagnent, ou **le Fou** s'il est vivant.
   - **Prêtre impur** : il est compté comme un villageois (son camp reste `village`), mais il gagne avec les loups (« Les loups-garous et le prêtre impur ») et perd avec le village (« …, sans le prêtre impur »), qu'il soit vivant ou mort. Si le Fou vole la victoire, le prêtre impur perd aussi.
-- **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/index.ts`**.
+- **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/`** : un fichier par événement, `index.ts` est le registre (`LISTE_EVENEMENTS` pour le tirage, plus les événements imposés comme la suite du Sablier). Champs d'un `Evenement` : `appliquer?` (effet sans choix), `decision?` + `agir?` (le maire désigne), `minuteur?` (minutes, `null` = pas de minuteur), `reporteLeTempsRestant?`, `force?`. Sans aucun de ces champs, c'est une animation.
 - **`roles/index.ts`** : le **registre** (`LISTE_ROLES`, `ROLES`).
 - **`roles/_template.ts`** : le modèle commenté pour créer un rôle. **`roles/ajouter-corbeau.md`** : un tutoriel.
 
