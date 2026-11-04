@@ -109,7 +109,7 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
   - Décisions : `decisionCourante()`, `jouer(choix)`, `passer()`.
   - Phases : `leverLeJour()`, `suiteDeLAube()`, `elire(id)`, `ouvrirEvenement(alias?)`, `autreEvenement()`, `passerEvenement()`, `appliquerEvenement()`, `ouvrirDebat()`, `ouvrirVote(secondesRestantes?)`, `voter(id | null)`, `nuitSuivante()`.
   - Événements : `dureeDuDebat(parDefaut)` (suite du Sablier, puis minuteur de l'événement, puis réglage), `reportDuSablier`. Un événement avec `decision` passe par `decisionCourante()` / `jouer()`, avec le maire comme `moi` (`DecisionCourante.evenement`, et `titre` / `image` fournis par le moteur).
-  - Lecture : `morts()`, `infosPubliques(phases?)` (filtrées par phase : la nuit va au rapport de l'aube, l'événement à l'événement), `rappelsDuVote()` (tags `silence` / `dirige`), `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
+  - Lecture : `morts()`, `voteImpossible()` (Aberration), `infosPubliques(phases?)` (filtrées par phase : la nuit va au rapport de l'aube, l'événement à l'événement), `rappelsDuVote()` (tags `silence` / `dirige`), `ciblesPossibles(type, moi, porteurs)`, `aBesoinDUnMaire()`.
   - Joueurs : `porteursDe(alias)` (les porteurs d'une carte, plus les rôles qui la « rejoignent »), `joueursAvecRole()`, `joueursAvecTag()`, `partenairesDe()` (tous les amoureux d'un joueur, réseau), `partenaireLie()` (Arlequin).
   - Champs : `cartesHorsJeu` (activées mais non distribuées), `cartesDuSavant` (3 cartes hors jeu, tirées au lancement si le Loup savant est activé), `plaidoirie`.
   - Autres : `mettreEnAttente()` (ignorée pour un joueur enchanté ou maudit), `aTag()`, `aTagDe(j, tag, source)` (ex. protégé PAR le Salvateur), `retirerTag()`, `auHasard()`.
@@ -122,9 +122,10 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
   2. applique le tableau ordonné `CONSEQUENCES` ;
   3. appelle le crochet `aube()` de chaque rôle vivant ;
   4. fait expirer les tags (`aube` est retiré, `aube_suivante` devient `aube`).
-  - **L'ordre des lignes de `CONSEQUENCES` est une règle du jeu** : `mordu`, `agonisant`, `empoisonne`, `protege`, puis la peste **écrite à l'envers** (`peste_mortelle`, `peste_imminente`, `peste_active`, `peste`), pour qu'un tag posé par une ligne ne soit pas repris par les suivantes dans la même aube.
+  - **L'ordre des lignes de `CONSEQUENCES` est une règle du jeu** : `mordu`, `agonisant`, `catatonique`, `empoisonne`, `protege`, puis la peste **écrite à l'envers** (`peste_mortelle`, `peste_imminente`, `peste_active`, `peste`), pour qu'un tag posé par une ligne ne soit pas repris par les suivantes dans la même aube.
 - **`victoire.ts`**, dans l'ordre :
   1. plus aucun vivant ;
+  - **Aberration vivante** : aucun autre camp ne gagne ; elle gagne quand tous les autres vivants sont horrifiés (ou si elle est seule) ;
   2. les amoureux (tag `amoureux`, liés entre eux ou pas, quel que soit leur camp) sont en **majorité stricte** parmi les vivants ;
   3. un rat-garou face à un seul non-loup → le village gagne ;
   4. plus de loup → le village gagne ;
@@ -179,7 +180,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 
 ### Règles appliquées par le moteur à tous les rôles
 - **Protection du Salvateur contre les loups qui lient ou regardent** : le Loup amoureux, le Loup succube, le Loup voyante et le Loup hypnotiseur jouent après lui (102 à 115) et testent `aTagDe(cible, "protege", "salvateur")` dans leur `agir()`. L'échec n'est jamais annoncé au village.
-- **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan), `maudit` (Pleureuse) et `impuissant` (Ancien éliminé par le vote).
+- **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan), `maudit` (Pleureuse), `impuissant` (Ancien éliminé par le vote) et `catatonique` (a vu l'Aberration).
   - une carte dont tous les porteurs sont bloqués n'offre que « Passer » ;
   - `mettreEnAttente()` ignore un joueur bloqué : un Chasseur enchanté ou maudit ne tire pas, un Rat ne choisit pas ;
   - les pouvoirs passifs continuent (`recevoir` de l'Ancien, invulnérabilité, or) ;
@@ -188,7 +189,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie).
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie), `horrifie` (Aberration, permanent tant qu'elle vit), `catatonique` (bloquant, devient `mort` à l'aube, cause `horreur`).
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -218,6 +219,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 12 | Conciliabule des maudits (étape) | toutes, s'il y a au moins un maudit vivant ; minuteur de 60 s |
 | 15 | Pleureuse | à partir de la 2 |
 | 20 | Arlequin | 1, 3, 5… |
+| 25 | Aberration | toutes |
 | 50 | Cupidon | 1 (lier) et 3 (voir) |
 | 60 | Réunion des amoureux (étape) | toutes, s'il y a au moins 2 amoureux vivants hors Loup succube ; minuteur de 60 s |
 | 70 | Prêtre | 1 (pur ou impur) |
@@ -263,6 +265,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Paysan | village | Voté : assomme 2 joueurs (`enchante` la nuit suivante). Dévoré : tous les loups sont `blesse` et ne chassent pas la nuit suivante. |
 | Prêtre | village | Nuit 1 : choisit en secret d'être **pur** (gagne avec le village) ou **impur** (gagne avec les loups, tag `impur`). Il compte toujours comme un villageois pour la victoire. Sans choix (« Passer »), il est pur. Mort, il continue de faire semblant de jouer et peut chuchoter au maire pendant le débat, pour l'aider ou pour le tromper. |
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
+| Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
 | Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
 | Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |
 

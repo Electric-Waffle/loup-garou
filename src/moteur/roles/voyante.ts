@@ -47,6 +47,10 @@ const voyante: Role = {
       return { infos: [{ pour: moi.id, texte: `${partie.titre(alias)} n'a été distribuée à personne.` }] };
     }
     const cible = choix.id === OPTION_ECLAIRE ? partie.joueursAvecTag("eclaire")[0] : partie.joueur(choix.cibles[0]);
+    // Voir la carte de l'Aberration : aucune info, elle devient catatonique et meurt à l'aube.
+    if (cible.role === "aberration") {
+      return { donner: [{ tag: "catatonique", a: moi.id }] };
+    }
     return {
       infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(cible.role)}.` }]
     };

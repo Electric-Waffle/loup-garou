@@ -58,6 +58,10 @@ const loupVoyante: Role = {
     if (partie.aTagDe(cible, "protege", "salvateur")) {
       return { infos: [{ pour: moi.id, texte: `La vision échoue : la carte de ${cible.nom} reste cachée.` }] };
     }
+    // Voir la carte de l'Aberration : catatonique, mort à l'aube (après la protection : une vision ratée ne fait rien).
+    if (cible.role === "aberration") {
+      return { donner: [{ tag: "catatonique", a: moi.id }] };
+    }
     return {
       infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(cible.role)}.` }]
     };

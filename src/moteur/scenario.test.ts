@@ -1190,3 +1190,71 @@ test("Coup double : un loup éliminé ouvre UN second vote", () => {
   assert.equal(q.peutRevoter, false);
   assert.throws(() => q.revoter(), /Aucun second vote/);
 });
+
+/* ---------- Aberration ---------- */
+
+test("Aberration : elle horrifie, et des loups tous horrifiés ne mangent plus", () => {
+  const p = partieAvec(["aberration", "loup", "villageois", "villageois"]);
+  assert.equal(p.decisionCourante()?.alias, "aberration");
+  p.jouer({ id: "horrifier", cibles: ["j1"] });
+  assert.ok(p.aTag(p.joueur("j1"), "horrifie"));
+
+  assert.equal(p.decisionCourante()?.alias, "loup");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Aberration : villageois tous horrifiés, le village ne peut pas voter", () => {
+  const p = partieAvec(["aberration", "loup", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "horrifie");
+  assert.equal(p.voteImpossible(), undefined); // j3 n'est pas horrifié
+  donnerTag(p, p.joueur("j3"), "horrifie");
+
+  assert.ok(p.rappelsDuVote().some(r => r.includes("ne peut pas voter")));
+  assert.throws(() => p.voter("j1"), /ne peut pas voter/);
+  p.voter(null); // « Personne n'est éliminé » reste possible
+  assert.equal(p.phase, "resultat_vote");
+});
+
+test("Aberration : la Voyante qui voit sa carte devient catatonique, puis meurt à l'aube", () => {
+  const p = partieAvec(["aberration", "loup", "voyante", "villageois", "villageois"]);
+  p.passer(); // Aberration
+  p.jouer({ id: "sonder", cibles: ["j0"] });
+  assert.ok(p.aTag(p.joueur("j2"), "catatonique"));
+  assert.ok(!p.infos.some(i => i.pour === "j2"));
+
+  // Catatonique : elle ne réagit plus à rien cette nuit (tag bloquant).
+  p.mettreEnAttente("voyante", p.joueur("j2"));
+  assert.deepEqual(p.attente, []);
+
+  p.passer(); // loups
+  p.leverLeJour();
+  assert.deepEqual(p.morts().map(m => [m.joueur.id, m.cause]), [["j2", "horreur"]]);
+});
+
+test("Aberration morte : plus personne n'est horrifié", () => {
+  const p = partieAvec(["aberration", "loup", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "horrifie");
+  donnerTag(p, p.joueur("j2"), "horrifie");
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
+  assert.deepEqual(p.joueurs.filter(j => p.aTag(j, "horrifie")), []);
+});
+
+test("Aberration : protégée par le Salvateur, la vision du Loup voyante échoue sans le tuer", () => {
+  const p = partieAvec(["aberration", "loup-voyante", "salvateur", "villageois"]);
+  p.passer(); // Aberration
+  p.jouer({ id: "proteger", cibles: ["j0"] });
+  p.jouer({ id: "sonder", cibles: ["j0"] });
+  assert.equal(p.joueur("j1").vivant, true);
+});
+
+test("Aberration : vivante, personne d'autre ne gagne ; tous horrifiés, elle gagne", () => {
+  const p = partieAvec(["aberration", "loup", "loup", "villageois"]);
+  assert.equal(verifierVictoire(p), undefined); // 2 loups contre 1 : les loups auraient gagné
+
+  for (const id of ["j1", "j2", "j3"]) donnerTag(p, p.joueur(id), "horrifie");
+  assert.equal(verifierVictoire(p), "L'aberration");
+
+  // Morte, les règles habituelles reprennent.
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Les loups-garous");
+});

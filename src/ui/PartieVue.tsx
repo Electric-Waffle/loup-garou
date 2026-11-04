@@ -68,6 +68,8 @@ const TAGS: Record<string, string> = {
   dirige: "🌀 dirigé",
   maudit: "😢 maudit",
   fete: "🥳 fait la fête",
+  horrifie: "😱 horrifié",
+  catatonique: "🫥 catatonique",
   impuissant: "🚫 sans pouvoir",
   sauf_conduit: "📜 sauf-conduit",
   soupcon: "🧐 soupçonné",
@@ -78,6 +80,7 @@ const TAGS: Record<string, string> = {
 
 /** Explication affichée dans le rapport pour chaque cause de mort (meta.cause du tag "mort"). */
 const CAUSES: Record<string, string> = {
+  horreur: "a vu la carte de l'aberration",
   ultimatum: "victime de l'ultimatum",
   mordu: "dévoré par les loups",
   poison: "empoisonné",
@@ -341,7 +344,9 @@ export function PartieVue({
     // L'élection du maire se joue comme le vote : un clic sur un joueur vivant.
     // Sauf-conduit (événement) : impossible à éliminer aujourd'hui, son siège n'est pas cliquable au vote.
     const protegeParSaufConduit = enVote && partie.aTag(joueur, "sauf_conduit");
-    const cliquablePourLeVote = (enVote || enElection) && joueur.vivant && !protegeParSaufConduit;
+    // Aberration : si tous les villageois sont horrifiés, aucun siège n'est cliquable au vote.
+    const voteInterdit = enVote && partie.voteImpossible() !== undefined;
+    const cliquablePourLeVote = (enVote || enElection) && joueur.vivant && !protegeParSaufConduit && !voteInterdit;
     const cliquableCommeCible = possibles.includes(joueur.id);
     const estCliquable = cliquablePourLeVote || cliquableCommeCible;
 

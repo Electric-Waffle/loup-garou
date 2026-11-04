@@ -43,7 +43,8 @@ const LIBELLES_CAMPS: Record<Camp, string> = {
   village: "Village",
   loups: "Loups",
   solo: "Solo",
-  fou: "Fou"
+  fou: "Fou",
+  aberration: "Aberration"
 };
 
 /**

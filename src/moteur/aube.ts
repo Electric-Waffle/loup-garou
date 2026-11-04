@@ -11,6 +11,8 @@ const CONSEQUENCES: { tag: string; devient: string; meta?: Meta; si?: (t: Tag) =
   { tag: "mordu",      devient: "mort", meta: { cause: "mordu" } },
   // Le Rat qui a choisi de mordre : dévoré, sans sauvetage possible.
   { tag: "agonisant",  devient: "mort", meta: { cause: "mordu" } },
+  // Une voyante qui a vu l'Aberration : figée la nuit (tag bloquant), morte au matin.
+  { tag: "catatonique", devient: "mort", meta: { cause: "horreur" } },
   { tag: "empoisonne", devient: "mort", meta: { cause: "poison" } },
   // Seule une protection du Salvateur l'empêche de protéger la même personne la nuit suivante.
   { tag: "protege",    devient: "protege_hier", si: t => t.source === "salvateur" },

@@ -13,6 +13,15 @@ export function verifierVictoire(partie: Partie): string | undefined {
   const vivants = partie.vivants();
   if (vivants.length === 0) return "Personne : le village est désert.";
 
+  // Aberration vivante : AUCUN autre camp ne gagne (ni loups, ni village, ni amoureux, ni Fou).
+  // Elle gagne quand tous les autres survivants sont horrifiés.
+  // ATTENTION : seule survivante, [].every(...) vaut true : elle gagne, c'est voulu.
+  const aberration = vivants.find(j => partie.roleDe(j).camp === "aberration");
+  if (aberration) {
+    const autres = vivants.filter(j => j.id !== aberration.id);
+    return autres.every(j => partie.aTag(j, "horrifie")) ? "L'aberration" : undefined;
+  }
+
   const nbLoups = vivants.filter(j => partie.roleDe(j).camp === "loups").length;
 
   // Amoureux en majorité STRICTE parmi les vivants, liés entre eux ou pas, quel que soit leur camp.

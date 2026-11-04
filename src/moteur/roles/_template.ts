@@ -140,7 +140,7 @@ const template: Role = {
   image: "❓",
 
   /**
-   * Camp du rôle : "village", "loups" ou "solo".
+   * Camp du rôle : "village", "loups", "solo", "fou" ou "aberration".
    * Utilisé par victoire.ts pour compter les loups vivants et décider du vainqueur.
    */
   camp: "village",
@@ -168,6 +168,7 @@ const template: Role = {
    *    12  Conciliabule des maudits (étape)
    *    15  Pleureuse               (tôt : le maudit perd son rôle dès cette nuit)
    *    20  Arlequin
+   *    25  Aberration
    *    50  Cupidon
    *    60  Réunion des amoureux    (après tous les liens)
    *    70  Prêtre
@@ -456,6 +457,9 @@ export default template;
  *    amoureux      Cupidon, Loup amoureux, Loup succube ; meta.partenaires (liste, réseau) meurent de chagrin avec le porteur ; liste absente = sens unique
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
  *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
+ *    horrifie      Aberration ; loups tous horrifiés = pas de chasse, villageois tous horrifiés = pas de vote ;
+ *                  retiré à tous à la mort de l'Aberration
+ *    catatonique   voyante qui a vu l'Aberration ; bloquant, devient "mort" (cause "horreur") à l'aube
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas

@@ -19,6 +19,11 @@ const loup: Role = {
     if (tousBlesses) {
       return { message: "Les loups se réveillent, blessés par le paysan : ils ne chassent pas cette nuit.", choix: [] };
     }
+    // Horrifiés par l'Aberration : même règle (tous les porteurs), mais pour toujours.
+    const tousHorrifies = partie.porteursDe("loup").every(j => partie.aTag(j, "horrifie"));
+    if (tousHorrifies) {
+      return { message: "Les loups se réveillent, horrifiés par l'aberration : ils ne peuvent plus manger.", choix: [] };
+    }
     return {
       message: "Les loups se réveillent et choisissent une victime.",
       choix: [{ id: "devorer", label: "Dévorer", cible: "un_joueur" }]

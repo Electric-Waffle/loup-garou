@@ -1,4 +1,5 @@
 import type { Role } from "../types";
+import aberration from "./aberration";
 import ancien from "./ancien";
 import arlequin from "./arlequin";
 import batisseur from "./batisseur";
@@ -58,7 +59,8 @@ export const LISTE_ROLES: Role[] = [
   paysan,
   batisseur,
   pleureuse,
-  fetard
+  fetard,
+  aberration
 ];
 
 /**

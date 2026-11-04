@@ -44,7 +44,8 @@ export interface DecisionCourante {
 const TAGS_BLOQUANTS: Record<string, string> = {
   enchante: "enchanté, il garde les yeux fermés",
   maudit: "maudit par la pleureuse, il ne fait pas son rôle",
-  impuissant: "privé de pouvoir depuis que le village a éliminé l'Ancien"
+  impuissant: "privé de pouvoir depuis que le village a éliminé l'Ancien",
+  catatonique: "catatonique depuis qu'il a vu l'aberration"
 };
 
 export function nbCibles(type: TypeCible = "aucune"): number {
@@ -539,6 +540,8 @@ export class Partie {
     if (id && this.aTag(this.joueur(id), "sauf_conduit")) {
       throw new Error(`${this.joueur(id).nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
     }
+    const interdiction = this.voteImpossible();
+    if (id && interdiction) throw new Error(interdiction);
     this.plaidoirie = undefined;
     this.peutRevoter = false;
     // ATTENTION : la phase change AVANT la mort, car morts() liste les morts depuis le début de la phase.
@@ -624,8 +627,21 @@ export class Partie {
    * futur rôle qui les donnerait (comme "enchante" dans decisionCourante).
    * ATTENTION : un dirigé dont l'hypnotiseur est mort vote librement (il n'y a plus de vote à copier).
    */
+  /**
+   * Pourquoi le village ne peut pas voter aujourd'hui, ou undefined s'il le peut.
+   * Règle de l'Aberration : tous les villageois VIVANTS sont horrifiés (au moins un).
+   * ATTENTION : [].every(...) vaut true ; sans le test de longueur, un village vide « ne voterait pas ».
+   */
+  voteImpossible(): string | undefined {
+    const villageois = this.vivants().filter(j => this.roleDe(j).camp === "village");
+    const tousHorrifies = villageois.length > 0 && villageois.every(j => this.aTag(j, "horrifie"));
+    return tousHorrifies ? "Tous les villageois sont horrifiés : le village ne peut pas voter." : undefined;
+  }
+
   rappelsDuVote(): string[] {
     const rappels: string[] = [];
+    const interdiction = this.voteImpossible();
+    if (interdiction) rappels.push(interdiction);
     if (this.evenement?.rappelVote) rappels.push(this.evenement.rappelVote);
     for (const joueur of this.joueursAvecTag("silence")) {
       rappels.push(`Ne pas compter le vote de ${joueur.nom} : il est réduit au silence.`);
