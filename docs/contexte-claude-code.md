@@ -179,7 +179,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 
 ### Règles appliquées par le moteur à tous les rôles
 - **Protection du Salvateur contre les loups qui lient ou regardent** : le Loup amoureux, le Loup succube, le Loup voyante et le Loup hypnotiseur jouent après lui (102 à 115) et testent `aTagDe(cible, "protege", "salvateur")` dans leur `agir()`. L'échec n'est jamais annoncé au village.
-- **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan) et `maudit` (Pleureuse).
+- **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan), `maudit` (Pleureuse) et `impuissant` (Ancien éliminé par le vote).
   - une carte dont tous les porteurs sont bloqués n'offre que « Passer » ;
   - `mettreEnAttente()` ignore un joueur bloqué : un Chasseur enchanté ou maudit ne tire pas, un Rat ne choisit pas ;
   - les pouvoirs passifs continuent (`recevoir` de l'Ancien, invulnérabilité, or) ;
@@ -188,7 +188,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit).
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie).
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -247,7 +247,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Sorcière | village | Une potion de vie, une potion de mort. |
 | Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
 | Chasseur | village | En mourant, abat un joueur (décision urgente). |
-| Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). |
+| Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). Éliminé par le vote du village : son `reagir()` donne `impuissant` à tous les vivants hors du camp des loups (Fou et Prêtre impur compris), qui ne font plus leur rôle jusqu'à la fin de la partie. |
 | Cupidon | village | Nuit 1 : lie deux amoureux, même déjà liés à quelqu'un d'autre (réseau). Nuit 3 : voit les rôles de tous les amoureux vivants. |
 | Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Cible protégée par le Salvateur : le lien échoue, sans seconde chance. Son partenaire ne vient à la Réunion des amoureux qu'à partir de la nuit 2. Vote avec les loups. |
 | Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Un compagnon protégé par le Salvateur fait échouer le lien : il reste seul jusqu'à la nuit suivante. Un nouveau compagnon ne vient à la Réunion des amoureux que la nuit d'après. Vote avec les loups. Ne vient pas à la Réunion des amoureux. |

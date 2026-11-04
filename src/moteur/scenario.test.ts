@@ -1105,3 +1105,35 @@ test("Animations : aucun effet, la validation suffit", () => {
     assert.equal(p.dureeDuDebat(5), 5, alias);
   }
 });
+
+/* ---------- Ancien éliminé par le village ---------- */
+
+test("Ancien voté : seuls les loups gardent leurs pouvoirs, jusqu'à la fin de la partie", () => {
+  const p = partieAvec(["loup", "ancien", "voyante", "chasseur", "villageois", "fou"]);
+  p.voter("j1");
+  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4", "j5"]);
+  assert.ok(!p.aTag(p.joueur("j0"), "impuissant"));
+
+  // Le Chasseur, éliminé ensuite, ne tire pas.
+  p.voter("j3");
+  assert.equal(p.decisionCourante(), undefined);
+
+  // Nuit suivante : la Voyante ne peut que passer, les loups dévorent normalement.
+  p.nuitSuivante();
+  assert.equal(p.decisionCourante()?.alias, "voyante");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+  p.passer();
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["devorer"]);
+
+  // Le tag ne s'en va pas à l'aube.
+  p.passer();
+  p.leverLeJour();
+  assert.ok(p.aTag(p.joueur("j2"), "impuissant"));
+});
+
+test("Ancien tué autrement que par le vote : personne ne perd ses pouvoirs", () => {
+  const p = partieAvec(["loup", "ancien", "voyante", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "mort", { cause: "poison" });
+  assert.equal(p.joueur("j1").vivant, false);
+  assert.deepEqual(p.joueursAvecTag("impuissant"), []);
+});

@@ -43,7 +43,8 @@ export interface DecisionCourante {
  */
 const TAGS_BLOQUANTS: Record<string, string> = {
   enchante: "enchanté, il garde les yeux fermés",
-  maudit: "maudit par la pleureuse, il ne fait pas son rôle"
+  maudit: "maudit par la pleureuse, il ne fait pas son rôle",
+  impuissant: "privé de pouvoir depuis que le village a éliminé l'Ancien"
 };
 
 export function nbCibles(type: TypeCible = "aucune"): number {

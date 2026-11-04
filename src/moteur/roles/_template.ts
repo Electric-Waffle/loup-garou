@@ -455,6 +455,7 @@ export default template;
  *    empoisonne    donné par la Sorcière ; devient "mort" (cause "poison") à l'aube
  *    amoureux      Cupidon, Loup amoureux, Loup succube ; meta.partenaires (liste, réseau) meurent de chagrin avec le porteur ; liste absente = sens unique
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
+ *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas

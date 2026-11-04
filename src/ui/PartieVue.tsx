@@ -68,6 +68,7 @@ const TAGS: Record<string, string> = {
   dirige: "🌀 dirigé",
   maudit: "😢 maudit",
   fete: "🥳 fait la fête",
+  impuissant: "🚫 sans pouvoir",
   sauf_conduit: "📜 sauf-conduit",
   soupcon: "🧐 soupçonné",
   eclaire: "🌕 éclairé",
