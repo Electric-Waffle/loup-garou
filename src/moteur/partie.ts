@@ -67,6 +67,8 @@ export class Partie {
   attente: { alias: string; joueur: string }[] = []; // décisions urgentes (Chasseur…)
   evenement?: Evenement;
   evenementApplique = false;                         // l'effet de l'événement du jour a eu lieu
+  peutRevoter = false;                               // l'événement propose un second vote (Coup double)
+  private aRevote = false;                           // le second vote du jour a déjà eu lieu
   reportDuSablier?: number;                          // secondes restantes, pour le débat du lendemain
   private dureeImposee?: number;                     // minutes, imposées par la suite du Sablier
   vainqueur?: string;
@@ -448,6 +450,8 @@ export class Partie {
     this.changerPhase("evenement");
     this.evenementApplique = false;
     this.dureeImposee = undefined;
+    this.peutRevoter = false;
+    this.aRevote = false;
 
     if (this.reportDuSablier !== undefined) {
       this.dureeImposee = this.reportDuSablier / 60;
@@ -536,10 +540,12 @@ export class Partie {
       throw new Error(`${this.joueur(id).nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
     }
     this.plaidoirie = undefined;
+    this.peutRevoter = false;
     // ATTENTION : la phase change AVANT la mort, car morts() liste les morts depuis le début de la phase.
     this.changerPhase("resultat_vote");
     if (!id) {
       this.log({ type: "info", texte: "Le village n'élimine personne." });
+      this.evenementApresVote(undefined);
       return;
     }
 
@@ -559,6 +565,29 @@ export class Partie {
     for (const joueur of this.vivants()) {
       this.roleDe(joueur).apresVote?.(this, joueur, elimine);
     }
+    this.evenementApresVote(elimine);
+  }
+
+  /**
+   * Crochet apresVote() de l'événement du jour (Ultimatum, Coup double), une fois le vote définitif.
+   * FLUX : appelé par voter() quand personne n'est éliminé, ou quand la mort a été acceptée ; jamais
+   * pendant une plaidoirie (la mort consommée par l'or n'est pas un résultat).
+   */
+  private evenementApresVote(elimine?: Joueur): void {
+    const evenement = this.evenement;
+    const resultat = evenement?.apresVote?.(this, elimine);
+    if (!evenement || !resultat) return;
+    appliquerResultat(this, resultat, `evenement:${evenement.alias}`);
+    // ATTENTION : un seul second vote par jour, même si le second éliminé est encore un loup.
+    if (resultat.revoter && !this.aRevote) this.peutRevoter = true;
+  }
+
+  /** Coup double : le meneur rouvre le vote (le débat se fait de tête, sans minuteur). */
+  revoter(): void {
+    if (!this.peutRevoter) throw new Error("Aucun second vote n'est proposé.");
+    this.peutRevoter = false;
+    this.aRevote = true;
+    this.changerPhase("vote");
   }
 
   nuitSuivante(): void {
@@ -597,6 +626,7 @@ export class Partie {
    */
   rappelsDuVote(): string[] {
     const rappels: string[] = [];
+    if (this.evenement?.rappelVote) rappels.push(this.evenement.rappelVote);
     for (const joueur of this.joueursAvecTag("silence")) {
       rappels.push(`Ne pas compter le vote de ${joueur.nom} : il est réduit au silence.`);
     }

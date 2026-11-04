@@ -1137,3 +1137,56 @@ test("Ancien tué autrement que par le vote : personne ne perd ses pouvoirs", ()
   assert.equal(p.joueur("j1").vivant, false);
   assert.deepEqual(p.joueursAvecTag("impuissant"), []);
 });
+
+/* ---------- Ultimatum et Coup double ---------- */
+
+/** Deux loups (j0, j2), maire j1 ; l'événement est validé et le vote ouvert. */
+function voteAvecEvenement(alias: string): Partie {
+  const p = jourAvecEvenement(["loup", "villageois", "loup", "villageois", "villageois", "villageois"], alias);
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  return p;
+}
+
+test("Ultimatum : un villageois éliminé, le maire meurt ; un loup éliminé, il vit", () => {
+  const p = voteAvecEvenement("ultimatum");
+  assert.ok(p.rappelsDuVote()[0].startsWith("Ultimatum"));
+  p.voter("j3");
+  assert.deepEqual(p.morts().map(m => [m.joueur.id, m.cause]), [["j3", "vote"], ["j1", "ultimatum"]]);
+  assert.ok(p.infosPubliques(["resultat_vote"])[0].includes("J1, le maire"));
+
+  const q = voteAvecEvenement("ultimatum");
+  q.voter("j0");
+  assert.equal(q.joueur("j1").vivant, true);
+});
+
+test("Ultimatum : personne n'est éliminé, le maire meurt aussi", () => {
+  const p = voteAvecEvenement("ultimatum");
+  p.voter(null);
+  assert.equal(p.joueur("j1").vivant, false);
+});
+
+test("Ultimatum : le vote racheté par l'or ne compte pas, seul le second vote décide", () => {
+  const p = voteAvecEvenement("ultimatum");
+  donnerTag(p, p.joueur("j3"), "or");
+  p.voter("j3");                 // il paie : plaidoirie
+  assert.equal(p.joueur("j1").vivant, true);
+  p.ouvrirVote();
+  p.voter("j2");                 // un loup
+  assert.equal(p.joueur("j1").vivant, true);
+});
+
+test("Coup double : un loup éliminé ouvre UN second vote", () => {
+  const p = voteAvecEvenement("coup-double");
+  p.voter("j3");                 // un villageois : rien
+  assert.equal(p.peutRevoter, false);
+
+  const q = voteAvecEvenement("coup-double");
+  q.voter("j0");                 // un loup
+  assert.equal(q.peutRevoter, true);
+  q.revoter();
+  assert.equal(q.phase, "vote");
+  q.voter("j2");                 // encore un loup : pas de troisième vote
+  assert.equal(q.peutRevoter, false);
+  assert.throws(() => q.revoter(), /Aucun second vote/);
+});

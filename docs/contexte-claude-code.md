@@ -131,7 +131,7 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
   5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
   6. au moins autant de loups que de non-loups → les loups gagnent, ou **le Fou** s'il est vivant.
   - **Prêtre impur** : il est compté comme un villageois (son camp reste `village`), mais il gagne avec les loups (« Les loups-garous et le prêtre impur ») et perd avec le village (« …, sans le prêtre impur »), qu'il soit vivant ou mort. Si le Fou vole la victoire, le prêtre impur perd aussi.
-- **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/`** : un fichier par événement, `index.ts` est le registre (`LISTE_EVENEMENTS` pour le tirage, plus les événements imposés comme la suite du Sablier). Champs d'un `Evenement` : `appliquer?` (effet sans choix), `decision?` + `agir?` (le maire désigne), `minuteur?` (minutes, `null` = pas de minuteur), `reporteLeTempsRestant?`, `force?`. Sans aucun de ces champs, c'est une animation.
+- **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/`** : un fichier par événement, `index.ts` est le registre (`LISTE_EVENEMENTS` pour le tirage, plus les événements imposés comme la suite du Sablier). Champs d'un `Evenement` : `appliquer?` (effet sans choix), `decision?` + `agir?` (le maire désigne), `minuteur?` (minutes, `null` = pas de minuteur), `reporteLeTempsRestant?`, `force?`, `rappelVote?` (affiché à l'écran du vote), `apresVote?(partie, elimine?)` (appelé par `voter()` une fois le vote définitif, jamais pendant une plaidoirie ; peut renvoyer `revoter: true`, un seul second vote par jour via `partie.revoter()`). Sans aucun de ces champs, c'est une animation.
 - **`roles/index.ts`** : le **registre** (`LISTE_ROLES`, `ROLES`).
 - **`roles/_template.ts`** : le modèle commenté pour créer un rôle. **`roles/ajouter-corbeau.md`** : un tutoriel.
 
@@ -279,6 +279,7 @@ Tirés après l'élection du maire. Le meneur peut demander « Un autre » ou «
 | Minuteur | Sablier (8 min, temps restant reporté au lendemain, suite imposée), Urgence (2 min), Trêve (pas de minuteur) |
 | Le maire désigne | Sauf-conduit (`sauf_conduit`), Soupçon (`soupcon`), Bénédiction (`benediction`), Passation (`maire`), Contagion (`peste_active` : mort à la 3e aube), Clair de lune (`eclaire`) |
 | Sans choix | Marché noir (`recharge` à tous les vivants) |
+| Selon le résultat du vote | Ultimatum (pas de loup éliminé, ou personne : le maire meurt, cause `ultimatum`), Coup double (un loup éliminé : un second vote, une seule fois) |
 
 ---
 

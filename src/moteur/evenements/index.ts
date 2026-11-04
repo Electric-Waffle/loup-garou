@@ -6,6 +6,7 @@ import boucheCousue from "./bouche-cousue";
 import carnaval from "./carnaval";
 import clairDeLune from "./clair-de-lune";
 import contagion from "./contagion";
+import coupDouble from "./coup-double";
 import marcheNoir from "./marche-noir";
 import murmures from "./murmures";
 import passation from "./passation";
@@ -16,6 +17,7 @@ import soleil from "./soleil";
 import soupcon from "./soupcon";
 import tenebres from "./tenebres";
 import treve from "./treve";
+import ultimatum from "./ultimatum";
 import urgence from "./urgence";
 
 /**
@@ -48,7 +50,10 @@ export const LISTE_EVENEMENTS: Evenement[] = [
   contagion,
   clairDeLune,
   // Sans choix
-  marcheNoir
+  marcheNoir,
+  // Selon le résultat du vote
+  ultimatum,
+  coupDouble
 ];
 
 /** Jamais tirés au hasard, seulement imposés par le moteur (la suite du Sablier). */

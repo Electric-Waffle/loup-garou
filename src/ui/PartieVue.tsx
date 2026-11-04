@@ -78,6 +78,7 @@ const TAGS: Record<string, string> = {
 
 /** Explication affichée dans le rapport pour chaque cause de mort (meta.cause du tag "mort"). */
 const CAUSES: Record<string, string> = {
+  ultimatum: "victime de l'ultimatum",
   mordu: "dévoré par les loups",
   poison: "empoisonné",
   chagrin: "mort de chagrin",
@@ -701,10 +702,17 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
           ))}
         </ul>
       )}
-      {/* Annonces publiques de la nuit (ex. le Salvateur a bloqué un médaillon du Loup hypnotiseur). */}
-      {estLAube && partie.infosPubliques(["nuit", "aube"]).map((texte, index) => (
+      {/* Annonces publiques de la phase : la nuit au rapport de l'aube ; Ultimatum ou Coup double
+          au résultat du vote. */}
+      {partie.infosPubliques(estLAube ? ["nuit", "aube"] : ["resultat_vote"]).map((texte, index) => (
         <p key={index} className="info-publique">{texte}</p>
       ))}
+      {/* Coup double : le meneur peut rouvrir le vote (le débat se fait de tête). */}
+      {!estLAube && partie.peutRevoter && (
+        <button className="bouton bouton-large" onClick={() => agir(() => partie.revoter())}>
+          Voter quelqu'un d'autre (Coup double)
+        </button>
+      )}
       <button className="bouton bouton-principal bouton-large" onClick={() => agir(passerALaSuite)}>
         {libelleBouton}
       </button>

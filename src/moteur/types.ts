@@ -168,6 +168,16 @@ export interface Evenement {
   reporteLeTempsRestant?: boolean;
   /** Ne peut être ni remplacé ni passé (la suite du Sablier). */
   force?: boolean;
+
+  /** Rappel affiché au meneur à l'écran du vote (ex. « si le village n'élimine pas un loup… »). */
+  rappelVote?: string;
+
+  /**
+   * Après le vote DÉFINITIF du jour (après une éventuelle plaidoirie), avec l'éliminé, ou undefined
+   * si personne ne l'a été. Comme agir() : renvoie ce qu'il donne, plus revoter pour proposer un
+   * second vote (une seule fois par jour, le moteur y veille).
+   */
+  apresVote?(partie: Partie, elimine?: Joueur): (ResultatAction & { revoter?: boolean }) | void;
 }
 
 /* ---------- Journal ---------- */
