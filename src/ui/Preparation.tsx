@@ -224,7 +224,8 @@ export function Preparation({
           <span className="siege-nom">{joueur.nom}</span>
           {aliasDeSaCarte && (
             <span className="siege-carte">
-              <Visuel src={image(aliasDeSaCarte)} nom={titre(aliasDeSaCarte)} taille={18} /> {titre(aliasDeSaCarte)}
+              <Visuel src={image(aliasDeSaCarte)} nom={titre(aliasDeSaCarte)} taille={18} />
+              <span className="siege-carte-titre">{titre(aliasDeSaCarte)}</span>
             </span>
           )}
         </>

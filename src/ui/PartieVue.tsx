@@ -368,7 +368,8 @@ export function PartieVue({
           <span className="siege-nom">{joueur.nom}</span>
           {/* Le meneur voit toutes les cartes : c'est l'écran du maître du jeu. */}
           <span className="siege-carte">
-            <Visuel src={partie.image(joueur.role)} nom={partie.titre(joueur.role)} taille={16} /> {partie.titre(joueur.role)}
+            <Visuel src={partie.image(joueur.role)} nom={partie.titre(joueur.role)} taille={16} />
+            <span className="siege-carte-titre">{partie.titre(joueur.role)}</span>
           </span>
           {joueur.tags.length > 0 && (
             <span className="siege-tags">
