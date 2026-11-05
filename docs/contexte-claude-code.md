@@ -232,6 +232,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 110 | Loup savant | 1 |
 | 115 | Loup hypnotiseur | toutes, tant qu'il lui reste un médaillon |
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
+| 124 | Loup barbare | toutes ; ne mord que la nuit qui suit l'élimination d'un non-loup par le village |
 | 130 | Sorcière | toutes |
 
 **L'état d'un joueur va dans `joueur.memoire`** (créé par `init()`), **jamais dans l'objet rôle**, qui est partagé par tous les joueurs ayant ce rôle.
@@ -266,6 +267,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Prêtre | village | Nuit 1 : choisit en secret d'être **pur** (gagne avec le village) ou **impur** (gagne avec les loups, tag `impur`). Il compte toujours comme un villageois pour la victoire. Sans choix (« Passer »), il est pur. Mort, il continue de faire semblant de jouer et peut chuchoter au maire pendant le débat, pour l'aider ou pour le tromper. |
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
 | Loup-démon | loups | Vote avec les loups. Éliminé par le vote du village : son `reagir()` donne `possede` puis `devient` (`role: "loup"`) à un villageois vivant tiré au hasard, qui devient Loup-Garou (tags et mémoire conservés). Tué autrement : il meurt simplement. |
+| Loup barbare | loups | Ne vote PAS avec la meute (pas de `rejoint`) : les loups ignorent qu'il est loup. Son `apresVote()` retient la nuit suivante si le village a éliminé un non-loup ; cette nuit-là (124), il donne `mordu`. Compte comme un loup pour la victoire. |
 | Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
 | Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
 | Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |

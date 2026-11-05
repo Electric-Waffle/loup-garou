@@ -181,6 +181,7 @@ const template: Role = {
    *   110  Loup savant
    *   115  Loup hypnotiseur        ┘
    *   120  Loup-Garou
+   *   124  Loup barbare            (après la meute, avant la Sorcière qui doit voir sa victime)
    *   125  Corbeau                 (si ajouté)
    *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)
    * Ignoré si appelNuit vaut false.

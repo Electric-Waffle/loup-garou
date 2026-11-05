@@ -11,6 +11,7 @@ import fetard from "./fetard";
 import fou from "./fou";
 import loup from "./loup";
 import loupAmoureux from "./loup-amoureux";
+import loupBarbare from "./loup-barbare";
 import loupDemon from "./loup-demon";
 import loupHypnotiseur from "./loup-hypnotiseur";
 import loupSavant from "./loup-savant";
@@ -53,6 +54,7 @@ export const LISTE_ROLES: Role[] = [
   loupHypnotiseur,
   loupVoyante,
   loupDemon,
+  loupBarbare,
   fou,
   fee,
   arlequin,

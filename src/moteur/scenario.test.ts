@@ -1287,3 +1287,41 @@ test("Loup-démon : rachète son vote avec l'or, personne n'est possédé", () =
   assert.equal(p.phase, "debat");
   assert.deepEqual(p.joueurs.filter(j => p.aTag(j, "possede")), []);
 });
+
+/* ---------- Loup barbare ---------- */
+
+test("Loup barbare : il ne se réveille pas avec la meute, et reste caché sans erreur du village", () => {
+  const p = partieAvec(["loup", "loup-barbare", "villageois", "villageois", "villageois"]);
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["j0"]);
+  assert.deepEqual(p.file.filter(a => a === "loup" || a === "loup-barbare"), ["loup", "loup-barbare"]);
+  p.passer(); // loups
+  assert.equal(p.decisionCourante()?.alias, "loup-barbare");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Loup barbare : le village élimine un innocent, il mord la nuit suivante, une seule fois", () => {
+  // 6 villageois : la partie ne doit pas finir avant la 3e nuit.
+  const p = partieAvec(["loup", "loup-barbare", "villageois", "villageois", "villageois", "villageois", "villageois", "villageois"]);
+  p.voter("j2"); // un villageois
+  p.nuitSuivante();
+  p.jouer({ id: "devorer", cibles: ["j3"] }); // la meute
+  assert.equal(p.decisionCourante()?.alias, "loup-barbare");
+  p.jouer({ id: "mordre", cibles: ["j4"] });
+  p.leverLeJour();
+  assert.deepEqual(p.morts().map(m => m.joueur.id).sort(), ["j3", "j4"]);
+
+  // La nuit d'après, sans nouvelle erreur du village : plus de morsure.
+  p.voter(null);
+  p.nuitSuivante();
+  p.passer(); // loups
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Loup barbare : un loup éliminé par le village ne lui donne rien", () => {
+  const p = partieAvec(["loup", "loup", "loup-barbare", "villageois", "villageois", "villageois"]);
+  p.voter("j0");
+  p.nuitSuivante();
+  p.passer(); // loups
+  assert.equal(p.decisionCourante()?.alias, "loup-barbare");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
