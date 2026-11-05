@@ -1,0 +1,58 @@
+# Publie le jeu sur GitHub Pages à chaque push sur main.
+# FLUX : push sur main → GitHub lit ce fichier → une machine Ubuntu neuve récupère le code,
+#        installe, teste, construit dist/ → dist/ est publié sur https://electric-waffle.github.io/loup-garou/
+# POURQUOI GitHub le trouve : tout fichier .yml dans .github/workflows/ est un workflow, sans autre réglage.
+
+name: Déployer sur GitHub Pages
+
+# QUAND le lancer.
+on:
+  push:
+    branches: [main]      # un push sur explication ne publie rien
+  workflow_dispatch:      # ajoute un bouton « Run workflow » dans l'onglet Actions (relancer à la main)
+
+# Ce que le jeton automatique du workflow a le droit de faire.
+# POURQUOI : par défaut il ne peut que lire. Publier sur Pages demande ces deux droits en plus.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Deux pushs rapprochés : le second annule le déploiement en cours au lieu de se battre avec lui.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  # JOB 1 : fabriquer le site.
+  build:
+    runs-on: ubuntu-latest           # une machine virtuelle neuve, vide, jetée à la fin
+    steps:
+      # CONCEPT : "uses" = une action toute faite, publiée par quelqu'un (ici, GitHub lui-même).
+      # "@v4" fige la version : une mise à jour de l'action ne casse pas ton déploiement.
+      - uses: actions/checkout@v4    # copie ton repo sur la machine (elle part de zéro)
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20           # la même que sur ton PC
+          cache: npm                 # garde node_modules d'une fois sur l'autre : plus rapide
+
+      # CONCEPT : "run" = une commande shell, exactement comme dans ton terminal.
+      - run: npm ci                  # comme npm install, mais suit package-lock.json à la lettre
+      - run: npm test                # ATTENTION : un test rouge arrête tout, rien n'est publié
+      - run: npm run build           # tsc + vite build → dist/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist                 # emballe dist/ pour le job suivant
+
+  # JOB 2 : mettre le site en ligne.
+  deploy:
+    needs: build                     # attend que build ait réussi (sinon les deux tournent en parallèle)
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}   # l'adresse du site, affichée dans l'onglet Actions
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4
