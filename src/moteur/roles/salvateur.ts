@@ -8,7 +8,7 @@ const salvateur: Role = {
   image: "🛡️",
   camp: "village",
   description: "Chaque nuit, il protège un joueur des loups. Jamais deux nuits de suite le même.",
-  priorite: 10,
+  priorite: 100,
   appelNuit: true,
 
   decision(partie) {

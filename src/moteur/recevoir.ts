@@ -34,24 +34,143 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
       partie.retirerTag(joueur, "mordu", profondeur + 1);
       return r.consommer("morsure annulée");
 
+    // La morsure devient une mort certaine : le tag "mordu" disparaît, donc la Sorcière
+    // ne voit plus la victime et "sauve" n'a plus rien à annuler. L'aube le change en "mort".
+    case "agonisant":
+      partie.retirerTag(joueur, "mordu", profondeur + 1);
+      return r.accepter();
+
+    // Change la carte du joueur (le Rat devient rat-garou). Ses tags et sa memoire sont conservés.
+    // POURQUOI un tag plutôt que joueur.role = ... dans le rôle : la transformation passe par
+    // l'entrée unique, apparaît au journal, et sert à tout futur rôle qui se transforme.
+    case "devient": {
+      const nouveauRole = meta.role;
+      if (typeof nouveauRole !== "string") return r.bloquer("aucun rôle indiqué");
+      partie.role(nouveauRole); // ATTENTION : lève une erreur si l'alias est inconnu, avant toute modification
+      joueur.role = nouveauRole;
+      return r.consommer(`devient ${partie.titre(nouveauRole)}`);
+    }
+
+    // Bénédiction (événement) : l'effet COMPLET d'une protection du Salvateur.
+    // FLUX : "protege_hier" est d'abord retiré (sinon la règle de "protege" refuserait une personne
+    // protégée la veille), puis "protege" est donné AU NOM du Salvateur : les loups qui lient ou
+    // regardent le voient (aTagDe), et l'aube posera "protege_hier" comme d'habitude.
+    case "benediction":
+      partie.retirerTag(joueur, "protege_hier", profondeur + 1);
+      donnerTag(partie, joueur, "protege", { source: "salvateur", cause: "benediction" }, profondeur + 1);
+      return r.consommer("bénédiction : protégé comme par le Salvateur");
+
+    // Un seul maire : le nouveau prend la place de l'ancien (Passation, et toute future règle).
+    case "maire":
+      for (const ancien of partie.joueursAvecTag("maire")) {
+        if (ancien.id !== joueur.id) partie.retirerTag(ancien, "maire", profondeur + 1);
+      }
+      return r.accepter();
+
+    // Marché noir : seuls les rôles à charges (Sorcière, Loup hypnotiseur) répondent à "recharge"
+    // dans leur recevoir(). Chez les autres, le tag est consommé pour ne pas traîner.
+    case "recharge":
+      return r.consommer("rien à recharger");
+
+    // Levée de la malédiction de la Pleureuse (même principe que "sauve" pour "mordu") :
+    // le tag de levée retire l'état, puis disparaît lui-même.
+    case "delivre":
+      if (!partie.aTag(joueur, "maudit")) return r.bloquer("n'était pas maudit");
+      partie.retirerTag(joueur, "maudit", profondeur + 1);
+      return r.consommer("malédiction levée");
+
     case "protege":
       if (partie.aTag(joueur, "protege_hier")) return r.bloquer("déjà protégé la nuit dernière");
       return r.accepter({ expire: "aube" });
 
     case "mort": {
       if (!joueur.vivant) return r.bloquer("déjà mort");
+
+      // Invulnérable (Loup vampire) : seul le vote du village peut le tuer.
+      // POURQUOI une liste BLANCHE (« seul le vote passe ») plutôt qu'une liste noire (« bloquer
+      // poison, Chasseur, chagrin… ») : toute FUTURE cause de mort sera bloquée d'office.
+      // POURQUOI ici, avant l'or et la mort : bloquer AVANT d'accepter évite de déclencher le
+      // chagrin de l'amoureux, le tir du Chasseur ou la transmission de l'or.
+      // FLUX : un vote n'est pas bloqué et continue plus bas, or compris (un vampire qui a hérité
+      // de l'or peut racheter son vote).
+      const parLeVillage = meta.cause === "vote";
+      if (partie.aTag(joueur, "invulnerable") && !parLeVillage) {
+        return r.bloquer("invulnérable : seul le vote du village peut le tuer");
+      }
+
+      // L'or rachète un vote. POURQUOI ici et pas dans marchand.ts : l'or change de main,
+      // la règle doit valoir pour TOUT porteur (un loup qui en a hérité, le Fou…).
+      // POURQUOI consommer et pas accepter-puis-annuler : une fois acceptée, la mort a déjà
+      // déclenché le chagrin de l'amoureux et le tir du Chasseur.
+      if (meta.cause === "vote" && partie.aTag(joueur, "or")) {
+        partie.retirerTag(joueur, "or", profondeur + 1);
+        return r.consommer("paie avec son or : nouveau vote");
+      }
+
+      // Ignifuge (Loup salamandre) : sur le bûcher, il ressort indemne des flammes.
+      // ATTENTION : APRÈS l'or. Celui qui a de l'or rachète d'abord son vote ; la salamandre n'agit
+      // qu'au vote final. BLOQUER, et pas consommer : partie.voter() lit "consomme" comme « payé avec
+      // l'or » et relancerait une plaidoirie.
+      if (meta.cause === "vote" && partie.aTag(joueur, "ignifuge")) {
+        return r.bloquer("ignifuge : il ressort indemne des flammes");
+      }
+
       const issue = r.accepter();
-      // Chaîne des amoureux : la mort de l'un entraîne celle de l'autre.
-      const partenaire = partie.partenaireDe(joueur);
-      if (partenaire?.vivant) {
+      if (partie.aTag(joueur, "or")) transmettreLOr(partie, joueur, meta, profondeur);
+      // Chaîne des amoureux : la mort de l'un entraîne celle de TOUS ses partenaires.
+      // FLUX : en réseau, c'est une cascade (A → B → C). Elle s'arrête d'elle-même :
+      // un partenaire déjà mort est ignoré ici, et "déjà mort" bloque plus haut.
+      for (const partenaire of partie.partenairesDe(joueur)) {
+        if (!partenaire.vivant) continue;
         donnerTag(partie, partenaire, "mort", { cause: "chagrin", source: joueur.id }, profondeur + 1);
       }
       return issue;
     }
 
+    // Réseau d'amoureux : un nouveau lien S'AJOUTE aux anciens au lieu de les remplacer.
+    // POURQUOI ici : sans cette règle, accepter() retire l'ancien tag (pas de doublon) et
+    // le premier lien serait perdu. Valable pour toutes les cartes qui lient, présentes et futures.
+    // CONCEPT : un Set retire les doublons (un même partenaire lié deux fois).
+    case "amoureux": {
+      const ancienTag = joueur.tags.find(t => t.type === "amoureux");
+      const anciens = idsDe(ancienTag?.partenaires);
+      const nouveaux = idsDe(meta.partenaires);
+      const partenaires = [...new Set([...anciens, ...nouveaux])];
+      return r.accepter({ partenaires });
+    }
+
     default:
       return r.accepter();
   }
+}
+
+/** Une meta est « unknown » : on ne garde la valeur que si c'est bien une liste d'ids. */
+function idsDe(valeur: unknown): string[] {
+  if (!Array.isArray(valeur)) return [];
+  return valeur.filter((id): id is string => typeof id === "string");
+}
+
+/**
+ * Un porteur d'or vient de mourir : l'or va à un de ses tueurs vivants, sinon il choisit.
+ *
+ * CONCEPT : le "tueur" est meta.source, l'alias de la CARTE qui a donné la mort ("loup",
+ * "sorciere"…). porteursDe() la change en joueurs vivants. Quand la source n'est pas une carte
+ * jouée par un vivant (Chasseur déjà mort, peste du Rat, chagrin dont la source est un joueur),
+ * la liste est vide : c'est le mourant qui choisit, via la décision de la carte Marchand.
+ */
+function transmettreLOr(partie: Partie, joueur: Joueur, meta: Meta, profondeur: number): void {
+  const source = typeof meta.source === "string" ? meta.source : "";
+  const tueurs = partie.porteursDe(source).filter(j => j.id !== joueur.id);
+  const heritier = partie.auHasard(tueurs);
+
+  if (!heritier) {
+    // ATTENTION : l'or reste sur le mort jusqu'à sa décision ; s'il est enchanté, il ne se
+    // réveille pas (mettreEnAttente l'ignore) et l'or est perdu avec lui.
+    partie.mettreEnAttente("marchand", joueur);
+    return;
+  }
+  partie.retirerTag(joueur, "or", profondeur + 1);
+  donnerTag(partie, heritier, "or", { source: joueur.id, cause: "heritage" }, profondeur + 1);
 }
 
 /** Les cinq réponses possibles d'un receveur. Chacune écrit dans le journal. */

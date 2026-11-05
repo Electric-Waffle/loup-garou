@@ -7,7 +7,7 @@ const sorciere: Role = {
   image: "🧪",
   camp: "village",
   description: "Une potion de vie et une potion de mort, chacune utilisable une fois.",
-  priorite: 30,
+  priorite: 130,
   appelNuit: true,
 
   init: () => ({ potionVie: true, potionMort: true }),
@@ -24,6 +24,15 @@ const sorciere: Role = {
       message: `La sorcière se réveille. Victime(s) de la nuit : ${victimes}.`,
       choix
     };
+  },
+
+  // Marché noir (événement) : les deux potions reviennent. Le rôle décide seul de ce que veut
+  // dire « recharger » ; l'événement ne touche jamais sa memoire.
+  recevoir(tag, _meta, r, _partie, moi) {
+    if (tag !== "recharge") return;
+    moi.memoire.potionVie = true;
+    moi.memoire.potionMort = true;
+    return r.consommer("potions rechargées");
   },
 
   agir(choix, _partie, moi) {

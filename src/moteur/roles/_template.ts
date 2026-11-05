@@ -140,7 +140,7 @@ const template: Role = {
   image: "❓",
 
   /**
-   * Camp du rôle : "village", "loups" ou "solo".
+   * Camp du rôle : "village", "loups", "solo", "fou" ou "aberration".
    * Utilisé par victoire.ts pour compter les loups vivants et décider du vainqueur.
    */
   camp: "village",
@@ -161,16 +161,33 @@ const template: Role = {
 
   /**
    * Ordre d'appel la nuit : le plus petit joue en premier.
+   * Toujours une dizaine (10, 20, 30…) : un nouveau rôle s'insère entre deux avec un nombre
+   * simple (ex. 125), sans décimales. Absente : la carte joue en fin de nuit.
    * Valeurs actuelles, pour situer le nouveau rôle :
-   *     1  Cupidon
-   *     5  Voyante
-   *    10  Salvateur   (doit protéger AVANT que les loups mordent)
-   *    20  Loup-Garou
-   *    25  Corbeau     (si ajouté)
-   *    30  Sorcière    (doit voir les mordus, donc APRÈS les loups)
+   *    10  Fée                     (avant toute carte qu'elle pourrait bloquer)
+   *    12  Conciliabule des maudits (étape)
+   *    15  Pleureuse               (tôt : le maudit perd son rôle dès cette nuit)
+   *    20  Arlequin
+   *    25  Aberration
+   *    50  Cupidon
+   *    60  Réunion des amoureux    (après tous les liens)
+   *    70  Prêtre
+   *    80  Voyante
+   *    90  Bâtisseur
+   *   100  Salvateur               (doit protéger AVANT que les loups mordent)
+   *   102  Loup amoureux           ┐
+   *   105  Loup succube            │ APRÈS le Salvateur : sa protection fait échouer
+   *   107  Loup voyante            │ le lien, la vision ou le médaillon
+   *   108  Loup salamandre
+   *   110  Loup savant
+   *   115  Loup hypnotiseur        ┘
+   *   120  Loup-Garou
+   *   124  Loup barbare            (après la meute, avant la Sorcière qui doit voir sa victime)
+   *   125  Corbeau                 (si ajouté)
+   *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)
    * Ignoré si appelNuit vaut false.
    */
-  priorite: 50,
+  priorite: 140,
 
   /**
    * Champ optionnel : à quelles nuits le rôle peut agir. Supprimer la ligne = toutes les nuits.
@@ -181,6 +198,21 @@ const template: Role = {
    * La vérification est faite par peutAgir(), dans tours.ts.
    */
   // tours: { de: 1 },
+
+  /**
+   * Cartes de groupe que ce rôle joue AUSSI, en plus de la sienne.
+   *   ["loup"] → il se réveille et vote avec les loups (comme le Loup succube).
+   * Lu par partie.porteursDe() et commencerNuit().
+   */
+  // rejoint: ["loup"],
+
+  /**
+   * Champ optionnel, pour une ÉTAPE de la nuit qu'aucun joueur ne reçoit (ex. Réunion des amoureux) :
+   * renvoie les joueurs qui se réveillent pour elle, recalculés à son tour de jouer (vide = sautée).
+   * Une telle carte entre dans la file de chaque nuit. L'enregistrer dans ETAPES (roles/index.ts),
+   * pas dans LISTE_ROLES, pour qu'elle n'apparaisse ni dans Options ni dans la distribution.
+   */
+  // porteurs: (partie) => partie.joueursAvecTag("amoureux"),
 
   /* ===================================================================================
    *  MÉMOIRE DU RÔLE
@@ -197,6 +229,16 @@ const template: Role = {
    */
   init(): Record<string, any> {
     return {};
+  },
+
+  /**
+   * Au lancement, avant la nuit 1 : ce que le rôle DONNE, comme agir().
+   * Différence avec init() : un TAG est visible de tous les rôles et peut changer de main.
+   *
+   * Exemple (Marchand) : return { donner: [{ tag: "or", a: moi.id }] };
+   */
+  debut(partie: Partie, moi: Joueur): ResultatAction | void {
+    // Par défaut : rien.
   },
 
   /* ===================================================================================
@@ -216,6 +258,7 @@ const template: Role = {
    *   "un_autre"      → un joueur vivant, sauf soi-même
    *   "un_mordu"      → un joueur vivant qui porte le tag "mordu"
    *   "deux_joueurs"  → deux joueurs vivants distincts
+   *   "n_importe_qui" → n'importe quel joueur, MORTS COMPRIS
    *
    * L'interface ajoute d'elle-même un bouton "Passer" pour les cartes appelées la nuit.
    */
@@ -346,6 +389,33 @@ const template: Role = {
     // Exemple (Chasseur) : en mourant, ouvrir une décision pour tirer sur quelqu'un.
     //   if (tag === "mort") partie.mettreEnAttente(ALIAS, moi);
     // Par défaut : rien ne se déclenche.
+  },
+
+  /* ===================================================================================
+   *  À L'AUBE : aube()  —  APRÈS LES CONSÉQUENCES DES TAGS DE LA NUIT
+   *  Appelée pour chaque joueur VIVANT qui a ce rôle, une fois les morts de l'aube connus.
+   *  Sert aux règles qui dépendent de l'état de la partie, pas d'un tag reçu.
+   * =================================================================================== */
+
+  /**
+   * Comme agir() : renvoie ce que le rôle DONNE, sans rien modifier lui-même.
+   * Exemple (Rat-garou) : s'il est le dernier à voter avec les loups, il se donne "mort".
+   */
+  aube(partie: Partie, moi: Joueur): ResultatAction | void {
+    // Par défaut : rien.
+  },
+
+  /* ===================================================================================
+   *  APRÈS LE VOTE : apresVote()  —  LE VILLAGE VIENT D'ÉLIMINER QUELQU'UN
+   *  Appelée pour chaque joueur VIVANT qui a ce rôle, seulement si la mort par vote a eu lieu.
+   * =================================================================================== */
+
+  /**
+   * Comme reagir() : ne renvoie rien, agit via partie.mettreEnAttente() ou appliquerResultat().
+   * Exemple (Fêtard) : si l'éliminé est un loup, le meneur indique s'il a voté contre lui.
+   */
+  apresVote(partie: Partie, moi: Joueur, elimine: Joueur): void {
+    // Par défaut : rien.
   }
 };
 
@@ -362,12 +432,13 @@ export default template;
  *    partie.vivants()                    les joueurs vivants
  *    partie.joueur(id)                   un joueur par son id (erreur si inconnu)
  *    partie.joueursAvecRole(alias)       les joueurs VIVANTS qui ont ce rôle
+ *    partie.porteursDe(alias)            idem, plus ceux dont le rôle rejoint cette carte
  *    partie.joueursAvecTag(tag)          les joueurs VIVANTS qui portent ce tag
  *    partie.aTag(joueur, tag)            vrai si le joueur porte ce tag
- *    partie.partenaireDe(joueur)         son amoureux (tag "amoureux"), ou undefined
+ *    partie.partenairesDe(joueur)        ses amoureux (tag "amoureux", réseau), liste vide sinon
  *    partie.roleDe(joueur)               l'objet Role de sa carte (pour lire son camp…)
  *    partie.titre(alias) / image(alias)  titre et image, en tenant compte des Options
- *    partie.ciblesPossibles(type, moi)   les joueurs sélectionnables pour un type de cible
+ *    partie.ciblesPossibles(type, moi)   les joueurs sélectionnables pour un type de cible (restreints si moi est lié par l'Arlequin)
  *    partie.auHasard(liste)              un élément tiré au sort (undefined si liste vide)
  *    partie.journal                      toutes les entrées du journal
  *
@@ -385,9 +456,31 @@ export default template;
  *    protege_hier  posé à l'aube si le Salvateur avait protégé ; bloque "protege" une nuit
  *    sauve         donné par la Sorcière ; retire "mordu" puis est consommé
  *    empoisonne    donné par la Sorcière ; devient "mort" (cause "poison") à l'aube
- *    amoureux      donné par Cupidon (meta.partenaire) ; la mort de l'un tue l'autre
+ *    amoureux      Cupidon, Loup amoureux, Loup succube ; meta.partenaires (liste, réseau) meurent de chagrin avec le porteur ; liste absente = sens unique
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
+ *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
+ *    horrifie      Aberration ; loups tous horrifiés = pas de chasse, villageois tous horrifiés = pas de vote ;
+ *                  retiré à tous à la mort de l'Aberration
+ *    ignifuge      Loup salamandre ; une mort par vote est bloquée, APRÈS l'or (recevoir.ts) ; expire "aube_suivante"
+ *    possede       Loup-démon brûlé au vote ; marque le villageois qui devient Loup-Garou ("devient")
+ *    catatonique   voyante qui a vu l'Aberration ; bloquant, devient "mort" (cause "horreur") à l'aube
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
+ *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)
+ *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
+ *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
+ *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
+ *    fete          Fêtard ; bloque "mordu" (son recevoir) ; posé le jour, expire à l'aube
+ *    benediction   événement ; retire "protege_hier" et donne "protege" au nom du Salvateur
+ *    recharge      événement Marché noir ; un rôle à charges le reçoit dans son recevoir()
+ *    sauf_conduit  événement ; ne peut pas être éliminé au vote du jour (voter() refuse)
+ *    soupcon       événement ; rappel au vote : 2 voix contre lui, le maire ne vote pas
+ *    eclaire       événement ; la Voyante et le Loup voyante ne voient que ce joueur cette nuit
+ *    maudit        Pleureuse ; le porteur ne fait plus son rôle (TAGS_BLOQUANTS, partie.ts), sans expiration
+ *    delivre       Conciliabule ; retire "maudit" puis est consommé (comme "sauve" pour "mordu")
+ *    apaisee       Conciliabule, sur la Pleureuse démasquée ; elle ne marque plus personne
+ *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
+ *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
+ *    pur / impur   choix du Prêtre la nuit 1 ; impur, il gagne avec les loups mais compte comme villageois (victoire.ts)
  *
  *  CAUSES DE MORT EXISTANTES
  *    "mordu", "poison", "chagrin", "chasseur", "vote"

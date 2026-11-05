@@ -1,14 +1,14 @@
 import type { Partie } from "./partie";
 
-export type Camp = "village" | "loups" | "solo";
+export type Camp = "village" | "loups" | "solo" | "fou" | "aberration";
 
-export type Phase = "nuit" | "aube" | "evenement" | "debat" | "vote" | "resultat_vote" | "fin";
+export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote" | "resultat_vote" | "fin";
 
 /** Métadonnées qui voyagent avec un tag : qui l'a donné, pourquoi, quand il expire… */
 export interface Meta {
   source?: string;
   cause?: string;
-  expire?: "aube";
+  expire?: "aube" | "aube_suivante"; // aube_suivante : survit à la PROCHAINE aube, disparaît à celle d'après
   [cle: string]: unknown;
 }
 
@@ -34,7 +34,8 @@ export type TypeCible =
   | "un_joueur"     // n'importe quel joueur vivant
   | "un_autre"      // un joueur vivant autre que soi
   | "un_mordu"      // un joueur vivant portant le tag "mordu"
-  | "deux_joueurs"; // deux joueurs vivants distincts
+  | "deux_joueurs"   // deux joueurs vivants distincts
+  | "n_importe_qui"; // n'importe quel joueur, MORTS COMPRIS (Conciliabule)
 
 export interface OptionChoix {
   id: string;
@@ -45,6 +46,7 @@ export interface OptionChoix {
 export interface Decision {
   message?: string;
   choix: OptionChoix[];
+  minuteur?: number; // en secondes : l'interface affiche un compte à rebours (Réunion des amoureux)
 }
 
 export interface ChoixFait {
@@ -100,9 +102,19 @@ export interface Role {
   priorite?: number;    // ordre d'appel la nuit (petit = d'abord)
   appelNuit?: boolean;  // le meneur appelle-t-il cette carte la nuit ?
   tours?: Tours;        // absent = toutes les nuits
+  rejoint?: string[];   // cartes de groupe que ce rôle joue aussi (ex. ["loup"] : il vote avec les loups)
+
+  /**
+   * Carte sans porteur fixe : renvoie les joueurs qui se réveillent pour elle (vide = sautée).
+   * Lu par porteursDe() ; une telle carte entre dans la file de CHAQUE nuit (commencerNuit).
+   */
+  porteurs?(partie: Partie): Joueur[];
 
   /** État initial du rôle, stocké dans joueur.memoire */
   init?(): Record<string, any>;
+
+  /** Au lancement de la partie, avant la nuit 1 : ce que le rôle DONNE (ex. le Marchand reçoit son or). */
+  debut?(partie: Partie, moi: Joueur): ResultatAction | void;
 
   /** Étapes 1-2 : ce que le meneur voit et les choix proposés */
   decision?(partie: Partie, moi: Joueur): Decision;
@@ -115,16 +127,57 @@ export interface Role {
 
   /** Après coup : le tag a été accepté par le joueur qui a ce rôle (ex. le Chasseur meurt → il tire). */
   reagir?(tag: string, meta: Meta, partie: Partie, moi: Joueur): void;
+
+  /** À l'aube, après les conséquences des tags : appelé pour chaque joueur vivant qui a ce rôle (ex. le rat-garou seul meurt). */
+  aube?(partie: Partie, moi: Joueur): ResultatAction | void;
+
+  /**
+   * Après un vote qui a ÉLIMINÉ quelqu'un : appelé pour chaque joueur vivant qui a ce rôle
+   * (ex. le Fêtard qui a voté contre un loup). Comme reagir(), il agit via mettreEnAttente / appliquerResultat.
+   */
+  apresVote?(partie: Partie, moi: Joueur, elimine: Joueur): void;
 }
 
 /* ---------- Événements ---------- */
 
+/**
+ * Un événement du jour, tiré après l'élection du maire et avant le débat.
+ * Deux genres, qui se déduisent des champs présents :
+ *   - ANIMATION : ni appliquer, ni decision. Le meneur lit le texte, le moteur ne fait rien.
+ *   - GAMEPLAY  : appliquer (sans choix), ou decision + agir (le maire désigne quelqu'un),
+ *                 et/ou minuteur (durée du débat).
+ * FLUX : tiré (sans effet) → le meneur peut demander « Un autre » ou « Passer » (Soleil)
+ *        → appliqué à la validation (appliquer, ou agir via partie.jouer) → débat.
+ */
 export interface Evenement {
   alias: string;
   titre: string;
   image: string;
   description: string;
-  appliquer(partie: Partie): ResultatAction | void;
+
+  /** Effet sans choix, à la validation (ex. la Rumeur). Comme agir() : renvoie ce qu'il donne. */
+  appliquer?(partie: Partie): ResultatAction | void;
+
+  /** Le maire désigne : mêmes contrats que pour un rôle, avec le maire à la place de moi. */
+  decision?(partie: Partie, maire: Joueur): Decision;
+  agir?(choix: ChoixFait, partie: Partie, maire: Joueur): ResultatAction | void;
+
+  /** Durée du débat en minutes ; null = pas de minuteur ; absent = le réglage du meneur. */
+  minuteur?: number | null;
+  /** Le temps restant au « Passer au vote » devient la durée du débat du lendemain (Sablier). */
+  reporteLeTempsRestant?: boolean;
+  /** Ne peut être ni remplacé ni passé (la suite du Sablier). */
+  force?: boolean;
+
+  /** Rappel affiché au meneur à l'écran du vote (ex. « si le village n'élimine pas un loup… »). */
+  rappelVote?: string;
+
+  /**
+   * Après le vote DÉFINITIF du jour (après une éventuelle plaidoirie), avec l'éliminé, ou undefined
+   * si personne ne l'a été. Comme agir() : renvoie ce qu'il donne, plus revoter pour proposer un
+   * second vote (une seule fois par jour, le moteur y veille).
+   */
+  apresVote?(partie: Partie, elimine?: Joueur): (ResultatAction & { revoter?: boolean }) | void;
 }
 
 /* ---------- Journal ---------- */

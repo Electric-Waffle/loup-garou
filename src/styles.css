@@ -83,6 +83,8 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .camp-loups { background: #4a1f2a; color: #f2a6a6; }
 .camp-village { background: #1f3a33; color: #9fe0c0; }
 .camp-solo { background: #3e3420; color: #f0d08c; }
+.camp-aberration { background: #33224a; color: #d4b8f5; }
+.camp-fou { background: #706a11; color: #ffef00; }
 
 /* ---------- Options : joueurs ---------- */
 .liste-joueurs { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .5rem; max-width: 560px; }
@@ -95,7 +97,7 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .liste-cochable { list-style: none; padding: 0; margin: .5rem 0; display: grid; gap: .2rem; }
 .liste-cochable label { display: flex; align-items: center; gap: .5rem; padding: .3rem; border-radius: 6px; cursor: pointer; }
 .liste-cochable label:hover { background: var(--surface-2); }
-
+.divider { border: 0; border-top: 1px solid var(--bord); margin: 2rem 0; }
 /* ---------- Table ronde ---------- */
 .table { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin: 0 auto; }
 .table-plateau {

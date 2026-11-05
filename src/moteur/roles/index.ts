@@ -1,13 +1,35 @@
 import type { Role } from "../types";
+import aberration from "./aberration";
 import ancien from "./ancien";
+import arlequin from "./arlequin";
+import batisseur from "./batisseur";
 import chasseur from "./chasseur";
+import conciliabule from "./conciliabule";
 import cupidon from "./cupidon";
+import fee from "./fee";
+import fetard from "./fetard";
+import fou from "./fou";
 import loup from "./loup";
+import loupAmoureux from "./loup-amoureux";
+import loupBarbare from "./loup-barbare";
+import loupDemon from "./loup-demon";
+import loupHypnotiseur from "./loup-hypnotiseur";
+import loupSalamandre from "./loup-salamandre";
+import loupSavant from "./loup-savant";
+import loupSuccube from "./loup-succube";
+import loupVampire from "./loup-vampire";
+import loupVoyante from "./loup-voyante";
+import marchand from "./marchand";
+import paysan from "./paysan";
+import pleureuse from "./pleureuse";
+import pretre from "./pretre";
+import rat from "./rat";
+import ratGarou from "./rat-garou";
 import salvateur from "./salvateur";
+import reunionAmoureux from "./reunion-amoureux";
 import sorciere from "./sorciere";
 import villageois from "./villageois";
 import voyante from "./voyante";
-import custom from "./custom";
 
 /**
  * Registre des rôles. Ajouter un rôle :
@@ -22,9 +44,36 @@ export const LISTE_ROLES: Role[] = [
   sorciere,
   salvateur,
   cupidon,
+  loupSuccube,
+  loupAmoureux,
   chasseur,
   ancien,
-  custom
+  rat,
+  ratGarou,
+  loupSavant,
+  loupVampire,
+  loupHypnotiseur,
+  loupVoyante,
+  loupDemon,
+  loupBarbare,
+  loupSalamandre,
+  fou,
+  fee,
+  arlequin,
+  marchand,
+  pretre,
+  paysan,
+  batisseur,
+  pleureuse,
+  fetard,
+  aberration
 ];
 
-export const ROLES: Record<string, Role> = Object.fromEntries(LISTE_ROLES.map(r => [r.alias, r]));
+/**
+ * Étapes de la nuit qui se jouent comme une carte, mais qu'aucun joueur ne reçoit.
+ * Absentes de LISTE_ROLES (donc d'Options et de la distribution), présentes dans ROLES
+ * pour que le moteur les retrouve par leur alias.
+ */
+const ETAPES: Role[] = [reunionAmoureux, conciliabule];
+
+export const ROLES: Record<string, Role> = Object.fromEntries([...LISTE_ROLES, ...ETAPES].map(r => [r.alias, r]));
