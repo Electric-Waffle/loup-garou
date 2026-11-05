@@ -459,6 +459,7 @@ export default template;
  *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
  *    horrifie      Aberration ; loups tous horrifiés = pas de chasse, villageois tous horrifiés = pas de vote ;
  *                  retiré à tous à la mort de l'Aberration
+ *    possede       Loup-démon brûlé au vote ; marque le villageois qui devient Loup-Garou ("devient")
  *    catatonique   voyante qui a vu l'Aberration ; bloquant, devient "mort" (cause "horreur") à l'aube
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
  *    or            donné au Marchand ; rachète un vote, passe au tueur à la mort (recevoir.ts)

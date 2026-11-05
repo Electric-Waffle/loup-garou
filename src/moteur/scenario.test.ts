@@ -1258,3 +1258,32 @@ test("Aberration : vivante, personne d'autre ne gagne ; tous horrifiés, elle ga
   donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
   assert.equal(verifierVictoire(p), "Les loups-garous");
 });
+
+/* ---------- Loup-démon ---------- */
+
+test("Loup-démon : brûlé au vote, il possède un villageois qui devient Loup-Garou", () => {
+  const p = partieAvec(["loup-demon", "loup", "villageois", "voyante", "fou"], { aleatoire: () => 0 });
+  p.voter("j0");
+  // Seuls les villageois (camp village) peuvent être possédés : ni le loup, ni le Fou.
+  const possedes = p.joueurs.filter(j => p.aTag(j, "possede"));
+  assert.deepEqual(possedes.map(j => j.id), ["j2"]);
+  assert.equal(p.joueur("j2").role, "loup");
+  assert.ok(p.porteursDe("loup").some(j => j.id === "j2"));
+  assert.ok(p.infos.some(i => i.pour === "j2" && i.texte.includes("possédé")));
+});
+
+test("Loup-démon : tué autrement que par le vote, personne n'est possédé", () => {
+  const p = partieAvec(["loup-demon", "loup", "villageois", "voyante"]);
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "poison" });
+  assert.equal(p.joueur("j0").vivant, false);
+  assert.deepEqual(p.joueurs.filter(j => p.aTag(j, "possede")), []);
+  assert.equal(p.joueur("j2").role, "villageois");
+});
+
+test("Loup-démon : rachète son vote avec l'or, personne n'est possédé", () => {
+  const p = partieAvec(["loup-demon", "loup", "villageois", "voyante"]);
+  donnerTag(p, p.joueur("j0"), "or");
+  p.voter("j0");
+  assert.equal(p.phase, "debat");
+  assert.deepEqual(p.joueurs.filter(j => p.aTag(j, "possede")), []);
+});
