@@ -1325,3 +1325,58 @@ test("Loup barbare : un loup éliminé par le village ne lui donne rien", () => 
   assert.equal(p.decisionCourante()?.alias, "loup-barbare");
   assert.deepEqual(p.decisionCourante()?.decision.choix, []);
 });
+
+/* ---------- Loup salamandre ---------- */
+
+test("Loup salamandre : l'ignifuge ressort indemne des flammes, et le village apprend qu'un loup l'a protégé", () => {
+  const p = partieAvec(["loup-salamandre", "villageois", "villageois", "villageois", "villageois"]);
+  p.jouer({ id: "ignifuger", cibles: ["j2"] });
+  p.passer(); // loups
+  p.leverLeJour();
+  assert.ok(p.aTag(p.joueur("j2"), "ignifuge")); // a survécu à l'aube
+
+  p.voter("j2");
+  assert.equal(p.joueur("j2").vivant, true);
+  assert.equal(p.phase, "resultat_vote");
+  assert.ok(p.infosPubliques(["resultat_vote"])[0].includes("J2 entre dans les flammes et en ressort indemne"));
+});
+
+test("Loup salamandre : l'or se rachète d'abord ; la salamandre n'agit qu'au vote final", () => {
+  const p = partieAvec(["loup-salamandre", "villageois", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "ignifuge");
+  donnerTag(p, p.joueur("j2"), "or");
+
+  p.voter("j2");                          // premier vote : il paie avec son or
+  assert.equal(p.phase, "debat");
+  assert.ok(!p.aTag(p.joueur("j2"), "or"));
+
+  p.ouvrirVote();
+  p.voter("j2");                          // vote final : les flammes ne le tuent pas
+  assert.equal(p.joueur("j2").vivant, true);
+  assert.equal(p.phase, "resultat_vote");
+});
+
+test("Loup salamandre : jamais le même deux nuits de suite, et la protection s'arrête à l'aube suivante", () => {
+  const p = partieAvec(["loup-salamandre", "villageois", "villageois", "villageois", "villageois"]);
+  p.jouer({ id: "ignifuger", cibles: ["j2"] });
+  p.passer(); // loups
+  p.leverLeJour();
+  p.voter(null);
+  p.nuitSuivante();
+
+  assert.ok(p.decisionCourante()?.decision.message?.includes("impossible : J2"));
+  p.jouer({ id: "ignifuger", cibles: ["j2"] }); // refusé : rien n'est donné
+  p.passer(); // loups
+  p.leverLeJour();
+  assert.ok(!p.aTag(p.joueur("j2"), "ignifuge"));
+});
+
+test("Loup salamandre : un vote bloqué compte comme « personne n'est éliminé » pour l'Ultimatum", () => {
+  const p = jourAvecEvenement(["loup", "villageois", "villageois", "villageois", "villageois"], "ultimatum");
+  donnerTag(p, p.joueur("j2"), "ignifuge");
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  p.voter("j2");
+  assert.equal(p.joueur("j2").vivant, true);
+  assert.equal(p.joueur("j1").vivant, false); // le maire paie l'ultimatum
+});

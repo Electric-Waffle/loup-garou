@@ -150,7 +150,7 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
 
 Champ **`porteurs(partie)`** : pour une **étape** de la nuit qu'aucun joueur ne reçoit (Réunion des amoureux, Conciliabule des maudits). Elle calcule qui se réveille, entre dans la file de chaque nuit et est sautée si la liste est vide. Rangée dans `ETAPES` (`roles/index.ts`) : présente dans `ROLES`, absente de `LISTE_ROLES`, donc ni dans Options ni dans la distribution.
 
-Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup amoureux, Loup succube, Loup-démon, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
+Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Loup amoureux, Loup succube, Loup-démon, Loup salamandre, Loup savant, Loup vampire, Rat-garou, Fou). Il est lu par `porteursDe()` et `commencerNuit()`. Un Loup succube seul survivant peut donc encore dévorer.
 
 ### Le cycle en 4 étapes
 1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`, `n_importe_qui` (morts compris). Une décision sans option n'affiche que « Passer ».
@@ -176,6 +176,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
   - bloqué si le joueur est déjà mort ;
   - **bloqué si le joueur porte `invulnerable`** (Loup vampire), sauf si la cause est le vote du village. Liste blanche : toute future cause de mort est bloquée d'office ;
   - **mort par vote d'un porteur d'or** : l'or est dépensé et la mort est consommée (puis plaidoirie et nouveau vote) ;
+  - **mort par vote d'un joueur `ignifuge`** (Loup salamandre), une fois l'or passé : bloquée ;
   - sinon la mort est acceptée, l'or passe à un tueur vivant (ou au choix du mourant, via la décision urgente de la carte Marchand), et la chaîne des amoureux s'applique.
 
 ### Règles appliquées par le moteur à tous les rôles
@@ -189,7 +190,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie), `horrifie` (Aberration, permanent tant qu'elle vit), `catatonique` (bloquant, devient `mort` à l'aube, cause `horreur`), `possede` (Loup-démon).
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `pur`, `impur`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie), `horrifie` (Aberration, permanent tant qu'elle vit), `catatonique` (bloquant, devient `mort` à l'aube, cause `horreur`), `possede` (Loup-démon), `ignifuge` (Loup salamandre : bloque une mort par vote, après l'or, jusqu'à l'aube suivante).
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -229,6 +230,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 102 | Loup amoureux | 1 (se lier) ; après le Salvateur |
 | 105 | Loup succube | toutes ; choix seulement sans compagnon vivant ; après le Salvateur, dont la protection fait échouer le lien |
 | 107 | Loup voyante | toutes ; après le Salvateur |
+| 108 | Loup salamandre | toutes |
 | 110 | Loup savant | 1 |
 | 115 | Loup hypnotiseur | toutes, tant qu'il lui reste un médaillon |
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
@@ -268,6 +270,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
 | Loup-démon | loups | Vote avec les loups. Éliminé par le vote du village : son `reagir()` donne `possede` puis `devient` (`role: "loup"`) à un villageois vivant tiré au hasard, qui devient Loup-Garou (tags et mémoire conservés). Tué autrement : il meurt simplement. |
 | Loup barbare | loups | Ne vote PAS avec la meute (pas de `rejoint`) : les loups ignorent qu'il est loup. Son `apresVote()` retient la nuit suivante si le village a éliminé un non-loup ; cette nuit-là (124), il donne `mordu`. Compte comme un loup pour la victoire. |
+| Loup salamandre | loups | Chaque nuit, donne `ignifuge` (expire `aube_suivante`) à un joueur, jamais le même deux nuits de suite (`memoire`). Au vote FINAL (l'or se rachète d'abord), la mort d'un ignifuge est **bloquée** (`recevoir.ts`) : il ressort indemne des flammes, `voter()` annonce qu'un loup l'a protégé, et le jour compte comme « personne n'est éliminé » pour l'événement. Vote avec les loups. |
 | Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
 | Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
 | Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |

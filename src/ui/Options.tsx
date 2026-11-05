@@ -38,14 +38,25 @@ import { ChoixImage, Visuel } from "./Visuel";
  * Libellé affiché pour chaque camp.
  * POURQUOI typé Record<Camp, string> : si un nouveau camp est ajouté dans types.ts,
  * TypeScript signalera ici qu'il manque son libellé.
+ * ATTENTION : l'ORDRE des clés compte. C'est l'ordre d'affichage des groupes de cartes dans la
+ * page (un objet garde ses clés texte dans l'ordre où elles ont été écrites).
  */
 const LIBELLES_CAMPS: Record<Camp, string> = {
   village: "Village",
   loups: "Loups",
-  solo: "Solo",
   fou: "Fou",
-  aberration: "Aberration"
+  aberration: "Aberration",
+  solo: "Solo"
 };
+
+/**
+ * Les camps, dans l'ordre d'affichage.
+ * POURQUOI les tirer de LIBELLES_CAMPS plutôt qu'écrire une liste à part : le Record oblige à
+ * avoir TOUS les camps, donc aucun groupe ne peut être oublié. Une liste à part pourrait l'être.
+ * CONCEPT : Object.keys renvoie des string ; "as Camp[]" dit à TypeScript que ce sont des Camp
+ * (vrai ici, puisque les clés sont celles du Record<Camp, …>).
+ */
+const ORDRE_CAMPS = Object.keys(LIBELLES_CAMPS) as Camp[];
 
 /**
  * Transforme le champ `tours` d'un rôle en phrase pour le badge de la carte.
@@ -196,26 +207,45 @@ export function Options({ donnees, modifier }: { donnees: Donnees; modifier: (d:
           Les règles de chaque carte sont dans <code>src/moteur/roles/</code>. Ici, on ne change que le titre, l'image et l'activation.
         </p>
 
-        <div className="grille-cartes">
-          {/* On parcourt les rôles du CODE (et non les réglages enregistrés) : ainsi un rôle
-              ajouté dans roles/index.ts apparaît ici même s'il n'a jamais été réglé. */}
-          {LISTE_ROLES.map(role => {
-            // "??" : si cette carte n'a pas encore de réglage, on utilise { active: true }.
-            const reglage = donnees.cartes[role.alias] ?? { active: true };
+        {/* PATTERN : regroupement par deux map imbriqués. Le map extérieur parcourt les CAMPS
+            (un groupe = un titre + une grille), l'intérieur parcourt les cartes DE ce camp.
+            POURQUOI pas un seul map qui compare chaque carte à la précédente : map ne voit qu'un
+            élément à la fois ; regrouper d'abord, afficher ensuite, est plus simple à lire. */}
+        {ORDRE_CAMPS.map(camp => {
+          // On parcourt les rôles du CODE (et non les réglages enregistrés) : ainsi un rôle
+          // ajouté dans roles/index.ts apparaît ici même s'il n'a jamais été réglé.
+          // filter garde l'ordre de LISTE_ROLES à l'intérieur de chaque groupe.
+          const roles = LISTE_ROLES.filter(role => role.camp === camp);
 
-            // CONCEPT : closure. La fonction fléchée passée en `regler` "se souvient" de
-            // role.alias : quand CarteReglable l'appellera avec un simple patch, c'est la
-            // bonne carte qui sera modifiée. CarteReglable n'a pas besoin de connaître l'alias.
-            return (
-              <CarteReglable
-                key={role.alias}
-                role={role}
-                reglage={reglage}
-                regler={patch => reglerCarte(role.alias, patch)}
-              />
-            );
-          })}
-        </div>
+          // Un camp sans aucune carte (Solo aujourd'hui) : pas de titre vide.
+          // CONCEPT : renvoyer null dans un map = « ne rien afficher pour cet élément ».
+          if (roles.length === 0) return null;
+
+          return (
+            <div key={camp}>
+              <hr className="divider"/>
+              <h3>{LIBELLES_CAMPS[camp]}</h3>
+              <div className="grille-cartes">
+                {roles.map(role => {
+                  // "??" : si cette carte n'a pas encore de réglage, on utilise { active: true }.
+                  const reglage = donnees.cartes[role.alias] ?? { active: true };
+
+                  // CONCEPT : closure. La fonction fléchée passée en `regler` "se souvient" de
+                  // role.alias : quand CarteReglable l'appellera avec un simple patch, c'est la
+                  // bonne carte qui sera modifiée. CarteReglable n'a pas besoin de connaître l'alias.
+                  return (
+                    <CarteReglable
+                      key={role.alias}
+                      role={role}
+                      reglage={reglage}
+                      regler={patch => reglerCarte(role.alias, patch)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </section>
 
       <section>

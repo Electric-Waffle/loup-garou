@@ -560,9 +560,17 @@ export class Partie {
       return;
     }
 
+    // Vote BLOQUÉ (ignifuge, Loup salamandre) : le village l'apprend, et le jour compte comme
+    // « personne n'est éliminé » pour l'événement (l'Ultimatum tue alors le maire).
+    if (issue === "bloque") {
+      this.ajouterInfo({ pour: "tous", texte: `${this.joueur(id).nom} entre dans les flammes et en ressort indemne : un loup l'a protégé.` });
+      this.evenementApresVote(undefined);
+      return;
+    }
+
     // Crochet apresVote() : les rôles qui dépendent de QUI a été éliminé (le Fêtard).
     // POURQUOI pas reagir() : reagir() n'est appelé que sur celui qui reçoit le tag (l'éliminé),
-    // jamais sur les autres joueurs. Rien si la mort a été bloquée (or, invulnérabilité…).
+    // jamais sur les autres joueurs.
     if (issue !== "accepte") return;
     const elimine = this.joueur(id);
     for (const joueur of this.vivants()) {

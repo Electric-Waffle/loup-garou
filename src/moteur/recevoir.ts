@@ -107,6 +107,14 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
         return r.consommer("paie avec son or : nouveau vote");
       }
 
+      // Ignifuge (Loup salamandre) : sur le bûcher, il ressort indemne des flammes.
+      // ATTENTION : APRÈS l'or. Celui qui a de l'or rachète d'abord son vote ; la salamandre n'agit
+      // qu'au vote final. BLOQUER, et pas consommer : partie.voter() lit "consomme" comme « payé avec
+      // l'or » et relancerait une plaidoirie.
+      if (meta.cause === "vote" && partie.aTag(joueur, "ignifuge")) {
+        return r.bloquer("ignifuge : il ressort indemne des flammes");
+      }
+
       const issue = r.accepter();
       if (partie.aTag(joueur, "or")) transmettreLOr(partie, joueur, meta, profondeur);
       // Chaîne des amoureux : la mort de l'un entraîne celle de TOUS ses partenaires.

@@ -70,6 +70,7 @@ const TAGS: Record<string, string> = {
   fete: "🥳 fait la fête",
   horrifie: "😱 horrifié",
   possede: "😈 possédé",
+  ignifuge: "🦎 ignifuge",
   catatonique: "🫥 catatonique",
   impuissant: "🚫 sans pouvoir",
   sauf_conduit: "📜 sauf-conduit",

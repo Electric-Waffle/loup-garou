@@ -178,6 +178,7 @@ const template: Role = {
    *   102  Loup amoureux           ┐
    *   105  Loup succube            │ APRÈS le Salvateur : sa protection fait échouer
    *   107  Loup voyante            │ le lien, la vision ou le médaillon
+   *   108  Loup salamandre
    *   110  Loup savant
    *   115  Loup hypnotiseur        ┘
    *   120  Loup-Garou
@@ -460,6 +461,7 @@ export default template;
  *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
  *    horrifie      Aberration ; loups tous horrifiés = pas de chasse, villageois tous horrifiés = pas de vote ;
  *                  retiré à tous à la mort de l'Aberration
+ *    ignifuge      Loup salamandre ; une mort par vote est bloquée, APRÈS l'or (recevoir.ts) ; expire "aube_suivante"
  *    possede       Loup-démon brûlé au vote ; marque le villageois qui devient Loup-Garou ("devient")
  *    catatonique   voyante qui a vu l'Aberration ; bloquant, devient "mort" (cause "horreur") à l'aube
  *    mort          tue le joueur (joueur.vivant = false) ; meta.cause explique pourquoi
