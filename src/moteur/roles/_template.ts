@@ -172,6 +172,7 @@ const template: Role = {
    *    50  Cupidon
    *    60  Réunion des amoureux    (après tous les liens)
    *    70  Prêtre
+   *    72  Beau Parleur (nuit 1 : son camp, avant les loups)
    *    80  Voyante
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)
@@ -480,7 +481,6 @@ export default template;
  *    apaisee       Conciliabule, sur la Pleureuse démasquée ; elle ne marque plus personne
  *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
  *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
- *    pur / impur   choix du Prêtre la nuit 1 ; impur, il gagne avec les loups mais compte comme villageois (victoire.ts)
  *
  *  CAUSES DE MORT EXISTANTES
  *    "mordu", "poison", "chagrin", "chasseur", "vote"

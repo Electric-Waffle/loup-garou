@@ -62,8 +62,6 @@ const TAGS: Record<string, string> = {
   blesse: "🩹 blessé",
   renforce: "🧱 maison renforcée",
   invulnerable: "🦇 invulnérable",
-  pur: "🕊️ pur",
-  impur: "🩸 impur",
   silence: "🤐 silencé",
   dirige: "🌀 dirigé",
   maudit: "😢 maudit",
@@ -611,8 +609,8 @@ function EtapeDeJour({
     case "debat": {
       // Second débat payé avec l'or : le moteur dit qui parle seul.
       const accuse = partie.plaidoirie ? partie.joueur(partie.plaidoirie) : undefined;
-      // shortcut : l'interface connaît l'alias "pretre" ; à remplacer par un champ de Role si d'autres rappels arrivent.
-      const pretreMort = partie.joueurs.some(j => !j.vivant && j.role === "pretre");
+      // shortcut : l'interface connaît les alias des deux prêtres ; à remplacer par un champ de Role si d'autres rappels arrivent.
+      const pretreMort = partie.joueurs.some(j => !j.vivant && (j.role === "pretre" || j.role === "pretre-impur"));
       const rappelPretre = pretreMort && !partie.aBesoinDUnMaire();
       const duree = partie.dureeDuDebat(dureeDebat);
       return (

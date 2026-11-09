@@ -74,6 +74,7 @@ export class Partie {
   private dureeImposee?: number;                     // minutes, imposées par la suite du Sablier
   vainqueur?: string;
   plaidoirie?: string;                               // id du joueur qui a racheté son vote : il parle seul
+  voteEnSuspens?: string;                            // id de l'accusé, tant qu'un rôle doit trancher (avantVote)
   debutPhase = 0;                                    // index du journal au début de la phase
   aleatoire: Aleatoire;
   private apparence: Apparence;
@@ -552,6 +553,42 @@ export class Partie {
       return;
     }
 
+    // Crochet avantVote() : un rôle peut suspendre la mort (le Beau Parleur maire regarde la carte).
+    // FLUX : il met une décision URGENTE en attente ; l'interface l'affiche à la place du résultat,
+    // puis cette décision appelle trancherLeVote(). Un joueur bloqué (impuissant…) n'est pas mis en
+    // attente par mettreEnAttente : la file ne grandit pas, et le vote continue tout de suite.
+    // POURQUOI comparer la longueur de la file : le moteur ne connaît aucun rôle ; il regarde
+    // seulement SI quelqu'un a demandé la parole, pas QUI.
+    const attenteAvant = this.attente.length;
+    for (const joueur of this.vivants()) {
+      this.roleDe(joueur).avantVote?.(this, joueur, this.joueur(id));
+    }
+    if (this.attente.length > attenteAvant) {
+      this.voteEnSuspens = id;
+      return;
+    }
+    this.executerLeVote(id);
+  }
+
+  /**
+   * Fin d'un vote suspendu par avantVote().
+   * @param relancer true : personne ne meurt, le village revote ; false : la mort a lieu normalement
+   *                 (l'or, l'ignifuge, le chagrin… s'appliquent comme pour tout vote).
+   */
+  trancherLeVote(relancer: boolean): void {
+    const id = this.voteEnSuspens;
+    if (!id) throw new Error("Aucun vote en suspens.");
+    this.voteEnSuspens = undefined;
+    if (relancer) {
+      this.log({ type: "info", texte: `Le vote contre ${this.joueur(id).nom} est relancé.` });
+      this.changerPhase("vote");
+      return;
+    }
+    this.executerLeVote(id);
+  }
+
+  /** La mort par vote elle-même, et tout ce qui en découle (plaidoirie, flammes, crochets). */
+  private executerLeVote(id: string): void {
     // POURQUOI donnerTag ici et pas appliquerResultat : on a besoin de l'Issue renvoyée.
     const issue = donnerTag(this, this.joueur(id), "mort", { source: "vote", cause: "vote" });
     if (issue === "consomme") {

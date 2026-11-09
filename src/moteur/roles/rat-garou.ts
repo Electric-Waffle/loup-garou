@@ -20,6 +20,7 @@ const ratGarou: Role = {
   titre: "Rat-garou",
   image: "🐾",
   camp: "loups",
+  hybride: true,
   description: "Il connaît les loups mais ne vote pas avec eux. S'il est le dernier loup, il meurt. Éliminé par le village, il contamine le maire.",
   rejoint: ["loup"],
 

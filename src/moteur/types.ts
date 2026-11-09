@@ -103,6 +103,13 @@ export interface Role {
   appelNuit?: boolean;  // le meneur appelle-t-il cette carte la nuit ?
   tours?: Tours;        // absent = toutes les nuits
   rejoint?: string[];   // cartes de groupe que ce rôle joue aussi (ex. ["loup"] : il vote avec les loups)
+  /**
+   * Affichage seulement : rangée dans le groupe « Hybride » des options. Ce sont les paires d'une
+   * carte du village qui peut DEVENIR une carte des loups (Rat → Rat-garou, Prêtre pur → Prêtre
+   * impur, Beau Parleur → Faux Parleur), et ces cartes des loups. Chacune est une carte à part
+   * entière, distribuable seule.
+   */
+  hybride?: boolean;
 
   /**
    * Carte sans porteur fixe : renvoie les joueurs qui se réveillent pour elle (vide = sautée).
@@ -136,6 +143,13 @@ export interface Role {
    * (ex. le Fêtard qui a voté contre un loup). Comme reagir(), il agit via mettreEnAttente / appliquerResultat.
    */
   apresVote?(partie: Partie, moi: Joueur, elimine: Joueur): void;
+
+  /**
+   * Le village vient de désigner `accuse`, AVANT sa mort : appelé pour chaque joueur vivant qui a ce rôle.
+   * Un rôle qui met une décision en attente (mettreEnAttente) SUSPEND le vote ; cette décision le
+   * tranche ensuite avec partie.trancherLeVote() (ex. le Beau Parleur maire regarde la carte).
+   */
+  avantVote?(partie: Partie, moi: Joueur, accuse: Joueur): void;
 }
 
 /* ---------- Événements ---------- */

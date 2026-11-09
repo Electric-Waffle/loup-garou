@@ -16,7 +16,7 @@ import type { Role } from "../types";
  * qui accepte lui-même court-circuiterait les règles générales (chagrin, or).
  * POURQUOI un tag par joueur plutôt qu'un état global « village sans pouvoir » : la règle « ne fait
  * pas son rôle » existe déjà pour les tags bloquants ; elle s'applique sans une ligne de plus.
- * ATTENTION : la liste est figée au moment du vote. Le Fou (camp "fou") et le Prêtre impur
+ * ATTENTION : la liste est figée au moment du vote. Le Fou (camp "fou") et le Prêtre pur
  * (camp "village") la reçoivent aussi : seuls les loups gardent leurs pouvoirs.
  */
 const ancien: Role = {

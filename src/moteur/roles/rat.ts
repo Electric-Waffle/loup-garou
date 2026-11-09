@@ -21,6 +21,7 @@ const rat: Role = {
   titre: "Rat",
   image: "🐀",
   camp: "village",
+  hybride: true,
   description: "Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
 
   reagir(tag, meta, partie, moi) {
