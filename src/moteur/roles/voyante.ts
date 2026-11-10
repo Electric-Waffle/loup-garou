@@ -23,7 +23,7 @@ const voyante: Role = {
     if (eclaire) {
       return {
         message: `Le clair de lune éclaire ${eclaire.nom} : la voyante ne peut voir que sa carte.`,
-        choix: [{ id: OPTION_ECLAIRE, label: `Sonder ${eclaire.nom}`, cible: "aucune" }]
+        choix: [{ id: OPTION_ECLAIRE, label: `Sonder ${eclaire.nom}`, cible: "aucune", cibles: [eclaire.id] }]
       };
     }
 
@@ -46,7 +46,8 @@ const voyante: Role = {
       const alias = choix.id.slice(PREFIXE_CARTE.length);
       return { infos: [{ pour: moi.id, texte: `${partie.titre(alias)} n'a été distribuée à personne.` }] };
     }
-    const cible = choix.id === OPTION_ECLAIRE ? partie.joueursAvecTag("eclaire")[0] : partie.joueur(choix.cibles[0]);
+    // Clair de lune compris : partie.jouer() a mis le joueur éclairé dans choix.cibles.
+    const cible = partie.joueur(choix.cibles[0]);
     // Voir la carte de l'Aberration : aucune info, elle devient catatonique et meurt à l'aube.
     if (cible.role === "aberration") {
       return { donner: [{ tag: "catatonique", a: moi.id }] };

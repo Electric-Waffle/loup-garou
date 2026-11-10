@@ -957,6 +957,20 @@ test("Skinwalker : vivant, il vole la victoire du village", () => {
   assert.equal(verifierVictoire(p), "Le village");
 });
 
+/* ---------- Hurleur ---------- */
+
+test("Hurleur : chaque carte qui le vise la nuit est annoncée à l'aube, regard compris", () => {
+  const p = partieAvec(["loup", "hurleur", "voyante", "salvateur", "villageois", "villageois"]);
+  jouerJusqua(p, "voyante");
+  p.jouer({ id: "sonder", cibles: ["j1"] });
+  p.jouer({ id: "proteger", cibles: ["j1"] });
+  p.jouer({ id: "devorer", cibles: ["j4"] }); // pas lui : pas de hurlement
+  const hurlements = p.infosPubliques(["nuit"]);
+  assert.equal(hurlements.length, 2);
+  assert.equal(hurlements[0], "Un hurlement dans la nuit : le Hurleur a été visé par Voyante (« Sonder »).");
+  assert.equal(hurlements[1], "Un hurlement dans la nuit : le Hurleur a été visé par Salvateur (« Protéger »).");
+});
+
 /* ---------- Événements : tirage, remplacement, validation, minuteur ---------- */
 
 /** Une partie au jour 1, maire élu (j1), prête pour l'événement. */
@@ -1151,6 +1165,21 @@ test("Clair de lune : la Voyante et le Loup voyante ne voient que le joueur écl
   assert.equal(p.decisionCourante()?.alias, "loup-voyante");
   p.jouer({ id: "sonder-eclaire", cibles: [] });
   assert.ok(p.infos.some(i => i.pour === "j0" && i.texte === "J3 est Villageois."));
+});
+
+test("Clair de lune : le Hurleur éclairé hurle quand la Voyante le sonde", () => {
+  const p = jourAvecEvenement(["loup", "villageois", "voyante", "hurleur", "villageois"], "clair-de-lune", "j3");
+  p.joueur("j3").nom = "Sonde"; // le bouton dira « Sonder Sonde » : seul le dernier « Sonde » doit partir
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  p.voter(null);
+  p.nuitSuivante();
+
+  while (p.decisionCourante()?.alias !== "voyante") p.passer();
+  p.jouer({ id: "sonder-eclaire", cibles: [] });
+  assert.ok(p.infos.some(i => i.pour === "j2" && i.texte === "Sonde est Hurleur."));
+  // Jamais de nom, même si le Clair de lune permet de deviner qui est le Hurleur.
+  assert.deepEqual(p.infosPubliques(["nuit"]), ["Un hurlement dans la nuit : le Hurleur a été visé par Voyante (« Sonder »)."]);
 });
 
 test("Marché noir : la Sorcière retrouve ses potions, le tag ne traîne chez personne", () => {

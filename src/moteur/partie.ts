@@ -336,7 +336,10 @@ export class Partie {
     if (!courante) throw new Error("Aucune décision en cours.");
     const option = courante.decision.choix.find(c => c.id === choix.id);
     if (!option) throw new Error(`Choix invalide : ${choix.id}`);
-    if (choix.cibles.length !== nbCibles(option.cible)) {
+    // POURQUOI recopier les cibles imposées : le moteur (journal, estVise du Hurleur) ne voit que
+    // choix.cibles. Une cible connue de la seule carte lui échapperait.
+    if (option.cibles) choix = { ...choix, cibles: option.cibles };
+    else if (choix.cibles.length !== nbCibles(option.cible)) {
       throw new Error(`« ${option.label} » demande ${nbCibles(option.cible)} cible(s).`);
     }
 

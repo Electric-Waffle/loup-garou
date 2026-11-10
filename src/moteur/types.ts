@@ -41,6 +41,8 @@ export interface OptionChoix {
   id: string;
   label: string;
   cible?: TypeCible;
+  /** Cibles imposées (Clair de lune) : le meneur ne clique rien, partie.jouer() les met dans choix.cibles. */
+  cibles?: string[];
 }
 
 export interface Decision {
@@ -134,6 +136,8 @@ export interface Role {
 
   /** Après coup : le tag a été accepté par le joueur qui a ce rôle (ex. le Chasseur meurt → il tire). */
   reagir?(tag: string, meta: Meta, partie: Partie, moi: Joueur): void;
+  /** Une carte vient de le désigner (avant son agir), avec ou sans tag : le Hurleur. */
+  estVise?(partie: Partie, moi: Joueur, alias: string, choix: ChoixFait, acteur: Joueur): void;
 
   /** À l'aube, après les conséquences des tags : appelé pour chaque joueur vivant qui a ce rôle (ex. le rat-garou seul meurt). */
   aube?(partie: Partie, moi: Joueur): ResultatAction | void;
