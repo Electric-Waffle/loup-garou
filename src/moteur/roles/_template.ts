@@ -174,6 +174,7 @@ const template: Role = {
    *    70  Prêtre
    *    72  Beau Parleur (nuit 1 : son camp, avant les loups)
    *    80  Voyante
+   *    82  Sourcier
    *    85  Stratège
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)

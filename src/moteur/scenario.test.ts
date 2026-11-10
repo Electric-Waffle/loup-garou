@@ -957,6 +957,47 @@ test("Skinwalker : vivant, il vole la victoire du village", () => {
   assert.equal(verifierVictoire(p), "Le village");
 });
 
+/* ---------- Sourcier ---------- */
+
+/** Message du Sourcier la nuit n (nuit paire : celle du résultat). */
+function resultatDuSourcier(p: Partie, n: number): string {
+  allerALaNuit(p, n);
+  jouerJusqua(p, "sourcier");
+  const courante = p.decisionCourante();
+  assert.deepEqual(courante?.decision.choix, []); // nuit paire : aucun test, seulement le résultat
+  return courante?.decision.message ?? "";
+}
+
+/** Teste un joueur la nuit n (nuit impaire). */
+function testerAvecLeSourcier(p: Partie, n: number, id: string) {
+  allerALaNuit(p, n);
+  jouerJusqua(p, "sourcier");
+  p.jouer({ id: "tester", cibles: [id] });
+}
+
+test("Sourcier : résultat la nuit suivante, sur la table des vivants, par le plus court côté", () => {
+  // Sièges : j0 sourcier, j4 loup, j7 skinwalker. De j1 : loup à 3, skinwalker à 2 en passant par j0.
+  const p = partieAvec(["sourcier", "villageois", "villageois", "villageois", "loup", "villageois", "villageois", "skinwalker"]);
+  p.jouer({ id: "tester", cibles: ["j1"] }); // nuit 1
+  assert.ok(!p.infos.some(i => i.pour === "j0")); // rien cette nuit
+
+  // J2 et J3 meurent : leurs sièges ne comptent plus, le loup devient voisin de J1.
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
+  assert.match(resultatDuSourcier(p, 2), /J1 est à 1 place du non-villageois/);
+});
+
+test("Sourcier : 0 si le testé est le dernier non-villageois ; rien s'il est mort entre-temps", () => {
+  const p = partieAvec(["sourcier", "villageois", "villageois", "villageois", "loup", "villageois", "villageois", "skinwalker"]);
+  testerAvecLeSourcier(p, 3, "j4"); // le loup : il ne compte pas pour lui-même
+  donnerTag(p, p.joueur("j7"), "mort", { cause: "vote" });
+  assert.match(resultatDuSourcier(p, 4), /J4 est à 0 place du non-villageois/);
+
+  testerAvecLeSourcier(p, 5, "j5");
+  donnerTag(p, p.joueur("j5"), "mort", { cause: "vote" });
+  assert.match(resultatDuSourcier(p, 6), /J5 est mort : le sourcier n'apprend rien/);
+});
+
 /* ---------- Hurleur ---------- */
 
 test("Hurleur : chaque carte qui le vise la nuit est annoncée à l'aube, regard compris", () => {

@@ -230,6 +230,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 70 | Prêtre pur | 1 (pur ou impur) |
 | 72 | Beau Parleur | 1 (villageois ou loup) |
 | 80 | Voyante | toutes |
+| 82 | Sourcier | toutes : teste les nuits impaires, reçoit le résultat la nuit suivante |
 | 85 | Stratège | à partir de la 2 |
 | 90 | Bâtisseur | toutes |
 | 100 | Salvateur | toutes |
@@ -283,6 +284,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup barbare | loups | Ne vote PAS avec la meute (pas de `rejoint`) : les loups ignorent qu'il est loup. Son `apresVote()` retient la nuit suivante si le village a éliminé un non-loup ; cette nuit-là (124), il donne `mordu`. Compte comme un loup pour la victoire. |
 | Loup salamandre | loups | Chaque nuit, donne `ignifuge` (expire `aube_suivante`) à un joueur, jamais le même deux nuits de suite (`memoire`). Au vote FINAL (l'or se rachète d'abord), la mort d'un ignifuge est **bloquée** (`recevoir.ts`) : il ressort indemne des flammes, `voter()` annonce qu'un loup l'a protégé, et le jour compte comme « personne n'est éliminé » pour l'événement. Vote avec les loups. |
 | Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
+| Sourcier | village | Nuits impaires (82) : teste un joueur (memoire : `teste`, `nuitDuResultat`). Nuit suivante : le meneur lui montre « à N places du non-villageois le plus proche », rien si le testé est mort. Table = cercle des vivants dans l'ordre de `partie.joueurs`, plus court des deux sens, voisins = 1. Le testé est exclu : 0 = il n'y a pas d'autre non-villageois. |
 | Hurleur | village | `estVise()` : la nuit, toute carte qui le désigne (morsure, Voyante, Salvateur…) ajoute une info publique « le Hurleur a été visé par Carte (« libellé ») », lue au rapport de l'aube. Jamais le nom du Hurleur : il le retire du libellé du bouton (« Sonder J3 » devient « Sonder »). Le Clair de lune le déclenche aussi : l'option impose sa cible (`OptionChoix.cibles`), recopiée par `partie.jouer()` dans `choix.cibles`. |
 | Stratège | village | `rappelVote()` : « regardez pour qui vote le stratège ». `apresVote()` : décision urgente « un loup a-t-il voté comme lui ? » (oui/non), rangée en memoire avec la nuit suivante. Nuit (85, dès la 2) : le meneur lui donne la réponse. |
 | Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
