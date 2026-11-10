@@ -149,8 +149,13 @@ export class Partie {
     return this.vivants().filter(j => {
       const aCeRole = j.role === alias;
       const rejointCetteCarte = this.roleDe(j).rejoint?.includes(alias) ?? false;
-      return aCeRole || rejointCetteCarte;
+      return aCeRole || rejointCetteCarte || this.carteImitee(j) === alias;
     });
+  }
+  /** Carte volée que ce joueur joue en plus de la sienne (tag "imite" du Skinwalker). */
+  carteImitee(j: Joueur): string | undefined {
+    const role = j.tags.find(t => t.type === "imite")?.role;
+    return typeof role === "string" ? role : undefined;
   }
   joueursAvecTag(tag: string): Joueur[] { return this.vivants().filter(j => this.aTag(j, tag)); }
   aTag(j: Joueur, tag: string): boolean { return j.tags.some(t => t.type === tag); }
@@ -394,6 +399,8 @@ export class Partie {
     for (const joueur of this.vivants()) {
       aliasPresents.add(joueur.role);
       for (const carteRejointe of this.roleDe(joueur).rejoint ?? []) aliasPresents.add(carteRejointe);
+      const imitee = this.carteImitee(joueur);
+      if (imitee) aliasPresents.add(imitee);
     }
     // Cartes fantômes : appelées comme les autres (priorité, tours), sans porteur.
     if (this.cartesFantomes) {
@@ -549,7 +556,7 @@ export class Partie {
     this.changerPhase("resultat_vote");
     if (!id) {
       this.log({ type: "info", texte: "Le village n'élimine personne." });
-      this.evenementApresVote(undefined);
+      this.finDuVote(undefined);
       return;
     }
 
@@ -601,27 +608,26 @@ export class Partie {
     // « personne n'est éliminé » pour l'événement (l'Ultimatum tue alors le maire).
     if (issue === "bloque") {
       this.ajouterInfo({ pour: "tous", texte: `${this.joueur(id).nom} entre dans les flammes et en ressort indemne : un loup l'a protégé.` });
-      this.evenementApresVote(undefined);
+      this.finDuVote(undefined);
       return;
     }
 
-    // Crochet apresVote() : les rôles qui dépendent de QUI a été éliminé (le Fêtard).
-    // POURQUOI pas reagir() : reagir() n'est appelé que sur celui qui reçoit le tag (l'éliminé),
-    // jamais sur les autres joueurs.
     if (issue !== "accepte") return;
-    const elimine = this.joueur(id);
-    for (const joueur of this.vivants()) {
-      this.roleDe(joueur).apresVote?.(this, joueur, elimine);
-    }
-    this.evenementApresVote(elimine);
+    this.finDuVote(this.joueur(id));
   }
 
   /**
-   * Crochet apresVote() de l'événement du jour (Ultimatum, Coup double), une fois le vote définitif.
-   * FLUX : appelé par voter() quand personne n'est éliminé, ou quand la mort a été acceptée ; jamais
-   * pendant une plaidoirie (la mort consommée par l'or n'est pas un résultat).
+   * Crochets apresVote() des rôles (Fêtard, Stratège…) puis de l'événement du jour (Ultimatum,
+   * Coup double), une fois le vote définitif.
+   * FLUX : appelé par voter() quand personne n'est éliminé, quand le vote est bloqué, ou quand la
+   * mort a été acceptée ; jamais pendant une plaidoirie (la mort consommée par l'or n'est pas un résultat).
+   * POURQUOI pas reagir() : reagir() n'est appelé que sur celui qui reçoit le tag (l'éliminé),
+   * jamais sur les autres joueurs.
    */
-  private evenementApresVote(elimine?: Joueur): void {
+  private finDuVote(elimine?: Joueur): void {
+    for (const joueur of this.vivants()) {
+      this.roleDe(joueur).apresVote?.(this, joueur, elimine);
+    }
     const evenement = this.evenement;
     const resultat = evenement?.apresVote?.(this, elimine);
     if (!evenement || !resultat) return;
@@ -688,6 +694,10 @@ export class Partie {
     const interdiction = this.voteImpossible();
     if (interdiction) rappels.push(interdiction);
     if (this.evenement?.rappelVote) rappels.push(this.evenement.rappelVote);
+    for (const joueur of this.vivants()) {
+      const rappel = this.roleDe(joueur).rappelVote?.(this, joueur);
+      if (rappel) rappels.push(rappel);
+    }
     for (const joueur of this.joueursAvecTag("silence")) {
       rappels.push(`Ne pas compter le vote de ${joueur.nom} : il est réduit au silence.`);
     }

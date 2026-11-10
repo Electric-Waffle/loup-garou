@@ -26,7 +26,8 @@ const loupBarbare: Role = {
   appelNuit: true,
 
   apresVote(partie, moi, elimine) {
-    if (partie.roleDe(elimine).camp === "loups") return;
+    // Personne d'éliminé (ou vote bloqué) : le village ne s'est pas trompé.
+    if (!elimine || partie.roleDe(elimine).camp === "loups") return;
     moi.memoire.nuitDeMorsure = partie.tour + 1;
   },
 

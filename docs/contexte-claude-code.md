@@ -131,6 +131,7 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
   4. plus de loup → le village gagne ;
   5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
   6. au moins autant de loups que de non-loups → les loups gagnent, ou **le Fou** s'il est vivant.
+  - **Skinwalker vivant** : la victoire du village (y compris les maisons renforcées) devient « Le skinwalker ». Il ne compte pas comme un loup ;
   - **Cartes qui en deviennent une autre** (tag `devient`) : aucun cas particulier. Un Prêtre pur devenu Prêtre impur, ou un Beau Parleur devenu Faux Parleur, a changé de CARTE, donc de camp : il compte comme un loup et gagne avec eux. Si le Fou vole la victoire, ils perdent aussi.
 - **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/`** : un fichier par événement, `index.ts` est le registre (`LISTE_EVENEMENTS` pour le tirage, plus les événements imposés comme la suite du Sablier). Champs d'un `Evenement` : `appliquer?` (effet sans choix), `decision?` + `agir?` (le maire désigne), `minuteur?` (minutes, `null` = pas de minuteur), `reporteLeTempsRestant?`, `force?`, `rappelVote?` (affiché à l'écran du vote), `apresVote?(partie, elimine?)` (appelé par `voter()` une fois le vote définitif, jamais pendant une plaidoirie ; peut renvoyer `revoter: true`, un seul second vote par jour via `partie.revoter()`). Sans aucun de ces champs, c'est une animation.
 - **`roles/index.ts`** : le **registre** (`LISTE_ROLES`, `ROLES`).
@@ -147,7 +148,8 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
 | `reagir(tag, meta, partie, moi)` | APRÈS qu'un tag a été accepté | rien (il agit via `mettreEnAttente` / `appliquerResultat`) | Chasseur, Rat, Paysan |
 | `aube(partie, moi)` | à l'aube, après les conséquences | `{ donner, infos }` | Rat-garou dernier de la meute |
 | `avantVote(partie, moi, accuse)` | le village a désigné quelqu’un, AVANT sa mort, pour chaque vivant | rien ; s’il appelle `mettreEnAttente`, le vote est SUSPENDU (`partie.voteEnSuspens`) jusqu’à `partie.trancherLeVote(relancer)` | Beau Parleur maire |
-| `apresVote(partie, moi, elimine)` | après un vote qui a éliminé quelqu'un, pour chaque vivant | rien (il agit via `mettreEnAttente`) | Fêtard |
+| `apresVote(partie, moi, elimine?)` | après chaque vote définitif (`elimine` absent si personne n'est éliminé ou si le vote est bloqué), pour chaque vivant | rien (il agit via `mettreEnAttente`) | Fêtard, Stratège |
+| `rappelVote(partie, moi)` | à l'écran du vote, pour chaque vivant | une ligne de rappel, ou rien | Stratège |
 
 Champ **`porteurs(partie)`** : pour une **étape** de la nuit qu'aucun joueur ne reçoit (Réunion des amoureux, Conciliabule des maudits). Elle calcule qui se réveille, entre dans la file de chaque nuit et est sautée si la liste est vide. Rangée dans `ETAPES` (`roles/index.ts`) : présente dans `ROLES`, absente de `LISTE_ROLES`, donc ni dans Options ni dans la distribution.
 
@@ -227,6 +229,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 70 | Prêtre pur | 1 (pur ou impur) |
 | 72 | Beau Parleur | 1 (villageois ou loup) |
 | 80 | Voyante | toutes |
+| 85 | Stratège | à partir de la 2 |
 | 90 | Bâtisseur | toutes |
 | 100 | Salvateur | toutes |
 | 102 | Loup amoureux | 1 (se lier) ; après le Salvateur |
@@ -237,6 +240,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 115 | Loup hypnotiseur | toutes, tant qu'il lui reste un médaillon |
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
 | 124 | Loup barbare | toutes ; ne mord que la nuit qui suit l'élimination d'un non-loup par le village |
+| 126 | Skinwalker | à partir de la 3 ; après le Salvateur, dont la protection fait échouer le meurtre |
 | 130 | Sorcière | toutes |
 
 **L'état d'un joueur va dans `joueur.memoire`** (créé par `init()`), **jamais dans l'objet rôle**, qui est partagé par tous les joueurs ayant ce rôle.
@@ -263,6 +267,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village (hybride) | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou (tag `devient`). Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups (hybride) | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |
+| Skinwalker | skinwalker | Nuit 3+ (126) : donne `mort` (cause `skinwalker`, carte non révélée au rapport) et se donne `imite` avec la carte de la victime (`init()` neuf). `porteursDe()` et `commencerNuit()` l'appellent au tour de cette carte ; Voyante et Loup voyante la voient (`partie.carteImitee()`). Victime protégée par le Salvateur : échec, et pas de meurtre la nuit suivante. Pouvoirs passifs de la carte volée non joués. Vole la victoire du village s'il est vivant. |
 | Fou | fou | Se réveille et vote avec les loups, mais son vote ne compte pas. Ne compte pas comme loup. Si les loups devraient gagner alors qu'il est vivant, il gagne seul. |
 | Fée | village | À partir de la nuit 2, enchante un joueur, qui ne fait rien de la nuit. |
 | Arlequin | village | Nuits 1, 3, 5… : lie deux joueurs jusqu'à l'aube ; ils ne peuvent viser qu'eux-mêmes ou l'autre. |
@@ -277,6 +282,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup barbare | loups | Ne vote PAS avec la meute (pas de `rejoint`) : les loups ignorent qu'il est loup. Son `apresVote()` retient la nuit suivante si le village a éliminé un non-loup ; cette nuit-là (124), il donne `mordu`. Compte comme un loup pour la victoire. |
 | Loup salamandre | loups | Chaque nuit, donne `ignifuge` (expire `aube_suivante`) à un joueur, jamais le même deux nuits de suite (`memoire`). Au vote FINAL (l'or se rachète d'abord), la mort d'un ignifuge est **bloquée** (`recevoir.ts`) : il ressort indemne des flammes, `voter()` annonce qu'un loup l'a protégé, et le jour compte comme « personne n'est éliminé » pour l'événement. Vote avec les loups. |
 | Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
+| Stratège | village | `rappelVote()` : « regardez pour qui vote le stratège ». `apresVote()` : décision urgente « un loup a-t-il voté comme lui ? » (oui/non), rangée en memoire avec la nuit suivante. Nuit (85, dès la 2) : le meneur lui donne la réponse. |
 | Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
 | Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |
 

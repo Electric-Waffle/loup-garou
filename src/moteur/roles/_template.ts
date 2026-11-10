@@ -140,7 +140,7 @@ const template: Role = {
   image: "❓",
 
   /**
-   * Camp du rôle : "village", "loups", "solo", "fou" ou "aberration".
+   * Camp du rôle : "village", "loups", "solo", "fou", "aberration" ou "skinwalker".
    * Utilisé par victoire.ts pour compter les loups vivants et décider du vainqueur.
    */
   camp: "village",
@@ -174,6 +174,7 @@ const template: Role = {
    *    70  Prêtre
    *    72  Beau Parleur (nuit 1 : son camp, avant les loups)
    *    80  Voyante
+   *    85  Stratège
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)
    *   102  Loup amoureux           ┐
@@ -184,6 +185,7 @@ const template: Role = {
    *   115  Loup hypnotiseur        ┘
    *   120  Loup-Garou
    *   124  Loup barbare            (après la meute, avant la Sorcière qui doit voir sa victime)
+   *   126  Skinwalker              (après le Salvateur, dont la protection le fait échouer)
    *   125  Corbeau                 (si ajouté)
    *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)
    * Ignoré si appelNuit vaut false.
@@ -470,6 +472,7 @@ export default template;
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
  *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
  *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
+ *    imite         Skinwalker ; meta.role = la carte volée, qu'il joue en plus de la sienne
  *    fete          Fêtard ; bloque "mordu" (son recevoir) ; posé le jour, expire à l'aube
  *    benediction   événement ; retire "protege_hier" et donne "protege" au nom du Salvateur
  *    recharge      événement Marché noir ; un rôle à charges le reçoit dans son recevoir()

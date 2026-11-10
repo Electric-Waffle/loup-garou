@@ -63,7 +63,7 @@ const loupVoyante: Role = {
       return { donner: [{ tag: "catatonique", a: moi.id }] };
     }
     return {
-      infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(cible.role)}.` }]
+      infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(partie.carteImitee(cible) ?? cible.role)}.` }]
     };
   }
 };

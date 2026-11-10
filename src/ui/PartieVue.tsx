@@ -88,7 +88,8 @@ const CAUSES: Record<string, string> = {
   chasseur: "abattu par le chasseur",
   vote: "éliminé par le village",
   peste: "emporté par la peste",
-  isole: "dernier de la meute, dévoré par la nuit"
+  isole: "dernier de la meute, dévoré par la nuit",
+  skinwalker: "mort dans la nuit"
 };
 
 /**
@@ -703,7 +704,8 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
           {/* CONCEPT : ({ joueur, cause }) déstructure chaque objet { joueur, cause } renvoyé par morts(). */}
           {morts.map(({ joueur, cause }) => (
             <li key={joueur.id}>
-              <strong>{joueur.nom}</strong> ({partie.titre(joueur.role)}) — {expliquerCause(cause)}
+              {/* Victime du Skinwalker : sa carte n'est pas révélée. */}
+              <strong>{joueur.nom}</strong> {cause === "skinwalker" ? "(carte non révélée)" : `(${partie.titre(joueur.role)})`} — {expliquerCause(cause)}
             </li>
           ))}
         </ul>

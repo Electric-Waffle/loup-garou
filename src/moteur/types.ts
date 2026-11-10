@@ -1,6 +1,6 @@
 import type { Partie } from "./partie";
 
-export type Camp = "village" | "loups" | "solo" | "fou" | "aberration";
+export type Camp = "village" | "loups" | "solo" | "fou" | "aberration" | "skinwalker";
 
 export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote" | "resultat_vote" | "fin";
 
@@ -142,7 +142,9 @@ export interface Role {
    * Après un vote qui a ÉLIMINÉ quelqu'un : appelé pour chaque joueur vivant qui a ce rôle
    * (ex. le Fêtard qui a voté contre un loup). Comme reagir(), il agit via mettreEnAttente / appliquerResultat.
    */
-  apresVote?(partie: Partie, moi: Joueur, elimine: Joueur): void;
+  apresVote?(partie: Partie, moi: Joueur, elimine?: Joueur): void;
+  /** Ligne affichée à l'écran du vote (le Stratège : « regardez pour qui il vote »). */
+  rappelVote?(partie: Partie, moi: Joueur): string | undefined;
 
   /**
    * Le village vient de désigner `accuse`, AVANT sa mort : appelé pour chaque joueur vivant qui a ce rôle.

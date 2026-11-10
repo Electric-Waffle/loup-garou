@@ -9,6 +9,8 @@ import conciliabule from "./conciliabule";
 import cupidon from "./cupidon";
 import fauxParleur from "./faux-parleur";
 import fee from "./fee";
+import skinwalker from "./skinwalker";
+import stratege from "./stratege";
 import fetard from "./fetard";
 import fou from "./fou";
 import loup from "./loup";
@@ -72,7 +74,9 @@ export const LISTE_ROLES: Role[] = [
   batisseur,
   pleureuse,
   fetard,
-  aberration
+  stratege,
+  aberration,
+  skinwalker
 ];
 
 /**

@@ -882,6 +882,81 @@ test("Fêtard : rien si l'éliminé n'est pas un loup, ou s'il n'a pas voté con
   assert.ok(!p.aTag(p.joueur("j2"), "fete"));
 });
 
+/* ---------- Stratège ---------- */
+
+test("Stratège : rappel au vote, question après le vote, réponse la nuit suivante", () => {
+  const p = partieAvec(["loup", "stratege", "villageois", "villageois", "villageois"]);
+  assert.ok(p.rappelsDuVote().some(r => r.includes("J1 (stratège)")));
+
+  p.voter("j3");
+  const question = p.decisionCourante();
+  assert.equal(question?.alias, "stratege");
+  assert.equal(question?.urgente, true);
+  p.jouer({ id: "oui", cibles: [] });
+
+  p.nuitSuivante(); // nuit 2 : le Stratège (85) joue avant les loups (120)
+  const nuit = p.decisionCourante();
+  assert.equal(nuit?.alias, "stratege");
+  assert.match(nuit?.decision.message ?? "", /OUI/);
+});
+
+test("Stratège : questionné même si personne n'est éliminé ; pas appelé la nuit 1", () => {
+  const p = partieAvec(["loup", "loup", "stratege", "villageois", "villageois"]);
+  assert.ok(!p.file.includes("stratege"));
+  p.voter(null);
+  assert.equal(p.decisionCourante()?.alias, "stratege");
+  p.jouer({ id: "non", cibles: [] });
+  assert.equal(p.joueur("j2").memoire.loupAvecLui, false);
+});
+
+/* ---------- Skinwalker ---------- */
+
+/** Joue la nuit en cours jusqu'à la carte demandée, en passant les autres. */
+function jouerJusqua(p: Partie, alias: string) {
+  while (p.decisionCourante() && p.decisionCourante()?.alias !== alias) p.passer();
+}
+
+test("Skinwalker : nuit 3, il tue, prend la carte, la joue, et la Voyante la voit", () => {
+  const p = partieAvec(["loup", "skinwalker", "sorciere", "voyante", "villageois", "villageois", "villageois"]);
+  assert.ok(!p.file.includes("skinwalker"));
+
+  allerALaNuit(p, 3);
+  jouerJusqua(p, "skinwalker");
+  p.jouer({ id: "tuer", cibles: ["j2"] });
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.equal(p.carteImitee(p.joueur("j1")), "sorciere");
+  // La Sorcière (130) joue après lui : c'est lui qui la joue, potions neuves.
+  assert.equal(p.decisionCourante()?.porteurs[0].id, "j1");
+  assert.equal(p.joueur("j1").memoire.potionMort, true);
+
+  allerALaNuit(p, 4);
+  jouerJusqua(p, "voyante");
+  p.jouer({ id: "sonder", cibles: ["j1"] });
+  assert.ok(p.infos.some(i => i.texte === "J1 est Sorcière."));
+});
+
+test("Skinwalker : victime protégée par le Salvateur, rien cette nuit ni la suivante", () => {
+  const p = partieAvec(["loup", "skinwalker", "salvateur", "villageois", "villageois", "villageois"]);
+  allerALaNuit(p, 3);
+  jouerJusqua(p, "salvateur");
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  jouerJusqua(p, "skinwalker");
+  p.jouer({ id: "tuer", cibles: ["j3"] });
+  assert.equal(p.joueur("j3").vivant, true);
+
+  allerALaNuit(p, 4);
+  jouerJusqua(p, "skinwalker");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Skinwalker : vivant, il vole la victoire du village", () => {
+  const p = partieAvec(["loup", "skinwalker", "villageois"]);
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le skinwalker");
+  donnerTag(p, p.joueur("j1"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le village");
+});
+
 /* ---------- Événements : tirage, remplacement, validation, minuteur ---------- */
 
 /** Une partie au jour 1, maire élu (j1), prête pour l'événement. */

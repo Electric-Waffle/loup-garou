@@ -26,7 +26,7 @@ const fetard: Role = {
   description: "S'il a voté contre un loup éliminé par le village, il fait la fête toute la nuit : les loups ne peuvent pas le mordre.",
 
   apresVote(partie, moi, elimine) {
-    if (partie.roleDe(elimine).camp !== "loups") return;
+    if (!elimine || partie.roleDe(elimine).camp !== "loups") return;
     moi.memoire.loupElimine = elimine.id;
     partie.mettreEnAttente("fetard", moi);
   },

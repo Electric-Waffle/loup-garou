@@ -44,6 +44,7 @@ const LIBELLES_CAMPS: Record<Camp, string> = {
   loups: "Loups",
   fou: "Fou",
   aberration: "Aberration",
+  skinwalker: "Skinwalker",
   solo: "Solo"
 };
 
@@ -62,6 +63,7 @@ const LIBELLES_GROUPES: Record<Groupe, string> = {
   hybride: "Hybride",
   fou: "Fou",
   aberration: "Aberration",
+  skinwalker: "Skinwalker",
   solo: "Solo"
 };
 
