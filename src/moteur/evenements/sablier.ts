@@ -11,13 +11,13 @@ import type { Evenement } from "../types";
  */
 export const sablier: Evenement = {
   alias: "sablier",
-  titre: "Sablier",
+  titre: "Course d'Inti",
   image: "⏳",
-  description: "Le débat dure 8 minutes. Le temps qui reste au moment du vote sera la durée du débat de demain.",
+  description: "Inti traverse le ciel : le débat dure 8 minutes. Le temps qui reste au moment du vote sera la durée du débat de demain.",
   explication: [
-    "Le débat dure 8 minutes au lieu de la durée habituelle.",
+    "Le débat dure 8 minutes, le temps qu'Inti avance dans le ciel.",
     "Le temps qui reste quand le meneur passe au vote est gardé.",
-    "Le lendemain, aucun événement n'est tiré : le débat dure exactement ce temps restant (Sablier, suite).",
+    "Le lendemain, aucun événement n'est tiré : le débat dure exactement ce temps restant (Course d'Inti, suite).",
     "Un village qui vote vite s'offre donc un long débat le lendemain."
   ],
   minuteur: 8,
@@ -26,11 +26,11 @@ export const sablier: Evenement = {
 
 export const sablierSuite: Evenement = {
   alias: "sablier-suite",
-  titre: "Sablier (suite)",
+  titre: "Course d'Inti (suite)",
   image: "⌛",
-  description: "Le débat dure le temps qui restait hier au moment du vote. Pas d'autre événement aujourd'hui.",
+  description: "Inti reprend sa course : le débat dure le temps qui restait hier au moment du vote. Pas d'autre événement aujourd'hui.",
   explication: [
-    "Imposé le lendemain d'un Sablier : il ne peut être ni remplacé ni passé.",
+    "Imposé le lendemain d'une Course d'Inti : il ne peut être ni remplacé ni passé.",
     "Le débat dure le temps qui restait la veille au moment du vote.",
     "Aucun autre événement ce jour-là."
   ],

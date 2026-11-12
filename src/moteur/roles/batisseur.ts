@@ -14,7 +14,7 @@ const batisseur: Role = {
   titre: "Bâtisseur",
   image: "🧱",
   camp: "village",
-  description: "Chaque nuit, il renforce une maison. Quand toutes les maisons des villageois vivants sont renforcées, le village gagne.",
+  description: "Un tailleur de pierre qui bâtit des murs sans mortier. Chaque nuit, il renforce une maison. Quand toutes les maisons des villageois vivants sont renforcées, le village gagne.",
   explication: [
     "Chaque nuit (rang 90), il renforce une maison, la sienne comprise. Une maison reste renforcée toute la partie.",
     "Quand toutes les maisons des villageois vivants sont renforcées, le village gagne aussitôt, même s'il reste des loups.",

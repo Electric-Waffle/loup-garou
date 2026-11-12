@@ -19,7 +19,7 @@ const paysan: Role = {
   titre: "Paysan",
   image: "🪓",
   camp: "village",
-  description: "Voté, il assomme 2 joueurs qui dorment la nuit suivante. Dévoré, il blesse les loups : ils ne tuent personne la nuit suivante.",
+  description: "Un cultivateur des terrasses, solide comme la montagne. Voté, il assomme 2 joueurs qui dorment la nuit suivante. Dévoré, il blesse les loups : ils ne tuent personne la nuit suivante.",
   explication: [
     "Il ne meurt pas sans se défendre.",
     "Éliminé par le vote du village, il assomme 2 joueurs : ils ne feront rien la nuit suivante, comme s'ils étaient enchantés par la Fée.",

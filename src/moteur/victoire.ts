@@ -22,8 +22,13 @@ export function verifierVictoire(partie: Partie): string | undefined {
   const nbLoups = vivants.filter(j => partie.roleDe(j).camp === "loups").length;
 
   // Skinwalker vivant : la victoire du village lui revient, à lui seul (comme le Fou pour les loups).
+  // POURQUOI garder la raison : sans elle, « Le skinwalker » avec un loup encore vivant ressemble à
+  // un bug, alors que c'est le chantier du Bâtisseur qui a donné la victoire au village.
   const skinwalkerVivant = vivants.some(j => partie.roleDe(j).camp === "skinwalker");
-  const village = (texte: string) => skinwalkerVivant ? "Le skinwalker" : texte;
+  const village = (raison?: string) => {
+    if (skinwalkerVivant) return `Le skinwalker (il vole la victoire du village${raison ? ` : ${raison}` : ""})`;
+    return raison ? `Le village (${raison})` : "Le village";
+  };
 
   // Amoureux en majorité STRICTE parmi les vivants, liés entre eux ou pas, quel que soit leur camp.
   // Couvre l'ancien cas « 2 vivants amoureux » (2 contre 0). POURQUOI strict : avec ">=", Cupidon
@@ -36,9 +41,9 @@ export function verifierVictoire(partie: Partie): string | undefined {
   // avant que son crochet aube() ne le tue (la victoire est vérifiée avant la nuit suivante).
   const resteUnRatGarou = vivants.some(j => j.role === "rat-garou");
   const resteUnNonLoup = vivants.some(j => partie.roleDe(j).camp !== "loups");
-  if (vivants.length === 2 && resteUnRatGarou && resteUnNonLoup) return village("Le village");
+  if (vivants.length === 2 && resteUnRatGarou && resteUnNonLoup) return village();
 
-  if (nbLoups === 0) return village("Le village");
+  if (nbLoups === 0) return village();
 
   // Bâtisseur : toutes les maisons des villageois VIVANTS sont renforcées.
   // POURQUOI avant les loups : si les deux arrivent en même temps, le chantier de plusieurs nuits l'emporte.
@@ -46,7 +51,7 @@ export function verifierVictoire(partie: Partie): string | undefined {
   const villageoisVivants = vivants.filter(j => partie.roleDe(j).camp === "village");
   const toutesRenforcees = villageoisVivants.every(j => partie.aTag(j, "renforce"));
   if (villageoisVivants.length > 0 && toutesRenforcees) {
-    return village("Le village (toutes les maisons sont renforcées)");
+    return village("toutes les maisons sont renforcées");
   }
 
   if (nbLoups >= vivants.length - nbLoups) {

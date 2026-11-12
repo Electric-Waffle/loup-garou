@@ -5,7 +5,7 @@ const villageois: Role = {
   titre: "Villageois",
   image: "🧑‍🌾",
   camp: "village",
-  description: "Aucun pouvoir, sinon celui de voter.",
+  description: "Un habitant du village, qui cultive le maïs et la pomme de terre. Aucun pouvoir, sinon celui de voter.",
   explication: [
     "Le Villageois n'a aucun pouvoir de nuit : il dort pendant que les autres cartes agissent.",
     "Le jour, il débat et vote comme tout le monde : c'est sa seule arme, et c'est la plus importante du village.",

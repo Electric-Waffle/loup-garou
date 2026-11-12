@@ -22,7 +22,7 @@ const loupAmoureux: Role = {
   titre: "Loup amoureux",
   image: "💞",
   camp: "loups",
-  description: "Un loup qui, la première nuit, se lie à un joueur. Si l'un meurt, l'autre meurt de chagrin.",
+  description: "Un loup épris d'un mortel. La première nuit, il se lie à un joueur. Si l'un meurt, l'autre meurt de chagrin.",
   explication: [
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "La première nuit (rang 102), il se lie lui-même à un joueur : si l'un meurt, l'autre meurt de chagrin.",

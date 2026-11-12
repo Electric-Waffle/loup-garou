@@ -24,7 +24,7 @@ const pretre: Role = {
   image: "⛪",
   camp: "village",
   hybride: true,
-  description: "La 1re nuit, il choisit en secret d'être pur (il reste villageois) ou impur (il devient Prêtre impur, du camp des loups). Mort, il peut chuchoter au maire.",
+  description: "Un prêtre du temple du Soleil. La 1re nuit, il choisit en secret d'être pur (il reste villageois) ou impur (il devient Prêtre impur, du camp des loups). Mort, il peut chuchoter au maire.",
   explication: [
     "La première nuit (rang 70), il choisit en secret d'être pur ou impur. Seuls lui et le meneur le savent.",
     "Pur, ou s'il passe : il reste un villageois.",

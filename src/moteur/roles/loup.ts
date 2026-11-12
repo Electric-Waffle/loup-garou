@@ -7,7 +7,7 @@ const loup: Role = {
   titre: "Loup-Garou",
   image: "🐺",
   camp: "loups",
-  description: "Chaque nuit, les loups désignent ensemble une victime.",
+  description: "Des bêtes qui rôdent dans la nuit des Andes, sous le regard de Mama Killa. Chaque nuit, les loups désignent ensemble une victime.",
   explication: [
     "Chaque nuit (rang 120), les loups ouvrent les yeux ensemble et se mettent d'accord sur une victime.",
     "Le meneur clique sur la victime : elle reçoit une morsure, qui ne la tue qu'à l'aube.",

@@ -18,7 +18,7 @@ const fee: Role = {
   titre: "Fée",
   image: "🧚",
   camp: "village",
-  description: "À partir de la 2e nuit, elle enchante un joueur : il ne peut rien faire de la nuit.",
+  description: "Un esprit des sources sacrées. À partir de la 2e nuit, elle enchante un joueur : il ne peut rien faire de la nuit.",
   explication: [
     "À partir de la nuit 2, elle est appelée la toute première (rang 10) et enchante un joueur.",
     "L'enchanté ne fait rien de la nuit : sa carte n'offre que « Passer », et ses réactions (tir du Chasseur, choix du Rat) n'ont pas lieu.",

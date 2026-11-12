@@ -10,18 +10,18 @@ import type { Evenement } from "../types";
  */
 const saufConduit: Evenement = {
   alias: "sauf-conduit",
-  titre: "Sauf-conduit",
-  image: "📜",
-  description: "Le maire désigne une personne : elle ne pourra pas être éliminée par le vote d'aujourd'hui.",
+  titre: "Asile du temple",
+  image: "🛕",
+  description: "Le maire désigne une personne qui trouve asile au temple d'Inti : elle ne pourra pas être éliminée par le vote d'aujourd'hui.",
   explication: [
-    "Le maire désigne une personne, jamais lui-même.",
+    "Le maire désigne une personne, jamais lui-même : elle trouve asile au temple d'Inti.",
     "Elle ne peut pas être éliminée par le vote d'aujourd'hui : son siège n'est pas cliquable au vote.",
-    "La protection couvre aussi le second vote d'une plaidoirie (or du Marchand).",
-    "Elle disparaît à l'aube suivante."
+    "L'asile couvre aussi le second vote d'une plaidoirie (or du Marchand).",
+    "Il prend fin à l'aube suivante."
   ],
 
   decision: (_partie, maire) => ({
-    message: `${maire.nom}, le maire, désigne la personne qui ne pourra pas être éliminée aujourd'hui.`,
+    message: `${maire.nom}, le maire, désigne la personne qui trouve asile au temple : elle ne pourra pas être éliminée aujourd'hui.`,
     choix: [{ id: "designer", label: "Désigner", cible: "un_autre" }]
   }),
 

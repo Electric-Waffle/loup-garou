@@ -6,9 +6,9 @@ import type { Evenement } from "../types";
  */
 const murmures: Evenement = {
   alias: "murmures",
-  titre: "Murmures d'outre-tombe",
+  titre: "Voix d'outre-tombe",
   image: "👻",
-  description: "Les loups morts désignent un joueur. C'est tout.",
+  description: "Depuis le monde d'en bas, les loups morts désignent un joueur. C'est tout.",
   explication: [
     "Les loups morts désignent ensemble un joueur, sans autre effet.",
     "Au village d'en tirer quelque chose… ou de s'en méfier.",

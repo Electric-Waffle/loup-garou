@@ -21,6 +21,15 @@ self.addEventListener("install", evenement => {
     const cache = await caches.open(CACHE);
     const page = await (await fetch("./")).text();
     const fichiers = [...page.matchAll(/(?:src|href)="(\.\/assets\/[^"]+)"/g)].map(m => m[1]);
+    // Les polices ne sont pas citées dans la page mais dans le CSS : on les y lit aussi.
+    // POURQUOI new URL(..., adresse du CSS) : leur chemin est relatif au fichier CSS, pas à la page.
+    for (const css of fichiers.filter(f => f.endsWith(".css"))) {
+      const adresseCss = new URL(css, self.location);
+      const texte = await (await fetch(adresseCss)).text();
+      for (const m of texte.matchAll(/url\(["']?([^"')]+\.woff2?)["']?\)/g)) {
+        fichiers.push(new URL(m[1], adresseCss).href);
+      }
+    }
     await cache.addAll(["./", ...fichiers]);
     await self.skipWaiting(); // la nouvelle version prend la main sans attendre la fermeture des onglets
   })());

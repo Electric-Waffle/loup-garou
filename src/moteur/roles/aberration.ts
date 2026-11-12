@@ -26,13 +26,14 @@ const aberration: Role = {
   titre: "Aberration",
   image: "🦑",
   camp: "aberration",
-  description: "Chaque nuit, elle horrifie un joueur. Loups tous horrifiés : ils ne mangent plus. Villageois tous horrifiés : plus de vote. Qui voit sa carte meurt. Tant qu'elle vit, personne d'autre ne gagne ; elle gagne quand tous les survivants sont horrifiés.",
+  description: "TERRIFI3 UN JOU4UR PAR NU1T. T0UT L0UP TERRIFIE5 NE M0RDENT P4S. TOUT VILLAGE0IS TERRIFIES NE VOTENT PAS. SONDE MA CARTE ET MEURT. SI TOUT LE MONDE TERRIFIE, JE GAGNE. SI JE MEURT, TERREUR DISPARAIT. Mais cela n'arrivera pas, n'est-ce pas ?",
   explication: [
-    "Une créature qui forme un camp à elle seule.",
-    "Chaque nuit (rang 25), elle horrifie un autre joueur. L'horreur dure tant qu'elle est en vie.",
-    "Si tous ceux qui chassent avec la meute sont horrifiés, les loups ne mangent plus. Si tous les villageois vivants sont horrifiés, le village ne peut plus voter.",
-    "La Voyante ou le Loup voyante qui voit sa carte devient catatonique et meurt à l'aube.",
-    "Tant qu'elle vit, personne d'autre ne peut gagner. Elle gagne quand tous les autres survivants sont horrifiés. Morte, toute l'horreur disparaît."
+    "Je forme un camp a moi tout seul.",
+    "Chaque nuit (rang 25), j'horrifie un autre joueur.",
+    "Si tous ceux qui chassent avec la meute de loup garous sont horrifiés, les loups ne mordent plus. Si tous ceux du camp des villageois sont horrifiés, le village ne peut plus voter.",
+    "Si la Voyante ou le Loup voyante qui regardent ma carte... eh bien... je ne donne pas cher de leur peau. Vu comment se composent vos esprits, ils devraient devenir catatonique et mourir à l'aube.",
+    "Tant que je vit, personne d'autre gagne.",
+    "Si tout le monde est horrifié, je gagne. Et si je meurt, la terreur de tout les joueurs mourira avec moi."
   ],
   priorite: 25,
   appelNuit: true,

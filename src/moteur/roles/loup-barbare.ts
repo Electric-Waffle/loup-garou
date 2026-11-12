@@ -21,7 +21,7 @@ const loupBarbare: Role = {
   titre: "Loup barbare",
   image: "🗡️",
   camp: "loups",
-  description: "Un loup qui ne se réveille pas avec la meute. Si le village élimine un joueur qui n'est pas un loup, il peut mordre quelqu'un la nuit suivante, après les loups.",
+  description: "Un loup sauvage des hauts plateaux, qui chasse seul. Il ne se réveille pas avec la meute. Si le village élimine un joueur qui n'est pas un loup, il peut mordre quelqu'un la nuit suivante, après les loups.",
   explication: [
     "Un loup solitaire : il ne se réveille pas avec la meute, et les autres loups ignorent qu'il est des leurs.",
     "Quand le village élimine un joueur qui n'est pas un loup, il se réveille la nuit suivante (rang 124, après la meute et avant la Sorcière) et mord une victime.",

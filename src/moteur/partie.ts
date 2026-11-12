@@ -486,7 +486,7 @@ export class Partie {
     this.choisirEvenement(EVENEMENTS.soleil);
   }
 
-  /** Valide un événement SANS choix (Rumeur, Sablier, animations) : son effet a lieu maintenant. */
+  /** Valide un événement SANS choix (Caravane de lamas, Sablier, animations) : son effet a lieu maintenant. */
   appliquerEvenement(): void {
     const evenement = this.evenement;
     if (!evenement || this.evenementApplique) return;
@@ -549,7 +549,7 @@ export class Partie {
     // Sauf-conduit : garde-fou du moteur, même si l'interface rend déjà le siège non cliquable.
     // ATTENTION : vérifié AVANT tout changement d'état, pour que le meneur puisse recliquer.
     if (id && this.aTag(this.joueur(id), "sauf_conduit")) {
-      throw new Error(`${this.joueur(id).nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
+      throw new Error(`${this.joueur(id).nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
     }
     const interdiction = this.voteImpossible();
     if (id && interdiction) throw new Error(interdiction);
@@ -665,7 +665,7 @@ export class Partie {
   /**
    * Infos publiques du tour, limitées aux phases demandées (par défaut : toutes).
    * POURQUOI le filtre de phase : une annonce de la NUIT (échec du Loup hypnotiseur) va au rapport
-   * de l'aube ; celles de l'événement (la rumeur) restent à l'événement, sans doublon.
+   * de l'aube ; celles de l'événement restent à l'événement, sans doublon.
    */
   infosPubliques(phases?: Phase[]): string[] {
     return this.infos
@@ -712,7 +712,7 @@ export class Partie {
       }
     }
     for (const joueur of this.joueursAvecTag("sauf_conduit")) {
-      rappels.push(`${joueur.nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
+      rappels.push(`${joueur.nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
     }
     for (const joueur of this.joueursAvecTag("soupcon")) {
       const maire = this.joueursAvecTag("maire")[0];

@@ -22,7 +22,7 @@ const fauxParleur: Role = {
   image: "🎭",
   camp: "loups",
   hybride: true,
-  description: "Un loup qui vote avec la meute et survit à la première attaque des loups. Maire, il voit la carte de chaque accusé avant sa mort et peut, une fois par partie, relancer le vote.",
+  description: "Un orateur à la langue de serpent, au service de la meute. Il vote avec les loups et survit à leur première attaque. Maire, il voit la carte de chaque accusé avant sa mort et peut, une fois par partie, relancer le vote.",
   explication: [
     "Un Beau Parleur au service des loups : distribué directement, ou atteint par un Beau Parleur qui a choisi la meute.",
     "Il se réveille avec les loups et assiste au choix de la victime.",

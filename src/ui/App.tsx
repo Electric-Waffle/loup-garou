@@ -169,7 +169,7 @@ export function App() {
   return (
     <div className="app">
       <header className="barre">
-        <h1>🐺 Loup-Garou</h1>
+        <h1><span className="logo" aria-hidden="true">☀️</span> Paqari</h1>
         <nav>
           <button className={classeOnglet("options", page)} onClick={() => setPage("options")}>
             Options

@@ -10,18 +10,18 @@ import type { Evenement } from "../types";
  */
 const clairDeLune: Evenement = {
   alias: "clair-de-lune",
-  titre: "Clair de lune",
+  titre: "Lumière de Mama Killa",
   image: "🌕",
-  description: "Le maire désigne une personne : cette nuit, la Voyante et le Loup voyante ne pourront voir que sa carte.",
+  description: "Le maire désigne une personne : cette nuit, Mama Killa, la Lune, n'éclaire qu'elle. La Voyante et le Loup voyante ne pourront voir que sa carte.",
   explication: [
     "Le maire désigne une personne, jamais lui-même.",
-    "Cette nuit, la Voyante et le Loup voyante ne peuvent regarder que la carte de cette personne.",
+    "Cette nuit, Mama Killa n'éclaire qu'elle : la Voyante et le Loup voyante ne peuvent regarder que sa carte.",
     "Si c'est le Hurleur, le regard le fait hurler, sans révéler son nom.",
     "Sans voyante en jeu, l'événement tombe à plat : le meneur fait semblant."
   ],
 
   decision: (_partie, maire) => ({
-    message: `${maire.nom}, le maire, désigne la personne que la lune éclaire cette nuit.`,
+    message: `${maire.nom}, le maire, désigne la personne que Mama Killa éclaire cette nuit.`,
     choix: [{ id: "designer", label: "Désigner", cible: "un_autre" }]
   }),
 

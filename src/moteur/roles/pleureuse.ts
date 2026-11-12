@@ -20,7 +20,7 @@ const pleureuse: Role = {
   titre: "Pleureuse",
   image: "😢",
   camp: "village",
-  description: "À partir de la 2e nuit, elle maudit un joueur chaque nuit : il ne fait plus son rôle. Les maudits peuvent la démasquer pendant leur conciliabule.",
+  description: "Une pleureuse des funérailles, dont les larmes portent malheur. À partir de la 2e nuit, elle maudit un joueur chaque nuit : il ne fait plus son rôle. Les maudits peuvent la démasquer pendant leur conciliabule.",
   explication: [
     "À partir de la nuit 2 (rang 15), elle pleure devant la porte d'un joueur, qui devient maudit.",
     "Un maudit ne fait plus son rôle, jusqu'à la fin de la partie.",

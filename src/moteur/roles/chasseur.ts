@@ -7,7 +7,7 @@ const chasseur: Role = {
   titre: "Chasseur",
   image: "🏹",
   camp: "village",
-  description: "En mourant, il emporte immédiatement un joueur de son choix.",
+  description: "Un chasseur encapuchonné des hauts plateaux, sa fronde toujours à la main. En mourant, il emporte immédiatement un joueur de son choix.",
   explication: [
     "Quand il meurt, quelle qu'en soit la cause (morsure, poison, vote, chagrin…), il tire tout de suite sur un joueur de son choix.",
     "Le meneur ouvre une décision urgente, jouée avant tout le reste : le joueur abattu meurt immédiatement.",

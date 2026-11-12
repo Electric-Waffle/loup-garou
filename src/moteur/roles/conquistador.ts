@@ -22,7 +22,7 @@ const conquistador: Role = {
   titre: "Conquistador",
   image: "🔫",
   camp: "village",
-  description: "Une seule fois dans la partie, il tue un joueur pendant la nuit. Si sa victime avait de l'or, il récupère sa balle.",
+  description: "Un étranger venu de l'autre côté de l'océan, une seule balle dans son arquebuse. Une fois dans la partie, il tue un joueur pendant la nuit. Si sa victime avait de l'or, il récupère sa balle.",
   explication: [
     "Il a une seule balle pour toute la partie.",
     "Chaque nuit (rang 122, après les loups), tant qu'il a sa balle, il peut tirer sur un joueur, ou attendre.",

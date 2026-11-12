@@ -26,7 +26,7 @@ const conciliabule: Role = {
   image: "🕯️",
   // Jamais lu : aucun joueur n'a cette carte, victoire.ts ne la compte donc jamais.
   camp: "village",
-  description: "Chaque nuit où au moins un joueur est maudit, les maudits se réveillent pour tenter de démasquer la Pleureuse.",
+  description: "Chaque nuit où au moins un joueur est maudit, les maudits se réunissent autour des braises pour tenter de démasquer la Pleureuse.",
   priorite: 12,
   appelNuit: true,
 

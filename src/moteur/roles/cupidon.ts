@@ -21,7 +21,7 @@ const cupidon: Role = {
   titre: "Cupidon",
   image: "💘",
   camp: "village",
-  description: "La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
+  description: "Le messager de Mama Killa, la Lune, qui veille sur les unions. La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
   explication: [
     "La première nuit (rang 50), il désigne deux joueurs qui tombent amoureux, lui-même compris s'il le veut.",
     "Si l'un des amoureux meurt, l'autre meurt aussitôt de chagrin. Un joueur peut être lié à plusieurs personnes : la mort se propage alors à tous, de proche en proche.",

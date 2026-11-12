@@ -9,11 +9,11 @@ import type { Evenement } from "../types";
  */
 const soupcon: Evenement = {
   alias: "soupcon",
-  titre: "Soupçon",
-  image: "🧐",
-  description: "Le maire désigne une personne : elle commence le vote avec 2 voix contre elle. Le maire ne vote pas.",
+  titre: "Vol du condor",
+  image: "🦅",
+  description: "Un condor tourne au-dessus d'une personne désignée par le maire, mauvais présage : elle commence le vote avec 2 voix contre elle. Le maire ne vote pas.",
   explication: [
-    "Le maire désigne une personne, jamais lui-même.",
+    "Le maire désigne une personne, jamais lui-même : un condor tourne au-dessus d'elle, mauvais présage.",
     "Elle commence le vote avec 2 voix contre elle, et le maire ne vote pas.",
     "L'application ne compte pas les voix : le meneur l'applique de tête, aidé par le rappel affiché au vote."
   ],

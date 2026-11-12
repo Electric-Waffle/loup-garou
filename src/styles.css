@@ -1,55 +1,102 @@
+/* =====================================================================================
+ *  Paqari — thème inca et maya
+ *  Terre cuite, or et jade sur fond d'obsidienne ; frises andines en zigzag ; croix andine à
+ *  degrés (chakana) devant les titres ; la table est une pierre du Soleil le jour, de lune la nuit.
+ *  POURQUOI tout en CSS (dégradés, clip-path) et aucune image ni police externe : l'application
+ *  doit marcher hors ligne (service worker), et rien à télécharger ne peut manquer.
+ * ===================================================================================== */
+
 :root {
-  --fond: #0e1020;
-  --surface: #181b33;
-  --surface-2: #22264a;
-  --bord: #2f3463;
-  --texte: #e9e7f5;
-  --texte-doux: #a3a2c2;
-  --accent: #e0b04f;
-  --accent-texte: #1b1405;
-  --danger: #e2675e;
-  --succes: #5fbf8f;
-  --rayon: 12px;
+  --fond: #17100b;        /* obsidienne */
+  --surface: #261a12;     /* adobe sombre */
+  --surface-2: #36251a;
+  --bord: #5e3f26;        /* argile cuite */
+  --texte: #f2e4c9;       /* parchemin */
+  --texte-doux: #bfa47e;  /* sable */
+  --accent: #e2a93b;      /* or inca */
+  --accent-sombre: #8a5a17;
+  --accent-texte: #2a1803;
+  --terre: #b5532f;       /* terre cuite */
+  --jade: #3fa38f;
+  --danger: #d9573b;
+  --succes: #4fae94;
+  --rayon: 6px;           /* pierre taillée : des angles à peine adoucis */
+  /* Marcellus : des capitales inspirées des inscriptions gravées dans la pierre, pour les titres.
+     Alegreya Sans : douce et chaleureuse, très lisible, pour le texte. Les deux sont dans le build. */
+  --police-titres: "Marcellus", "Palatino Linotype", Georgia, serif;
+  /* Croix andine à degrés (chakana), réutilisée comme ornement via clip-path. */
+  --chakana: polygon(33% 0, 67% 0, 67% 17%, 83% 17%, 83% 33%, 100% 33%, 100% 67%, 83% 67%, 83% 83%, 67% 83%, 67% 100%, 33% 100%, 33% 83%, 17% 83%, 17% 67%, 0 67%, 0 33%, 17% 33%, 17% 17%, 33% 17%);
+  /* Frise andine : deux rangées de triangles qui se croisent en zigzag. */
+  --frise:
+    linear-gradient(135deg, var(--accent) 25%, transparent 25%) -6px 0 / 12px 12px,
+    linear-gradient(225deg, var(--accent) 25%, transparent 25%) -6px 0 / 12px 12px,
+    var(--terre);
   color-scheme: dark;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Alegreya Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px; /* Alegreya Sans dessine petit : un pixel de plus garde la même lisibilité. */
+  -webkit-font-smoothing: antialiased;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--fond); color: var(--texte); }
-h1, h2, h3 { margin: 0 0 .5rem; font-weight: 650; }
-h2 { font-size: 1.15rem; }
-h3 { font-size: 1rem; }
-p { margin: .4rem 0; line-height: 1.45; }
+body {
+  margin: 0; color: var(--texte);
+  background-color: var(--fond);
+  /* Une lueur d'aube en haut de page, et une trame de tissage très discrète. */
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -10%, #5a321633, transparent 70%),
+    repeating-linear-gradient(45deg, #ffffff04 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, #ffffff04 0 2px, transparent 2px 14px);
+  min-height: 100vh;
+}
+h1, h2, h3 { margin: 0 0 .5rem; font-family: var(--police-titres); font-weight: 400; } /* Marcellus n'a qu'un poids */
+h2 { font-size: 1.2rem; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+h3 { font-size: 1.02rem; color: #f0cf8a; letter-spacing: .02em; }
+/* Une chakana devant chaque grand titre de section. */
+.page h2::before {
+  content: ""; display: inline-block; width: .8em; height: .8em; margin-right: .5em; vertical-align: -.05em;
+  background: var(--terre); clip-path: var(--chakana);
+}
+p { margin: .4rem 0; line-height: 1.5; }
 code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; font-size: .85em; }
 
 /* ---------- Barre ---------- */
 .barre {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-  padding: .75rem 1.25rem; border-bottom: 1px solid var(--bord); background: var(--surface);
+  padding: .75rem 1.25rem .95rem; background: linear-gradient(180deg, #2e1f14, #22170f);
   position: sticky; top: 0; z-index: 10;
 }
-.barre h1 { font-size: 1.2rem; margin: 0; }
-.barre nav { display: flex; gap: .25rem; }
+/* La frise sous la barre, comme la bordure d'un tissu andin. */
+.barre::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--frise); opacity: .9; }
+.barre h1 { font-size: 1.45rem; margin: 0; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; gap: .4rem; }
+.logo { filter: drop-shadow(0 0 6px #e2a93b88); }
+.barre nav { display: flex; gap: .25rem; flex-wrap: wrap; }
 .onglet {
-  background: none; border: 0; color: var(--texte-doux); padding: .5rem .8rem; border-radius: 8px; cursor: pointer; font: inherit;
+  background: none; border: 0; border-bottom: 2px solid transparent; color: var(--texte-doux);
+  padding: .5rem .8rem; border-radius: 4px 4px 0 0; cursor: pointer; font: inherit; font-family: var(--police-titres); letter-spacing: .03em;
 }
 .onglet:hover { color: var(--texte); background: var(--surface-2); }
-.onglet-actif { color: var(--texte); background: var(--surface-2); }
+.onglet-actif { color: var(--accent); background: var(--surface-2); border-bottom-color: var(--accent); }
 
-.page { padding: 1.25rem; max-width: 1200px; margin: 0 auto; }
-.page section + section { margin-top: 2rem; }
+.page { padding: 1.5rem 1.25rem; max-width: 1200px; margin: 0 auto; }
+.page section + section { margin-top: 2.2rem; }
 .aide { color: var(--texte-doux); font-size: .9rem; }
 .erreur { color: var(--danger); font-size: .9rem; }
 
 /* ---------- Boutons & champs ---------- */
 .bouton {
-  font: inherit; font-size: .92rem; cursor: pointer; border-radius: 8px; padding: .5rem .9rem;
+  font: inherit; font-size: .92rem; cursor: pointer; border-radius: var(--rayon); padding: .5rem .9rem;
   background: var(--surface-2); color: var(--texte); border: 1px solid var(--bord);
   display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
 }
 .bouton:hover:not(:disabled) { border-color: var(--accent); }
 .bouton:disabled { opacity: .45; cursor: not-allowed; }
-.bouton-principal { background: var(--accent); color: var(--accent-texte); border-color: var(--accent); font-weight: 600; }
+/* Le bouton principal : une plaque d'or martelé. */
+.bouton-principal {
+  background: linear-gradient(180deg, #f2c463, #c98b2c); color: var(--accent-texte);
+  border-color: var(--accent-sombre); font-weight: 700; letter-spacing: .03em;
+  box-shadow: inset 0 1px 0 #fff5, 0 2px 0 var(--accent-sombre);
+}
+.bouton-principal:hover:not(:disabled) { border-color: #fff3; filter: brightness(1.06); }
 .bouton-discret { background: transparent; }
 .bouton-danger { background: transparent; color: var(--danger); }
 .bouton-petit { padding: .3rem .6rem; font-size: .85rem; }
@@ -57,78 +104,106 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
 .actions-colonne { display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem; }
 .champ {
-  font: inherit; background: var(--fond); color: var(--texte); border: 1px solid var(--bord);
-  border-radius: 8px; padding: .45rem .6rem; width: 100%; min-width: 0;
+  font: inherit; background: #120c08; color: var(--texte); border: 1px solid var(--bord);
+  border-radius: var(--rayon); padding: .45rem .6rem; width: 100%; min-width: 0;
 }
 .champ:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .champ-court { width: 4.5rem; }
 .champ-ligne { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--texte-doux); font-size: .9rem; }
+input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ---------- Visuels ---------- */
-.visuel { border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface-2); }
+/* Un médaillon d'or autour de chaque image ronde. */
+.visuel { border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface-2); border: 2px solid var(--accent-sombre); }
 .visuel-texte { display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-weight: 600; }
+
+/* ---------- Surfaces taillées dans la pierre ---------- */
+/* Un double cadre gravé (bord + liseré intérieur) donne l'effet de pierre taillée. */
+.carte, .panneau, .pastille, .ligne-cliquable, .cas, .liste-joueurs li {
+  background: linear-gradient(180deg, #2b1d14, #22170f);
+  border: 1px solid var(--bord); border-radius: var(--rayon);
+  box-shadow: inset 0 0 0 3px #1a110b, inset 0 0 0 4px #4a321f55;
+}
 
 /* ---------- Options : cartes ---------- */
 .grille-cartes { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .9rem; margin-top: 1rem; }
-.carte {
-  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
-  padding: .9rem; display: flex; flex-direction: column; gap: .5rem; transition: opacity .2s;
-}
+.carte { padding: .9rem; display: flex; flex-direction: column; gap: .5rem; transition: opacity .2s; }
 .carte-inactive { opacity: .5; }
 .carte-entete { display: flex; justify-content: space-between; align-items: flex-start; }
 .carte-description { color: var(--texte-doux); font-size: .85rem; flex: 1; }
 .interrupteur { display: flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--texte-doux); cursor: pointer; }
 .badges { display: flex; flex-wrap: wrap; gap: .3rem; }
-.badge { font-size: .72rem; padding: .15rem .45rem; border-radius: 999px; background: var(--surface-2); color: var(--texte-doux); }
-.camp-loups { background: #4a1f2a; color: #f2a6a6; }
-.camp-village { background: #1f3a33; color: #9fe0c0; }
+.badge { font-size: .72rem; padding: .15rem .5rem; border-radius: 3px; background: var(--surface-2); color: var(--texte-doux); border: 1px solid #ffffff10; }
+.camp-loups { background: #4e1a14; color: #f4a28e; }      /* cinabre */
+.camp-village { background: #183a33; color: #8fe0c8; }    /* jade */
 .camp-solo { background: #3e3420; color: #f0d08c; }
-.camp-aberration { background: #33224a; color: #d4b8f5; }
-.camp-fou { background: #706a11; color: #ffef00; }
-.camp-skinwalker { background: #3a3a3a; color: #d8d8d8; }
+.camp-aberration { background: #3a2346; color: #d9b8f0; }
+.camp-fou { background: #5a4c0f; color: #f6d84a; }        /* maïs */
+.camp-skinwalker { background: #3b342c; color: #e2d6c3; } /* os */
 
 /* ---------- Options : joueurs ---------- */
 .liste-joueurs { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .5rem; max-width: 560px; }
-.liste-joueurs li { display: flex; align-items: center; gap: .6rem; background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon); padding: .5rem .7rem; }
+.liste-joueurs li { display: flex; align-items: center; gap: .6rem; padding: .5rem .7rem; }
 
 /* ---------- Préparation & partie : mise en page ---------- */
 .preparation, .partie { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 1.5rem; align-items: start; }
 .partie { grid-template-columns: 1fr minmax(280px, 380px); }
-.panneau { background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon); padding: 1rem; }
+.panneau { padding: 1.1rem 1rem 1rem; position: relative; overflow: hidden; }
+/* Une frise en haut du panneau de jeu. */
+.panneau::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--frise); }
 .liste-cochable { list-style: none; padding: 0; margin: .5rem 0; display: grid; gap: .2rem; }
-.liste-cochable label { display: flex; align-items: center; gap: .5rem; padding: .3rem; border-radius: 6px; cursor: pointer; }
+.liste-cochable label { display: flex; align-items: center; gap: .5rem; padding: .3rem; border-radius: 4px; cursor: pointer; }
 .liste-cochable label:hover { background: var(--surface-2); }
-.divider { border: 0; border-top: 1px solid var(--bord); margin: 2rem 0; }
-/* ---------- Table ronde ---------- */
+/* Séparateur : une ligne d'or qui s'efface aux bords, avec un bloc de terre cuite au centre. */
+.divider {
+  border: 0; height: 14px; margin: 2rem 0;
+  background:
+    linear-gradient(var(--terre), var(--terre)) center / 14px 14px no-repeat,
+    linear-gradient(90deg, transparent, var(--accent-sombre) 20%, var(--accent-sombre) 80%, transparent) center / 100% 1px no-repeat;
+}
+
+/* ---------- Table ronde : la pierre du Soleil ---------- */
 .table { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin: 0 auto; }
 .table-plateau {
   position: absolute; inset: 22%; border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #3b2b1d, #22180f 70%);
-  border: 6px solid #4a3522; box-shadow: inset 0 0 40px #0008, 0 10px 40px #0006;
   display: flex; align-items: center; justify-content: center; text-align: center;
+  /* Disque central uni, puis des rayons gravés tout autour (repeating-conic-gradient). */
+  background:
+    radial-gradient(circle, var(--centre) 0 46%, var(--anneau) 46% 49%, transparent 49%),
+    repeating-conic-gradient(var(--rayon-a) 0 7.5deg, var(--rayon-b) 7.5deg 15deg);
+  border: 8px solid #3d2814;
+  box-shadow: 0 0 0 3px var(--accent-sombre), inset 0 0 0 4px var(--anneau), inset 0 0 50px #000a, 0 12px 40px #0009;
+  /* Par défaut (préparation, jour) : pierre du Soleil, or et terre. */
+  --centre: #b97a24; --anneau: #f2c463; --rayon-a: #d29a3a; --rayon-b: #9c6420;
 }
+/* La nuit : pierre de lune, bleutée et froide. */
+.theme-nuit .table-plateau { --centre: #2d3444; --anneau: #8a96b3; --rayon-a: #39415a; --rayon-b: #262c3c; }
 .table-centre { display: flex; flex-direction: column; gap: .2rem; }
-.table-titre { font-size: 1.15rem; font-weight: 650; color: #f3e3c3; }
-.table-tour { color: #cdb894; font-size: .9rem; }
+.table-titre { font-family: var(--police-titres); font-size: 1.2rem; font-weight: 400; color: #2a1803; letter-spacing: .04em; }
+.table-tour { color: #4a2d0e; font-size: .9rem; }
+.theme-nuit .table-titre { color: #e9eefc; }
+.theme-nuit .table-tour { color: #b8c2dc; }
 .siege {
   position: absolute; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: .15rem;
   width: 112px; padding: .45rem .3rem; border-radius: var(--rayon);
-  background: var(--surface); border: 2px solid var(--bord); color: var(--texte); font: inherit; text-align: center;
+  background: linear-gradient(180deg, #2e2016, #21160e); border: 2px solid var(--bord);
+  color: var(--texte); font: inherit; text-align: center;
   transition: border-color .15s, box-shadow .15s, opacity .2s;
 }
 button.siege { cursor: pointer; }
 button.siege:hover { border-color: var(--accent); }
 .siege-nom { font-weight: 600; font-size: .9rem; }
 .siege-carte { font-size: .72rem; color: var(--texte-doux); display: inline-flex; align-items: center; gap: .2rem; }
+.siege-carte .visuel { border-width: 1px; }
 .siege-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: .15rem; }
-.tag { font-size: .62rem; padding: .05rem .3rem; border-radius: 999px; background: var(--surface-2); white-space: nowrap; }
-.tag-mordu, .tag-empoisonne { background: #5a1f22; }
-.tag-protege { background: #1f3f5a; }
-.tag-amoureux { background: #5a1f4a; }
-.siege-actif { border-color: var(--accent); box-shadow: 0 0 0 4px #e0b04f33; }
-.siege-cible { border-style: dashed; border-color: #8a86c9; }
-.siege-selection { border-color: var(--accent); border-style: solid; background: #3a3220; }
+.tag { font-size: .62rem; padding: .05rem .3rem; border-radius: 3px; background: var(--surface-2); white-space: nowrap; }
+.tag-mordu, .tag-empoisonne { background: #5a1f17; }
+.tag-protege { background: #1b4a42; }
+.tag-amoureux { background: #5a1f3e; }
+.siege-actif { border-color: var(--accent); box-shadow: 0 0 0 4px #e2a93b33, 0 0 18px #e2a93b55; }
+.siege-cible { border-style: dashed; border-color: var(--jade); }
+.siege-selection { border-color: var(--accent); border-style: solid; background: #4a3214; }
 .siege-mort { opacity: .38; filter: grayscale(1); }
 
 /* ---------- Partie ---------- */
@@ -136,12 +211,12 @@ button.siege:hover { border-color: var(--accent); }
 .decision-urgente { border-left: 3px solid var(--danger); padding-left: .75rem; }
 .rapport { padding-left: 1.1rem; margin: .4rem 0; }
 .rapport li { margin: .25rem 0; }
-.info-publique { background: var(--surface-2); border-radius: 8px; padding: .5rem .7rem; }
+.info-publique { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .5rem .7rem; }
 .minuteur { text-align: center; margin: .5rem 0; }
-.minuteur-temps { font-size: 2.6rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+.minuteur-temps { font-family: var(--police-titres); font-size: 2.8rem; font-variant-numeric: tabular-nums; font-weight: 400; color: var(--accent); }
 .minuteur .actions { justify-content: center; }
 .minuteur-fini .minuteur-temps { color: var(--danger); }
-.fin h2 { font-size: 1.4rem; }
+.fin h2 { font-size: 1.5rem; }
 
 .journal { margin-top: 1.2rem; border-top: 1px solid var(--bord); padding-top: .8rem; font-size: .82rem; }
 .journal summary { cursor: pointer; color: var(--texte-doux); }
@@ -149,28 +224,31 @@ button.siege:hover { border-color: var(--accent); }
 .entree { color: var(--texte-doux); }
 .entree-phase { color: var(--accent); margin-top: .3rem; }
 .entree-recu { color: var(--texte); }
-.entree-bloque, .entree-consomme { color: #8fc9e8; }
-.entree-transforme, .entree-redirige { color: #d7a8f0; }
-.entree-info { color: #f0d08c; }
-
-.theme-jour .table-plateau { background: radial-gradient(circle at 40% 35%, #7a5a35, #4c3720 70%); }
+.entree-bloque, .entree-consomme { color: #7fd1bf; }
+.entree-transforme, .entree-redirige { color: #e0a8d0; }
+.entree-info { color: #f0cf8a; }
 
 /* ---------- Modale ---------- */
 /* padding 0 sur le <dialog> : le contenu remplit toute la boîte, donc un clic sur le dialog lui-même
    ne peut venir que du fond (voir Modale.tsx). */
 .modale {
-  padding: 0; border: 1px solid var(--bord); border-radius: var(--rayon);
-  background: var(--surface); color: var(--texte);
+  padding: 0; border: 2px solid var(--accent-sombre); border-radius: var(--rayon);
+  background: linear-gradient(180deg, #2b1d14, #1f150e); color: var(--texte);
   width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+  box-shadow: inset 0 0 0 4px #1a110b, inset 0 0 0 5px #8a5a1766, 0 20px 60px #000c;
 }
-.modale::backdrop { background: #000a; }
-.modale-contenu { position: relative; padding: 1.25rem; }
+.modale::backdrop { background: #0b0704cc; }
+.modale-contenu { position: relative; padding: 1.6rem 1.25rem 1.25rem; }
+/* La frise en haut de la modale. */
+.modale-contenu::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--frise); }
 .modale-fermer {
-  position: absolute; top: .5rem; right: .6rem; background: none; border: 0; color: var(--texte-doux);
-  font-size: 1.6rem; line-height: 1; cursor: pointer; padding: .2rem .45rem; border-radius: 8px;
+  position: absolute; top: .9rem; right: .6rem; background: none; border: 0; color: var(--texte-doux);
+  font-size: 1.6rem; line-height: 1; cursor: pointer; padding: .2rem .45rem; border-radius: 4px;
 }
 .modale-fermer:hover { color: var(--texte); background: var(--surface-2); }
+.modale h2 { text-transform: none; letter-spacing: .02em; font-size: 1.35rem; }
 .fiche-entete { display: flex; gap: 1rem; align-items: center; margin-bottom: .6rem; padding-right: 2rem; }
+.fiche-entete .visuel { border-width: 3px; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-sombre), 0 0 24px #e2a93b44; }
 .fiche-resume { color: var(--texte-doux); font-style: italic; }
 
 /* ---------- Explications ---------- */
@@ -178,11 +256,11 @@ button.siege:hover { border-color: var(--accent); }
 .titre-section h2 { margin: 0 0 0 .5rem; }
 .filtre { width: auto; max-width: 220px; }
 .regles { max-width: 760px; }
-.regles ul, .regles ol { padding-left: 1.2rem; line-height: 1.5; }
+.regles ul, .regles ol { padding-left: 1.2rem; line-height: 1.55; }
+.regles em { color: var(--accent); font-style: normal; font-family: var(--police-titres); }
 .grille-pastilles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .6rem; margin: .5rem 0 1.2rem; }
 .pastille {
   display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .7rem .4rem;
-  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
   color: var(--texte); font: inherit; cursor: pointer; text-align: center;
 }
 .pastille:hover, .ligne-cliquable:hover, .cas:hover { border-color: var(--accent); }
@@ -190,13 +268,11 @@ button.siege:hover { border-color: var(--accent); }
 .liste-evenements { display: grid; gap: .4rem; margin-top: .6rem; }
 .ligne-cliquable {
   display: flex; align-items: center; gap: .7rem; padding: .5rem .7rem; text-align: left;
-  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
   color: var(--texte); font: inherit; cursor: pointer;
 }
 .grille-cas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .7rem; margin-top: .6rem; }
 .cas {
   display: flex; flex-direction: column; gap: .3rem; align-items: flex-start; padding: .8rem; text-align: left;
-  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
   color: var(--texte); font: inherit; cursor: pointer;
 }
 .cas h3 { margin: 0; }
@@ -205,6 +281,7 @@ button.siege:hover { border-color: var(--accent); }
 .table-cas .siege { width: 96px; padding: .3rem .2rem; }
 .etapes { padding-left: 1.2rem; }
 .etapes li { margin-bottom: .6rem; }
+.etapes li::marker { color: var(--accent); font-family: var(--police-titres); font-weight: 400; }
 .etapes p { margin: .15rem 0; }
 
 /* ---------- Mobile ---------- */
@@ -212,6 +289,7 @@ button.siege:hover { border-color: var(--accent); }
   .preparation, .partie { grid-template-columns: 1fr; }
   .partie .panneau { order: -1; }
   .page { padding: 1rem; }
+  .barre h1 { font-size: 1.2rem; }
   .siege { width: 84px; padding: .3rem .15rem; }
   /* ">" : seulement l'avatar, enfant DIRECT du siège ; pas l'image du rôle, rangée dans .siege-carte. */
   .siege > .visuel:first-child { width: 32px !important; height: 32px !important; }

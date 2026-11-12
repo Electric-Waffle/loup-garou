@@ -24,7 +24,7 @@ const ancien: Role = {
   titre: "Ancien",
   image: "👴",
   camp: "village",
-  description: "Il survit à la première attaque des loups. S'il est éliminé par le vote du village, plus personne, à part les loups, ne peut utiliser son pouvoir jusqu'à la fin de la partie.",
+  description: "Le doyen du village, gardien des cordelettes à nœuds où l'on compte les récoltes. Il survit à la première attaque des loups. S'il est éliminé par le vote du village, plus personne, à part les loups, ne peut utiliser son pouvoir jusqu'à la fin de la partie.",
   explication: [
     "Il a deux vies face aux loups : la première morsure qui devrait le tuer lui fait seulement perdre une vie.",
     "Les autres morts (poison, vote, chagrin, Chasseur) le tuent du premier coup.",

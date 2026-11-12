@@ -25,7 +25,7 @@ const sourcier: Role = {
   titre: "Sourcier",
   image: "🪄",
   camp: "village",
-  description: "Une nuit sur deux, il teste un joueur. La nuit suivante, si ce joueur est encore en vie, il apprend à combien de places se trouve le non-villageois (loup, Fou, Skinwalker…) le plus proche de lui.",
+  description: "Un chercheur de sources, guidé par sa baguette. Une nuit sur deux, il teste un joueur. La nuit suivante, si ce joueur est encore en vie, il apprend à combien de places se trouve le non-villageois (loup, Fou, Skinwalker…) le plus proche de lui.",
   explication: [
     "Les nuits impaires (rang 82), il choisit un joueur à tester.",
     "La nuit suivante, si ce joueur est encore en vie, le meneur lui dit à combien de places se trouve le non-villageois vivant le plus proche (loup, Fou, Skinwalker…).",

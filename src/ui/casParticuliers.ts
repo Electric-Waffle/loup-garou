@@ -296,8 +296,8 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
     ]
   },
   {
-    titre: "Le Loup salamandre et l'Ultimatum",
-    contexte: "Jour d'Ultimatum. Le village vote contre un joueur ignifuge qui a de l'or.",
+    titre: "Le Loup salamandre et le Jugement d'Inti",
+    contexte: "Jour de Jugement d'Inti. Le village vote contre un joueur ignifuge qui a de l'or.",
     roles: ["loup-salamandre", "marchand"],
     table: [
       { role: "marchand", tags: ["ignifuge", "or"] },
@@ -308,7 +308,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
     etapes: [
       { quoi: "Premier vote : il paie avec son or, plaide seul, et le village revote.", pourquoi: "L'or passe avant la salamandre : il rachète d'abord le vote." },
       { quoi: "Vote final : il entre dans les flammes et en ressort indemne.", pourquoi: "La mort par le vote d'un joueur ignifuge est bloquée, et le village l'apprend." },
-      { quoi: "Le maire meurt de l'Ultimatum.", pourquoi: "Un vote bloqué compte comme « personne n'est éliminé » : aucun loup n'est tombé." }
+      { quoi: "Le maire meurt du Jugement d'Inti.", pourquoi: "Un vote bloqué compte comme « personne n'est éliminé » : aucun loup n'est tombé." }
     ]
   },
   {
@@ -513,8 +513,8 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
     ]
   },
   {
-    titre: "Le Hurleur sous le Clair de lune",
-    contexte: "Le maire éclaire le Hurleur avec le Clair de lune. La nuit, la Voyante le sonde.",
+    titre: "Le Hurleur sous la lumière de Mama Killa",
+    contexte: "Le maire fait éclairer le Hurleur par Mama Killa. La nuit, la Voyante le sonde.",
     roles: ["hurleur", "voyante"],
     table: [
       { role: "hurleur", tags: ["eclaire"] },
@@ -523,7 +523,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { role: "villageois", tags: ["maire"] }
     ],
     etapes: [
-      { quoi: "La Voyante voit sa carte : Hurleur.", pourquoi: "Le Clair de lune impose sa cible : elle ne peut voir que lui." },
+      { quoi: "La Voyante voit sa carte : Hurleur.", pourquoi: "La lumière de Mama Killa impose sa cible : elle ne peut voir que lui." },
       { quoi: "Il hurle : au rapport de l'aube, le meneur annonce que le Hurleur a été visé par la Voyante.", pourquoi: "Toute carte qui le désigne la nuit le fait hurler, même sans lui donner de tag." },
       { quoi: "Son nom n'est jamais annoncé, même si tout le monde sait qui était éclairé.", pourquoi: "Le Hurleur retire son nom de l'annonce : c'est au village de faire le lien." }
     ]

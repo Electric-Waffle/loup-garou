@@ -24,7 +24,7 @@ const reunionAmoureux: Role = {
   image: "💑",
   // Jamais lu : aucun joueur n'a cette carte, victoire.ts ne la compte donc jamais.
   camp: "village",
-  description: "Chaque nuit où au moins deux amoureux sont en vie, ils se réveillent ensemble pour se reconnaître et comploter.",
+  description: "Chaque nuit où au moins deux amoureux sont en vie, ils se retrouvent sous la Lune pour se reconnaître et comploter.",
   priorite: 60,
   appelNuit: true,
 

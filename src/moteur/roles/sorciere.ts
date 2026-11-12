@@ -6,14 +6,14 @@ const sorciere: Role = {
   titre: "Sorcière",
   image: "🧪",
   camp: "village",
-  description: "Une potion de vie et une potion de mort, chacune utilisable une fois.",
+  description: "Une guérisseuse qui connaît toutes les plantes de la forêt. Une potion de vie et une potion de mort, chacune utilisable une fois.",
   explication: [
     "Elle a deux potions pour toute la partie : une potion de vie et une potion de mort.",
     "Chaque nuit, elle joue la dernière (rang 130) : le meneur lui montre qui a été mordu.",
     "Potion de vie : elle soigne un joueur mordu, qui ne mourra pas à l'aube. Elle ne voit ni un joueur déjà condamné (Rat qui a mordu), ni une victime dont la morsure a été bloquée.",
     "Potion de mort : elle empoisonne n'importe quel autre joueur, qui meurt à l'aube.",
     "Une seule action par nuit : soigner, empoisonner, ou ne rien faire.",
-    "L'événement Marché noir lui rend ses deux potions."
+    "L'événement Caravane de lamas lui rend ses deux potions."
   ],
   priorite: 130,
   appelNuit: true,

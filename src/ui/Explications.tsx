@@ -168,8 +168,13 @@ function Regles() {
   return (
     <div className="regles">
       <p>
-        Un village est infesté de loups-garous, cachés parmi les villageois. Chaque joueur reçoit une carte secrète :
-        elle dit son camp et son pouvoir. Le meneur, qui utilise cette application, connaît toutes les cartes et guide la partie.
+        Au temps de l'Empire inca, un village des Andes s'endort au pied des montagnes. Mais quand Inti, le Soleil,
+        disparaît, des loups-garous sortent de l'ombre : ils se cachent parmi les villageois et dévorent l'un d'eux chaque nuit.
+        <em> Paqari</em>, c'est l'aube en quechua, la langue des Incas : le moment où le village découvre qui la nuit a emporté.
+      </p>
+      <p>
+        Chaque joueur reçoit une carte secrète : elle dit son camp et son pouvoir. Le meneur, qui utilise cette application,
+        connaît toutes les cartes et guide la partie.
       </p>
       <h3>Les camps</h3>
       <ul>
@@ -179,13 +184,13 @@ function Regles() {
       </ul>
       <h3>La nuit</h3>
       <p>
-        Tout le monde ferme les yeux. Le meneur appelle les cartes une par une, dans l'ordre de leur priorité :
+        Mama Killa, la Lune, se lève et tout le monde ferme les yeux. Le meneur appelle les cartes une par une, dans l'ordre de leur priorité :
         chacune ouvre les yeux, agit en silence en désignant un joueur, puis se rendort.
         Les loups se réveillent ensemble et choisissent une victime à dévorer.
       </p>
       <h3>L'aube</h3>
       <p>
-        Le village se réveille. Le meneur annonce qui est mort cette nuit, et révèle sa carte.
+        Inti se lève et le village se réveille. Le meneur annonce qui est mort cette nuit, et révèle sa carte.
         Un joueur mort ne parle plus et ne vote plus jusqu'à la fin de la partie.
       </p>
       <h3>Le jour</h3>

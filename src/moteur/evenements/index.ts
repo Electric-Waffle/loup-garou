@@ -10,7 +10,6 @@ import coupDouble from "./coup-double";
 import marcheNoir from "./marche-noir";
 import murmures from "./murmures";
 import passation from "./passation";
-import rumeur from "./rumeur";
 import { sablier, sablierSuite } from "./sablier";
 import saufConduit from "./sauf-conduit";
 import soleil from "./soleil";
@@ -30,7 +29,6 @@ import urgence from "./urgence";
 export const LISTE_EVENEMENTS: Evenement[] = [
   // Rien ou presque
   soleil,
-  rumeur,
   // Animations : le meneur lit la règle
   baillon,
   tenebres,

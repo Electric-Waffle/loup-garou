@@ -21,7 +21,7 @@ const pretreImpur: Role = {
   image: "🩸",
   camp: "loups",
   hybride: true,
-  description: "Un prêtre qui sert les loups sans qu'ils le sachent. Aucun pouvoir de son vivant ; mort, il peut chuchoter au maire pour le tromper. Il gagne avec les loups.",
+  description: "Un prêtre qui a trahi Inti pour servir les loups, sans qu'ils le sachent. Aucun pouvoir de son vivant ; mort, il peut chuchoter au maire pour le tromper. Il gagne avec les loups.",
   explication: [
     "Un prêtre au service des loups : distribué directement, ou atteint par un Prêtre pur qui a choisi l'impureté.",
     "Il ne se réveille pas avec la meute : les loups ignorent qu'il est des leurs.",

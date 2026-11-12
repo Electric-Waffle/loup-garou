@@ -6,11 +6,11 @@ import type { Evenement } from "../types";
  */
 const batonDeParole: Evenement = {
   alias: "baton-de-parole",
-  titre: "Bâton de parole",
+  titre: "Bâton de Viracocha",
   image: "🪄",
-  description: "Seul celui qui tient le bâton de parole a le droit de parler.",
+  description: "Seul celui qui tient le bâton de Viracocha, le dieu créateur, a le droit de parler.",
   explication: [
-    "Un objet sert de bâton de parole : seul celui qui le tient a le droit de parler.",
+    "Un objet sert de bâton de Viracocha : seul celui qui le tient a le droit de parler.",
     "Le bâton passe de main en main pendant le débat.",
     "C'est une animation : le meneur fait respecter la règle."
   ]

@@ -17,7 +17,7 @@ const arlequin: Role = {
   titre: "Arlequin",
   image: "🎭",
   camp: "village",
-  description: "La 1re nuit, puis une nuit sur deux, il lie deux joueurs : ils ne peuvent agir que sur eux-mêmes ou sur l'autre.",
+  description: "Un danseur masqué des fêtes du Soleil. La 1re nuit, puis une nuit sur deux, il lie deux joueurs : ils ne peuvent agir que sur eux-mêmes ou sur l'autre.",
   explication: [
     "La première nuit, puis une nuit sur deux (rang 20), il lie deux joueurs jusqu'à l'aube.",
     "Un joueur lié qui joue seul sa carte ne peut viser que lui-même ou son partenaire.",

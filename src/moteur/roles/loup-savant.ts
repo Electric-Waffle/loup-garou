@@ -14,7 +14,7 @@ const loupSavant: Role = {
   titre: "Loup savant",
   image: "📚",
   camp: "loups",
-  description: "Un loup qui, la première nuit, découvre 3 cartes activées que personne n'a reçues.",
+  description: "Un loup qui sait lire les cordelettes à nœuds des archivistes. La première nuit, il découvre 3 cartes activées que personne n'a reçues.",
   explication: [
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "La première nuit (rang 110), le meneur lui montre 3 cartes activées dans les options mais que personne n'a reçues.",

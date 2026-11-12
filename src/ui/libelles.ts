@@ -120,8 +120,8 @@ export const TAGS: Record<string, string> = {
   ignifuge: "🦎 ignifuge",
   catatonique: "🫥 catatonique",
   impuissant: "🚫 sans pouvoir",
-  sauf_conduit: "📜 sauf-conduit",
-  soupcon: "🧐 soupçonné",
+  sauf_conduit: "🛕 asile",
+  soupcon: "🦅 soupçonné",
   eclaire: "🌕 éclairé",
   apaisee: "🕊️ démasquée",
   mort: "⚰️ mort"

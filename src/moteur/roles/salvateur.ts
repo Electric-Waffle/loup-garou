@@ -7,7 +7,7 @@ const salvateur: Role = {
   titre: "Salvateur",
   image: "🛡️",
   camp: "village",
-  description: "Chaque nuit, il protège un joueur des loups. Jamais deux nuits de suite le même.",
+  description: "Un guerrier gardien du village, bouclier de plumes au bras. Chaque nuit, il protège un joueur des loups. Jamais deux nuits de suite le même.",
   explication: [
     "Chaque nuit (rang 100), il choisit un joueur à protéger, lui-même compris.",
     "Le joueur protégé ne peut pas être mordu cette nuit : la morsure est bloquée, et la Sorcière ne voit aucune victime.",

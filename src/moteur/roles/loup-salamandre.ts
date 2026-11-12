@@ -12,7 +12,7 @@ import type { Role } from "../types";
  *      l'or : un joueur qui a de l'or rachète d'abord son vote (plaidoirie). C'est seulement au vote
  *      final, sur le bûcher, que la salamandre agit.
  *   3. partie.voter() l'annonce au village, et le jour compte comme « personne n'est éliminé »
- *      pour l'événement (l'Ultimatum tue alors le maire).
+ *      pour l'événement (le Jugement d'Inti tue alors le maire).
  *   4. Il vote avec les loups (rejoint: ["loup"]).
  *
  * POURQUOI la memoire pour « pas deux fois de suite » et pas un tag comme "protege_hier" : la règle
@@ -26,13 +26,13 @@ const loupSalamandre: Role = {
   titre: "Loup salamandre",
   image: "🦎",
   camp: "loups",
-  description: "Un loup qui, chaque nuit, rend un joueur ignifuge : si le village le brûle le lendemain, il ressort indemne des flammes, et tout le monde sait qu'un loup l'a protégé. Jamais deux nuits de suite le même.",
+  description: "Un loup qui marche dans le feu sacré. Chaque nuit, il rend un joueur ignifuge : si le village le brûle le lendemain, il ressort indemne des flammes, et tout le monde sait qu'un loup l'a protégé. Jamais deux nuits de suite le même.",
   explication: [
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "Chaque nuit (rang 108), il rend un joueur ignifuge, lui-même compris, jamais le même deux nuits de suite.",
     "Si le village élimine ce joueur le lendemain, il entre dans les flammes et en ressort indemne : le village apprend qu'un loup l'a protégé.",
     "Le doute est total : est-il protégé parce qu'il est loup, ou pour le faire croire ?",
-    "Un joueur qui a de l'or le dépense d'abord : la salamandre n'agit qu'au vote final. Ce jour-là compte comme « personne n'est éliminé » (l'Ultimatum tue alors le maire)."
+    "Un joueur qui a de l'or le dépense d'abord : la salamandre n'agit qu'au vote final. Ce jour-là compte comme « personne n'est éliminé » (le Jugement d'Inti tue alors le maire)."
   ],
   priorite: 108,
   appelNuit: true,

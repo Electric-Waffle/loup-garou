@@ -11,11 +11,11 @@ import type { Evenement } from "../types";
  */
 const marcheNoir: Evenement = {
   alias: "marche-noir",
-  titre: "Marché noir",
-  image: "🛒",
-  description: "Un colporteur passe au village : la Sorcière et le Loup hypnotiseur retrouvent toutes leurs potions et médaillons.",
+  titre: "Caravane de lamas",
+  image: "🦙",
+  description: "Une caravane de lamas traverse la vallée : la Sorcière et le Loup hypnotiseur retrouvent toutes leurs potions et médaillons.",
   explication: [
-    "Un colporteur passe : la Sorcière retrouve ses deux potions, et le Loup hypnotiseur ses deux médaillons.",
+    "Une caravane de lamas apporte plantes et obsidienne : la Sorcière retrouve ses deux potions, et le Loup hypnotiseur ses deux médaillons.",
     "Les potions et médaillons ne se cumulent pas : on revient simplement au plein.",
     "Les autres joueurs ne gagnent rien."
   ],

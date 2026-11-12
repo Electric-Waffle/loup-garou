@@ -6,12 +6,12 @@ import type { Evenement } from "../types";
  */
 const carnaval: Evenement = {
   alias: "carnaval",
-  titre: "Carnaval",
+  titre: "Inti Raymi",
   image: "🎭",
-  description: "Interdit d'appeler quelqu'un par son nom : uniquement par un surnom de personnage de film d'animation.",
+  description: "C'est la grande fête du Soleil : interdit d'appeler quelqu'un par son nom, uniquement par un surnom de personnage de film d'animation.",
   explication: [
-    "Toute la journée, interdit d'appeler un joueur par son nom.",
-    "On ne le désigne que par un surnom de personnage de film d'animation.",
+    "L'Inti Raymi est la grande fête du Soleil : le village se déguise.",
+    "Toute la journée, interdit d'appeler un joueur par son nom : on ne le désigne que par un surnom de personnage de film d'animation.",
     "C'est une animation : le meneur fait respecter la règle."
   ]
 };

@@ -21,7 +21,7 @@ const ratGarou: Role = {
   image: "🐾",
   camp: "loups",
   hybride: true,
-  description: "Il connaît les loups mais ne vote pas avec eux. S'il est le dernier loup, il meurt. Éliminé par le village, il contamine le maire.",
+  description: "Un rat passé du côté de la meute. Il connaît les loups mais ne vote pas avec eux. S'il est le dernier loup, il meurt. Éliminé par le village, il contamine le maire.",
   explication: [
     "Un Rat qui a rejoint la meute, ou une carte distribuée telle quelle.",
     "Il se réveille avec les loups et les connaît, mais il ne vote pas : le meneur ignore son avis.",

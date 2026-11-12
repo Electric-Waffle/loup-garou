@@ -48,7 +48,7 @@ import { Visuel } from "./Visuel";
 /** Explication affichée dans le rapport pour chaque cause de mort (meta.cause du tag "mort"). */
 const CAUSES: Record<string, string> = {
   horreur: "a vu la carte de l'aberration",
-  ultimatum: "victime de l'ultimatum",
+  ultimatum: "frappé par le jugement d'Inti",
   mordu: "dévoré par les loups",
   poison: "empoisonné",
   chagrin: "mort de chagrin",
@@ -434,7 +434,7 @@ export function PartieVue({
                   option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
               {!courante.urgente && (
                 <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
-                  {courante.evenement ? "Passer (Soleil)" : "Passer"}
+                  {courante.evenement ? "Passer (Inti rayonne)" : "Passer"}
                 </button>
               )}
               {courante.evenement && (
@@ -543,7 +543,7 @@ function EtapeDeJour({
     case "evenement": {
       const evenement = partie.evenement;
       const applique = partie.evenementApplique;
-      // Les infos publiques de l'événement (ex. la rumeur), affichées l'une sous l'autre.
+      // Les infos publiques de l'événement (aucun événement actuel n'en donne à la validation, mais un futur événement le pourra), affichées l'une sous l'autre.
       // Celles de la nuit ont déjà été lues au rapport de l'aube.
       const infosPubliques = partie.infosPubliques(["evenement"]);
       return (
@@ -706,7 +706,7 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
       {/* Coup double : le meneur peut rouvrir le vote (le débat se fait de tête). */}
       {!estLAube && partie.peutRevoter && (
         <button className="bouton bouton-large" onClick={() => agir(() => partie.revoter())}>
-          Voter quelqu'un d'autre (Coup double)
+          Voter quelqu'un d'autre (Chasse du puma)
         </button>
       )}
       <button className="bouton bouton-principal bouton-large" onClick={() => agir(passerALaSuite)}>

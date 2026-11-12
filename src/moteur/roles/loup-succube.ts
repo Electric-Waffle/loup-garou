@@ -27,7 +27,7 @@ const loupSuccube: Role = {
   titre: "Loup succube",
   image: "💋",
   camp: "loups",
-  description: "Un loup qui se lie à un compagnon. S'il meurt, son compagnon meurt aussi ; si le compagnon meurt, il en choisit un autre la nuit suivante.",
+  description: "Un loup qui envoûte un compagnon. S'il meurt, son compagnon meurt aussi ; si le compagnon meurt, il en choisit un autre la nuit suivante.",
   explication: [
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "À son tour (rang 105), s'il n'a pas de compagnon vivant, il s'en choisit un.",

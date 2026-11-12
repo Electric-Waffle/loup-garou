@@ -20,7 +20,7 @@ const stratege: Role = {
   titre: "Stratège",
   image: "♟️",
   camp: "village",
-  description: "Chaque nuit à partir de la 2e, le meneur lui dit si au moins un loup a voté pour le même joueur que lui au vote du jour.",
+  description: "Un chef de guerre qui lit les intentions de chacun. Chaque nuit à partir de la 2e, le meneur lui dit si au moins un loup a voté pour le même joueur que lui au vote du jour.",
   explication: [
     "Pendant chaque vote, le meneur regarde pour qui vote le Stratège, et si un loup vote pour le même joueur.",
     "Juste après le vote, le meneur répond à la question « un loup a-t-il voté comme lui ? ».",

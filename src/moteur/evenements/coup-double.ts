@@ -11,21 +11,21 @@ import type { Evenement } from "../types";
  */
 const coupDouble: Evenement = {
   alias: "coup-double",
-  titre: "Coup double",
-  image: "🎯",
-  description: "Si le village élimine un loup aujourd'hui, il peut voter une seconde fois.",
+  titre: "Chasse du puma",
+  image: "🐆",
+  description: "Si le village élimine un loup aujourd'hui, le puma reprend la chasse : le village peut voter une seconde fois.",
   explication: [
-    "Si le village élimine un loup aujourd'hui, il peut voter une seconde fois.",
+    "Si le village élimine un loup aujourd'hui, le puma reprend la chasse : le village peut voter une seconde fois.",
     "Le second vote se fait sans nouveau débat.",
     "Un seul second vote par jour, même si le deuxième éliminé est aussi un loup."
   ],
-  rappelVote: "Coup double : si l'éliminé est un loup, le village pourra voter une seconde fois.",
+  rappelVote: "Chasse du puma : si l'éliminé est un loup, le village pourra voter une seconde fois.",
 
   apresVote(partie, elimine) {
     if (!elimine || partie.roleDe(elimine).camp !== "loups") return;
     return {
       revoter: true,
-      infos: [{ pour: "tous", texte: `${elimine.nom} était un loup : coup double, le village peut voter une seconde fois.` }]
+      infos: [{ pour: "tous", texte: `${elimine.nom} était un loup : le puma reprend la chasse, le village peut voter une seconde fois.` }]
     };
   }
 };

@@ -179,7 +179,7 @@ export interface Evenement {
   /** Explication détaillée, une ligne par paragraphe : affichée dans la fiche de la page Explications. */
   explication?: string[];
 
-  /** Effet sans choix, à la validation (ex. la Rumeur). Comme agir() : renvoie ce qu'il donne. */
+  /** Effet sans choix, à la validation (ex. la Caravane de lamas). Comme agir() : renvoie ce qu'il donne. */
   appliquer?(partie: Partie): ResultatAction | void;
 
   /** Le maire désigne : mêmes contrats que pour un rôle, avec le maire à la place de moi. */

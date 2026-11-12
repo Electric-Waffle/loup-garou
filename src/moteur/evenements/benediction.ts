@@ -11,18 +11,18 @@ import type { Evenement } from "../types";
  */
 const benediction: Evenement = {
   alias: "benediction",
-  titre: "Bénédiction",
+  titre: "Bénédiction de Pachamama",
   image: "✨",
-  description: "Le maire désigne une personne : elle a la protection du Salvateur la nuit venue.",
+  description: "Le maire désigne une personne : Pachamama, la Terre Mère, la protège la nuit venue, comme le Salvateur.",
   explication: [
     "Le maire désigne une personne, jamais lui-même.",
-    "La nuit suivante, elle a la protection complète du Salvateur : la morsure est bloquée, et les loups qui agissent seuls (Loup amoureux, Loup voyante…) échouent sur elle.",
+    "La nuit suivante, Pachamama lui donne la protection complète du Salvateur : la morsure est bloquée, et les loups qui agissent seuls (Loup amoureux, Loup voyante…) échouent sur elle.",
     "Elle peut protéger quelqu'un que le Salvateur a protégé la veille.",
     "Elle compte comme une vraie protection : le Salvateur ne pourra pas protéger cette personne la nuit d'après."
   ],
 
   decision: (_partie, maire) => ({
-    message: `${maire.nom}, le maire, désigne la personne qui sera protégée cette nuit, comme par le Salvateur.`,
+    message: `${maire.nom}, le maire, désigne la personne que Pachamama protégera cette nuit, comme le Salvateur.`,
     choix: [{ id: "designer", label: "Désigner", cible: "un_autre" }]
   }),
 

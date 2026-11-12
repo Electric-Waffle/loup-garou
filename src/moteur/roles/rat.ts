@@ -22,7 +22,7 @@ const rat: Role = {
   image: "🐀",
   camp: "village",
   hybride: true,
-  description: "Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
+  description: "Un rat des greniers à maïs. Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
   explication: [
     "Un villageois qui ne se laisse pas dévorer sans réagir.",
     "Mordu par les loups, il choisit en silence, juste après leur tour : mordre un loup, ou rejoindre la meute.",

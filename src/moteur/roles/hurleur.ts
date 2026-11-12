@@ -23,7 +23,7 @@ const hurleur: Role = {
   titre: "Hurleur",
   image: "📢",
   camp: "village",
-  description: "Si une carte s'en prend à lui pendant la nuit (morsure, regard, protection…), il hurle : tout le village l'apprend à l'aube.",
+  description: "Un veilleur au cri perçant comme celui du condor. Si une carte s'en prend à lui pendant la nuit (morsure, regard, protection…), il hurle : tout le village l'apprend à l'aube.",
   explication: [
     "Un villageois qui hurle dès qu'une carte s'en prend à lui pendant la nuit.",
     "Morsure, regard de la Voyante, protection du Salvateur, potion, enchantement… toute carte qui le désigne déclenche un hurlement.",

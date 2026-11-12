@@ -131,7 +131,7 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
   4. plus de loup → le village gagne ;
   5. toutes les maisons des villageois vivants sont renforcées → le village gagne ;
   6. au moins autant de loups que de non-loups → les loups gagnent, ou **le Fou** s'il est vivant.
-  - **Skinwalker vivant** : la victoire du village (y compris les maisons renforcées) devient « Le skinwalker ». Il ne compte pas comme un loup ;
+  - **Skinwalker vivant** : la victoire du village (y compris les maisons renforcées) devient « Le skinwalker (il vole la victoire du village…) », avec la raison quand il y en a une (maisons renforcées). Il ne compte pas comme un loup ;
   - **Cartes qui en deviennent une autre** (tag `devient`) : aucun cas particulier. Un Prêtre pur devenu Prêtre impur, ou un Beau Parleur devenu Faux Parleur, a changé de CARTE, donc de camp : il compte comme un loup et gagne avec eux. Si le Fou vole la victoire, ils perdent aussi.
 - **`tours.ts`** (`peutAgir`), **`distribution.ts`** (`composer(nbJoueurs, nbLoups, actifs)`, `composerLesLoups`, `melanger`), **`evenements/`** : un fichier par événement, `index.ts` est le registre (`LISTE_EVENEMENTS` pour le tirage, plus les événements imposés comme la suite du Sablier). Champs d'un `Evenement` : `appliquer?` (effet sans choix), `decision?` + `agir?` (le maire désigne), `minuteur?` (minutes, `null` = pas de minuteur), `reporteLeTempsRestant?`, `force?`, `rappelVote?` (affiché à l'écran du vote), `apresVote?(partie, elimine?)` (appelé par `voter()` une fois le vote définitif, jamais pendant une plaidoirie ; peut renvoyer `revoter: true`, un seul second vote par jour via `partie.revoter()`). Sans aucun de ces champs, c'est une animation.
 - **`roles/index.ts`** : le **registre** (`LISTE_ROLES`, `ROLES`).
@@ -301,12 +301,14 @@ Tirés après l'élection du maire. Le meneur peut demander « Un autre » ou «
 
 | Genre | Événements |
 | --- | --- |
-| Rien | Soleil (aussi forcé par « Passer »), Rumeur (révèle le camp d'un joueur au hasard) |
-| Animation (aucun champ de jeu) | Bâillon, Ténèbres, Carnaval, Bâton de parole, Murmures d'outre-tombe, Bouche cousue |
-| Minuteur | Sablier (8 min, temps restant reporté au lendemain, suite imposée), Urgence (2 min), Trêve (pas de minuteur) |
-| Le maire désigne | Sauf-conduit (`sauf_conduit`), Soupçon (`soupcon`), Bénédiction (`benediction`), Passation (`maire`), Contagion (`peste_active` : mort à la 3e aube), Clair de lune (`eclaire`) |
-| Sans choix | Marché noir (`recharge` à tous les vivants) |
-| Selon le résultat du vote | Ultimatum (pas de loup éliminé, ou personne : le maire meurt, cause `ultimatum`), Coup double (un loup éliminé : un second vote, une seule fois) |
+| Rien | Inti rayonne (`soleil`, aussi forcé par « Passer »). La Rumeur (camp d'un joueur au hasard) a été retirée : trop puissante. |
+| Animation (aucun champ de jeu) | Colère de Supay (`baillon`), Éclipse (`tenebres`), Inti Raymi (`carnaval`), Bâton de Viracocha (`baton-de-parole`), Voix d'outre-tombe (`murmures`), Masque de jade (`bouche-cousue`) |
+| Minuteur | Course d'Inti (`sablier` : 8 min, temps restant reporté au lendemain, suite imposée), Grondement d'Illapa (`urgence` : 2 min), Paix de Pachamama (`treve` : pas de minuteur) |
+| Le maire désigne | Asile du temple (`sauf-conduit`, tag `sauf_conduit`), Vol du condor (`soupcon`), Bénédiction de Pachamama (`benediction`), Passation (tag `maire`), Souffle de Supay (`contagion`, tag `peste_active` : mort à la 3e aube), Lumière de Mama Killa (`clair-de-lune`, tag `eclaire`) |
+| Sans choix | Caravane de lamas (`marche-noir` : `recharge` à tous les vivants) |
+| Selon le résultat du vote | Jugement d'Inti (`ultimatum` : pas de loup éliminé, ou personne, le maire meurt), Chasse du puma (`coup-double` : un loup éliminé, un second vote, une seule fois) |
+
+> Thème Paqari : les titres et textes affichés sont andins (divinités incas, Mayas pour quelques touches) ; les **alias et noms de fichiers restent ceux d'origine** (`soleil`, `ultimatum`…), et les **noms des cartes ne changent jamais** : c'est le repère des joueurs. Le thème visuel est tout en CSS (`styles.css`), sans image ni police externe, pour rester utilisable hors ligne.
 
 ---
 

@@ -21,7 +21,7 @@ const loupDemon: Role = {
   titre: "Loup-démon",
   image: "😈",
   camp: "loups",
-  description: "Un loup qui, s'il est éliminé par le vote du village, possède un villageois au hasard : celui-ci devient Loup-Garou. Tué autrement, il meurt simplement.",
+  description: "Un loup possédé par Supay, le seigneur du monde d'en bas. S'il est éliminé par le vote du village, il possède un villageois au hasard : celui-ci devient Loup-Garou. Tué autrement, il meurt simplement.",
   explication: [
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "S'il est éliminé par le vote du village, il possède un joueur du camp du village tiré au hasard : celui-ci devient Loup-Garou.",

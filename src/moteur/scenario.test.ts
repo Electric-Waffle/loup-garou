@@ -952,9 +952,17 @@ test("Skinwalker : victime protégée par le Salvateur, rien cette nuit ni la su
 test("Skinwalker : vivant, il vole la victoire du village", () => {
   const p = partieAvec(["loup", "skinwalker", "villageois"]);
   donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
-  assert.equal(verifierVictoire(p), "Le skinwalker");
+  assert.equal(verifierVictoire(p), "Le skinwalker (il vole la victoire du village)");
   donnerTag(p, p.joueur("j1"), "mort", { cause: "vote" });
   assert.equal(verifierVictoire(p), "Le village");
+});
+
+test("Skinwalker : il vole aussi la victoire du Bâtisseur, raison affichée, même Bâtisseur mort", () => {
+  // La partie d'essai : un Stratège à la maison renforcée, un loup et le Skinwalker survivent.
+  const p = partieAvec(["stratege", "loup", "skinwalker", "batisseur"]);
+  donnerTag(p, p.joueur("j0"), "renforce");
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le skinwalker (il vole la victoire du village : toutes les maisons sont renforcées)");
 });
 
 /* ---------- Conquistador ---------- */
@@ -1075,14 +1083,6 @@ test("Événement : « Passer » force Soleil, et le débat attend la validation
   assert.equal(p.phase, "debat");
 });
 
-test("Événement : la Rumeur n'est révélée qu'à la validation", () => {
-  const p = jourAvecMaire();
-  p.ouvrirEvenement("rumeur");
-  assert.deepEqual(p.infosPubliques(["evenement"]), []);
-  p.appliquerEvenement();
-  assert.equal(p.infosPubliques(["evenement"]).length, 1);
-});
-
 test("Sablier : 8 min, le temps restant devient le débat du lendemain, sans autre événement", () => {
   const p = jourAvecMaire();
   p.ouvrirEvenement("sablier");
@@ -1148,7 +1148,7 @@ test("Événement avec choix : le maire désigne, mais jamais lui-même", () => 
 
   const courante = p.decisionCourante();
   assert.equal(courante?.evenement, true);
-  assert.equal(courante?.titre, "Sauf-conduit");
+  assert.equal(courante?.titre, "Asile du temple");
   assert.equal(courante?.moi?.id, "j1");
   const cibles = p.ciblesPossibles("un_autre", courante?.moi, courante?.porteurs).map(j => j.id);
   assert.ok(!cibles.includes("j1"));
@@ -1162,8 +1162,8 @@ test("Sauf-conduit : refusé au vote, même pour le second vote d'une plaidoirie
   const p = jourAvecEvenement(SIMPLE, "sauf-conduit", "j2");
   p.ouvrirDebat();
   p.ouvrirVote();
-  assert.ok(p.rappelsDuVote().some(r => r.includes("J2 a un sauf-conduit")));
-  assert.throws(() => p.voter("j2"), /sauf-conduit/);
+  assert.ok(p.rappelsDuVote().some(r => r.includes("J2 a trouvé asile au temple")));
+  assert.throws(() => p.voter("j2"), /asile au temple/);
   assert.equal(p.phase, "vote"); // rien n'a changé, le meneur peut recliquer
   p.voter("j3");
   assert.equal(p.joueur("j3").vivant, false);
@@ -1323,7 +1323,7 @@ function voteAvecEvenement(alias: string): Partie {
 
 test("Ultimatum : un villageois éliminé, le maire meurt ; un loup éliminé, il vit", () => {
   const p = voteAvecEvenement("ultimatum");
-  assert.ok(p.rappelsDuVote()[0].startsWith("Ultimatum"));
+  assert.ok(p.rappelsDuVote()[0].startsWith("Jugement d'Inti"));
   p.voter("j3");
   assert.deepEqual(p.morts().map(m => [m.joueur.id, m.cause]), [["j3", "vote"], ["j1", "ultimatum"]]);
   assert.ok(p.infosPubliques(["resultat_vote"])[0].includes("J1, le maire"));

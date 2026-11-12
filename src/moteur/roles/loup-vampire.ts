@@ -24,7 +24,7 @@ const loupVampire: Role = {
   titre: "Loup vampire",
   image: "🦇",
   camp: "loups",
-  description: "Un loup qui vote avec la meute. Rien ne peut le tuer, sauf le vote du village.",
+  description: "Un loup qui boit le sang, comme le dieu chauve-souris des Mayas. Il vote avec la meute. Rien ne peut le tuer, sauf le vote du village.",
   explication: [
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "Il est invulnérable : poison, tir du Chasseur, chagrin d'amoureux, peste… rien ne le tue.",
