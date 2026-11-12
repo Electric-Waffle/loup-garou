@@ -28,6 +28,7 @@
 import { useEffect, useReducer, useState } from "react";
 import { Partie, type Apparence, type JoueurInitial } from "../moteur/partie";
 import { Explications } from "./Explications";
+import { Intro } from "./Intro";
 import { Options } from "./Options";
 import { PartieVue } from "./PartieVue";
 import { Preparation } from "./Preparation";
@@ -110,6 +111,8 @@ export function App() {
   const [donnees, setDonnees] = useState<Donnees>(charger);
   const [page, setPage] = useState<Page>("preparation");
   const [partie, setPartie] = useState<Partie | null>(null);
+  // Cinématique à l'ouverture, sauf si le système demande de limiter les animations (accessibilité).
+  const [intro, setIntro] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   // PATTERN : rendu forcé.
   // POURQUOI : l'objet `partie` se modifie LUI-MÊME (this.file.shift(), joueur.tags.push()...).
@@ -166,6 +169,8 @@ export function App() {
   // composant si la condition est vraie, et rien sinon (false n'est pas affiché par React).
   // ATTENTION : avec un NOMBRE, ça ne marche pas pareil : `0 && <X />` affiche "0".
   // Ici, les conditions sont des booléens ou un objet (partie), donc pas de souci.
+  if (intro) return <Intro fin={() => setIntro(false)} />;
+
   return (
     <div className="app">
       <header className="barre">
