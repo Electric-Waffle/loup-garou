@@ -32,7 +32,12 @@ import { Visuel } from "./Visuel";
  * Les cartes qui apparaissent dans au moins un cas, triées par titre : les choix du filtre des cas.
  * CONCEPT : new Set(...) garde chaque alias une seule fois ; flatMap aplatit les listes de chaque cas.
  */
-const ROLES_DES_CAS = [...new Set(CAS_PARTICULIERS.flatMap(cas => cas.roles))]
+/** Affiché dans les règles ET au-dessus du groupe Hybride des cartes : un seul texte à tenir à jour. */
+const TEXTE_HYBRIDES =
+  "Une carte hybride existe en deux versions, une du village et une des loups. Le joueur décide lui-même s'il est bon ou mauvais : " +
+  "le Prêtre et le Beau Parleur la première nuit, le Rat quand les loups le mordent. Une même carte peut donc être de deux camps différents.";
+
+const ROLES_DES_CAS =[...new Set(CAS_PARTICULIERS.flatMap(cas => cas.roles))]
   .sort((a, b) => ROLES[a].titre.localeCompare(ROLES[b].titre));
 
 export function Explications({ donnees }: { donnees: Donnees }) {
@@ -84,6 +89,7 @@ export function Explications({ donnees }: { donnees: Donnees }) {
           return (
             <div key={groupe}>
               <h3>{LIBELLES_GROUPES[groupe]}</h3>
+              {groupe === "hybride" && <p className="aide">{TEXTE_HYBRIDES} Le camp choisi n'est jamais révélé.</p>}
               <div className="grille-pastilles">
                 {roles.map(role => (
                   <PastilleCarte
@@ -194,6 +200,17 @@ function Regles() {
       <p>
         Les pouvoirs laissent des marques sur les joueurs (mordu, protégé, amoureux, maudit…), visibles du meneur sur la table.
         C'est leur combinaison qui crée les cas particuliers expliqués plus bas.
+      </p>
+      <h3>Les cartes hybrides</h3>
+      <p>{TEXTE_HYBRIDES}</p>
+      <p>
+        Le camp choisi n'est jamais révélé : à la mort d'un Prêtre, on annonce « Prêtre », pas « pur » ou « impur ».
+        Même chose pour le Beau Parleur et le Rat.
+      </p>
+      <h3>Les cartes partagées</h3>
+      <p>
+        La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte. À la mort de l'un d'eux, le village
+        apprend seulement qu'un villageois est mort : seuls le joueur et le meneur savent lequel des quatre rôles c'était.
       </p>
     </div>
   );

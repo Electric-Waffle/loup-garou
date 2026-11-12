@@ -374,7 +374,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { quoi: "Tous les maudits sont délivrés : ils retrouvent leur rôle.", pourquoi: "Désigner la Pleureuse lève la malédiction de chacun." },
       { quoi: "La Pleureuse perd son pouvoir.", pourquoi: "Elle est démasquée : sa carte n'offre plus que « Passer »." },
       { quoi: "Le Conciliabule a lieu même après sa mort, et peut la désigner morte.", pourquoi: "Les maudits peuvent désigner n'importe qui, mort ou vivant." },
-      { quoi: "À sa mort, le meneur annonce « une villageoise ».", pourquoi: "Sa carte ne doit pas être reconnue par ceux qu'elle a maudits." }
+      { quoi: "À sa mort, le village apprend seulement qu'une villageoise est morte.", pourquoi: "Elle partage sa carte avec le Fêtard, le Marchand et le Bâtisseur : personne ne sait lequel des quatre est mort." }
     ]
   },
   {
@@ -457,8 +457,9 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { role: "ancien" }
     ],
     etapes: [
+      { quoi: "Son pouvoir ne compte que s'il a été élu sans révéler sa carte. Sinon, le meneur choisit « Laisser le vote » sans rien lui montrer.", pourquoi: "Il doit devenir maire par son éloquence, pas en laissant deviner son rôle : c'est le meneur qui en juge." },
       { quoi: "Avant la mort, le meneur lui montre en secret la carte de l'accusé.", pourquoi: "Son pouvoir suspend chaque vote tant qu'il est maire." },
-      { quoi: "Il laisse la mort se produire, ou relance le vote, une seule fois par partie.", pourquoi: "Sa mémoire retient que la relance est utilisée, même s'il devient Faux Parleur." },
+      { quoi: "Il laisse la mort se produire, ou relance le vote, une seule fois par partie.", pourquoi: "Sa mémoire retient que la relance est utilisée." },
       { quoi: "Après l'élimination de l'Ancien par le vote, le vote tue tout de suite.", pourquoi: "Privé de pouvoir, il n'est plus consulté : rien ne suspend le vote." }
     ]
   },
@@ -476,7 +477,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { quoi: "Sa carte devient Prêtre impur, du camp des loups.", pourquoi: "Le choix « impur » lui donne le tag « devient »." },
       { quoi: "Les loups ne le savent pas : il ne se réveille pas avec eux.", pourquoi: "Le Prêtre impur ne rejoint pas la carte des loups." },
       { quoi: "Il compte comme un loup : le village doit l'éliminer aussi pour gagner.", pourquoi: "La victoire compte les camps, et le sien est celui des loups." },
-      { quoi: "Mort, il peut encore chuchoter au maire pour le tromper.", pourquoi: "Comme le Prêtre pur, il garde les yeux ouverts le jour après sa mort." }
+      { quoi: "Mort, il peut encore chuchoter au maire pour le tromper.", pourquoi: "Comme le Prêtre pur, mort, il garde les yeux ouverts le jour et les ferme la nuit." }
     ]
   },
   {
@@ -591,17 +592,18 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
   },
   {
     titre: "Le Loup hypnotiseur au jour de plaidoirie",
-    contexte: "L'hypnotiseur réduit au silence un joueur, et le Marchand rachète son vote avec l'or.",
+    contexte: "La nuit, l'hypnotiseur réduit un joueur au silence. Le jour, le Marchand rachète son vote avec l'or.",
     roles: ["loup-hypnotiseur", "marchand"],
     table: [
       { role: "loup-hypnotiseur" },
       { role: "villageois", tags: ["silence"] },
       { role: "marchand", tags: ["or"] },
-      { role: "villageois", tags: ["dirige"] }
+      { role: "villageois" }
     ],
     etapes: [
-      { quoi: "Le vote du joueur silencé ne compte pas, au premier vote comme au second.", pourquoi: "Le silence dure jusqu'à l'aube suivante : il couvre tous les votes du jour." },
-      { quoi: "Le joueur dirigé vote comme l'hypnotiseur, sauf si celui-ci est mort.", pourquoi: "Sans hypnotiseur vivant, il n'y a plus personne à suivre." },
+      { quoi: "Le vote du joueur silencé ne compte pas, au premier vote comme au second.", pourquoi: "Le médaillon agit toute la journée qui suit, jusqu'à l'aube suivante : plaidoirie comprise." },
+      { quoi: "Il n'y a jamais un silencé et un dirigé le même jour.", pourquoi: "L'hypnotiseur n'utilise qu'un médaillon par nuit, et chacun ne dure qu'une journée." },
+      { quoi: "Une autre nuit, avec la suggestion, sa cible votera comme lui, sauf s'il est mort.", pourquoi: "Sans hypnotiseur vivant, il n'y a plus personne à suivre." },
       { quoi: "Rien n'est révélé pendant le débat : le meneur le voit seulement à l'écran du vote.", pourquoi: "Le rappel est affiché au vote, jamais avant." }
     ]
   }

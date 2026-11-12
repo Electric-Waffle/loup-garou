@@ -26,7 +26,7 @@ const pleureuse: Role = {
     "Un maudit ne fait plus son rôle, jusqu'à la fin de la partie.",
     "Chaque nuit, les maudits vivants tiennent le Conciliabule (60 secondes) et désignent un joueur, mort ou vivant.",
     "S'ils désignent la Pleureuse, ils sont tous délivrés, et elle perd son pouvoir.",
-    "À sa mort, le meneur annonce seulement « une villageoise »."
+    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et le meneur savent lequel des quatre rôles c'était."
   ],
   priorite: 15,
   appelNuit: true,

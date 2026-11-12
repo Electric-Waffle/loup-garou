@@ -29,7 +29,9 @@ const pretre: Role = {
     "La première nuit (rang 70), il choisit en secret d'être pur ou impur. Seuls lui et le meneur le savent.",
     "Pur, ou s'il passe : il reste un villageois.",
     "Impur : sa carte devient Prêtre impur, du camp des loups, sans que les loups le sachent.",
-    "De son vivant, il n'a aucun pouvoir. Mort, il garde les yeux ouverts le jour et peut chuchoter au maire pendant le débat, pour l'aider."
+    "De son vivant, il n'a aucun pouvoir.",
+    "Mort, il continue de jouer comme un vivant : il garde les yeux ouverts le jour et les ferme la nuit. Il ne vote plus, mais pendant le débat il peut chuchoter au maire, pour l'aider.",
+    "Carte hybride : à sa mort, le meneur annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
   ],
   // POURQUOI 70 : n'importe quelle place convient (son choix n'affecte personne la nuit 1).
   // Juste après les liens (Loup amoureux 30, Cupidon 50, Réunion des amoureux 60) et avant la Voyante (80).

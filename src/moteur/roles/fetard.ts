@@ -28,7 +28,8 @@ const fetard: Role = {
     "Il n'a pas de pouvoir de nuit.",
     "Quand le village élimine un loup, le meneur indique s'il a voté contre lui.",
     "Si oui, il fait la fête toute la nuit : les loups ne peuvent pas le mordre, car il n'est pas chez lui.",
-    "Les loups ne savent pas pourquoi leur morsure a échoué. La fête ne dure qu'une nuit."
+    "Les loups ne savent pas pourquoi leur morsure a échoué. La fête ne dure qu'une nuit.",
+    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et le meneur savent lequel des quatre rôles c'était."
   ],
 
   apresVote(partie, moi, elimine) {

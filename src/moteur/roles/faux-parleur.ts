@@ -13,8 +13,8 @@ import type { Role } from "../types";
  *      (pour sauver un loup, cette fois).
  *
  * POURQUOI pas d'appel de nuit à lui : decision() ne sert qu'au vote suspendu, quand il est maire.
- * POURQUOI memoire.relanceUtilisee peut déjà valoir true : un Beau Parleur devenu Faux Parleur
- * garde sa mémoire. Sans relance au départ (init), il en a une, comme le Beau Parleur.
+ * POURQUOI la mémoire d'un Beau Parleur devenu Faux Parleur ne gêne pas : il choisit son camp la
+ * nuit 1, avant toute élection. Il n'a donc jamais relancé de vote, et relanceUtilisee vaut false.
  */
 const fauxParleur: Role = {
   alias: "faux-parleur",
@@ -28,7 +28,10 @@ const fauxParleur: Role = {
     "Il se réveille avec les loups et assiste au choix de la victime.",
     "Il a deux vies face aux loups, comme le Beau Parleur.",
     "Maire, il voit en secret la carte de chaque accusé avant sa mort, et peut relancer le vote une fois par partie : de quoi sauver un loup.",
-    "S'il était Beau Parleur et a déjà relancé un vote, il ne peut plus le refaire."
+    "Son pouvoir de maire ne compte que s'il a été élu grâce à son éloquence, sans avoir révélé sa carte. S'il s'est fait élire en laissant entendre qu'il était Beau Parleur ou Faux Parleur, il n'a pas de pouvoir : c'est le meneur qui en juge.",
+    "Dans ce cas, à chaque vote, le meneur choisit simplement « Laisser le vote », sans lui montrer la carte de l'accusé.",
+    "Il peut aussi devenir maire plus tard dans la partie : il a donc intérêt à garder sa carte secrète jusqu'au bout.",
+    "Carte hybride : à sa mort, le meneur annonce « Beau Parleur », sans jamais révéler le camp que le joueur avait choisi."
   ],
   rejoint: ["loup"],
 

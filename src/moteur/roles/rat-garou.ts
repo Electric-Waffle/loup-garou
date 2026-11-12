@@ -27,7 +27,8 @@ const ratGarou: Role = {
     "Il se réveille avec les loups et les connaît, mais il ne vote pas : le meneur ignore son avis.",
     "Il compte comme un loup pour la victoire. Mais s'il devient le dernier loup vivant, il meurt à l'aube.",
     "Face à un seul autre joueur, il ne fait pas gagner les loups : c'est le village qui gagne.",
-    "Éliminé par le vote du village, il contamine le maire, qui attrape la peste."
+    "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
+    "Carte hybride : à sa mort, le meneur annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
   ],
   rejoint: ["loup"],
 

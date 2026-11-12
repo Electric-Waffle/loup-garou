@@ -29,7 +29,8 @@ const rat: Role = {
     "Mordre : il meurt à l'aube, sans que la Sorcière puisse le sauver, et un des loups attrape la peste : il mourra 3 nuits plus tard.",
     "Rejoindre la meute : la morsure est annulée, et il devient Rat-garou.",
     "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
-    "Personne ne sait ce qu'il a choisi : les loups le devineront en voyant s'il est encore en vie."
+    "Personne ne sait ce qu'il a choisi : les loups le devineront en voyant s'il est encore en vie.",
+    "Carte hybride : à sa mort, le meneur annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
   ],
 
   reagir(tag, meta, partie, moi) {
