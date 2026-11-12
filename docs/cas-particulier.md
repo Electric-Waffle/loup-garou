@@ -68,7 +68,7 @@ Pour chaque carte, l'interface suit le même cycle :
 
 ```mermaid
 flowchart LR
-    A["decisionCourante()<br/>→ role.decision()"] --> B["Le meneur choisit<br/>une option + cibles"]
+    A["decisionCourante()<br/>→ role.decision()"] --> B["L'oracle choisit<br/>une option + cibles"]
     B --> C["partie.jouer(choix)"]
     C --> D["tourDeCarte()<br/>→ role.agir()"]
     D --> E["donnerTag() pour<br/>chaque tag donné"]
@@ -76,7 +76,7 @@ flowchart LR
 
 ### 1. Voyante — elle regarde, elle ne donne rien
 
-Le meneur choisit « Sonder » → Chloé. `voyante.agir()` renvoie uniquement une info :
+L'oracle choisit « Sonder » → Chloé. `voyante.agir()` renvoie uniquement une info :
 
 ```ts
 return { infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(cible.role)}.` }] };
@@ -86,7 +86,7 @@ return { infos: [{ pour: moi.id, texte: `${cible.nom} est ${partie.titre(cible.r
 
 ### 2. Salvateur — il donne, mais le receveur refuse
 
-L'écran de décision affiche déjà « impossible : David », grâce à `salvateur.decision()` qui lit `joueursAvecTag("protege_hier")`. Supposons que le meneur insiste et choisisse David :
+L'écran de décision affiche déjà « impossible : David », grâce à `salvateur.decision()` qui lit `joueursAvecTag("protege_hier")`. Supposons que l'oracle insiste et choisisse David :
 
 1. `salvateur.agir()` → `{ donner: [{ tag: "protege", a: "david" }] }`
 2. `donnerTag(David, "protege")` : David est Villageois, son rôle n'a pas de `recevoir()`, on passe au `switch` :
@@ -113,7 +113,7 @@ Le salvateur ne connaît pas cette contrainte : c'est le **receveur** qui la fai
 
 `sorciere.decision()` lit `joueursAvecTag("mordu")` → « Victime(s) de la nuit : Emma ». Elle a ses deux potions, donc trois choix : Potion de vie, Potion de mort, Ne rien faire.
 
-Le meneur choisit « Potion de mort » → Hugo :
+L'oracle choisit « Potion de mort » → Hugo :
 
 ```ts
 case "tuer":
@@ -188,7 +188,7 @@ sequenceDiagram
 
 Après `aube()`, `partie.attente` contient `{ alias: "chasseur", joueur: "hugo" }`. `decisionCourante()` donne **toujours la priorité** à cette file d'attente, quelle que soit la phase : l'interface affiche la carte du Chasseur, bordée de rouge, sans bouton « Passer ».
 
-Le meneur choisit « Tirer » → Bob. Le Chasseur passe par le **même** chemin que n'importe quelle carte :
+L'oracle choisit « Tirer » → Bob. Le Chasseur passe par le **même** chemin que n'importe quelle carte :
 
 ```ts
 agir: (choix) => ({ donner: [{ tag: "mort", a: choix.cibles[0], meta: { cause: "chasseur" } }] })

@@ -356,7 +356,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
     ],
     etapes: [
       { quoi: "La Voyante ne peut regarder que le Salvateur ; le Salvateur ne peut protéger qu'elle ou lui-même.", pourquoi: "Un joueur lié qui joue seul sa carte ne voit que lui-même et son partenaire comme cibles." },
-      { quoi: "Pour les loups, le meneur décide de tête.", pourquoi: "Une carte de groupe n'appartient pas à un seul joueur lié." },
+      { quoi: "Pour les loups, l'oracle décide de tête.", pourquoi: "Une carte de groupe n'appartient pas à un seul joueur lié." },
       { quoi: "Un Chasseur lié et tué cette nuit tire librement.", pourquoi: "Le lien disparaît à la fin de l'aube, avant son tir." }
     ]
   },
@@ -457,8 +457,8 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { role: "ancien" }
     ],
     etapes: [
-      { quoi: "Son pouvoir ne compte que s'il a été élu sans révéler sa carte. Sinon, le meneur choisit « Laisser le vote » sans rien lui montrer.", pourquoi: "Il doit devenir maire par son éloquence, pas en laissant deviner son rôle : c'est le meneur qui en juge." },
-      { quoi: "Avant la mort, le meneur lui montre en secret la carte de l'accusé.", pourquoi: "Son pouvoir suspend chaque vote tant qu'il est maire." },
+      { quoi: "Son pouvoir ne compte que s'il a été élu sans révéler sa carte. Sinon, l'oracle choisit « Laisser le vote » sans rien lui montrer.", pourquoi: "Il doit devenir maire par son éloquence, pas en laissant deviner son rôle : c'est l'oracle qui en juge." },
+      { quoi: "Avant la mort, l'oracle lui montre en secret la carte de l'accusé.", pourquoi: "Son pouvoir suspend chaque vote tant qu'il est maire." },
       { quoi: "Il laisse la mort se produire, ou relance le vote, une seule fois par partie.", pourquoi: "Sa mémoire retient que la relance est utilisée." },
       { quoi: "Après l'élimination de l'Ancien par le vote, le vote tue tout de suite.", pourquoi: "Privé de pouvoir, il n'est plus consulté : rien ne suspend le vote." }
     ]
@@ -507,7 +507,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { role: "salvateur" }
     ],
     etapes: [
-      { quoi: "Le meneur indique qu'il a voté contre le loup : il fait la fête jusqu'à l'aube.", pourquoi: "Le moteur ne sait pas qui a voté pour qui : seul le meneur l'a vu." },
+      { quoi: "L'oracle indique qu'il a voté contre le loup : il fait la fête jusqu'à l'aube.", pourquoi: "Le moteur ne sait pas qui a voté pour qui : seul l'oracle l'a vu." },
       { quoi: "Les loups qui le mordent cette nuit échouent, sans savoir pourquoi.", pourquoi: "Sa carte bloque la morsure tant qu'il fait la fête." },
       { quoi: "Même protégé par le Salvateur la veille, il fait la fête.", pourquoi: "La fête n'est pas une protection : la règle « pas deux nuits de suite » ne la concerne pas." }
     ]
@@ -524,7 +524,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
     ],
     etapes: [
       { quoi: "La Voyante voit sa carte : Hurleur.", pourquoi: "La lumière de Mama Killa impose sa cible : elle ne peut voir que lui." },
-      { quoi: "Il hurle : au rapport de l'aube, le meneur annonce que le Hurleur a été visé par la Voyante.", pourquoi: "Toute carte qui le désigne la nuit le fait hurler, même sans lui donner de tag." },
+      { quoi: "Il hurle : au rapport de l'aube, l'oracle annonce que le Hurleur a été visé par la Voyante.", pourquoi: "Toute carte qui le désigne la nuit le fait hurler, même sans lui donner de tag." },
       { quoi: "Son nom n'est jamais annoncé, même si tout le monde sait qui était éclairé.", pourquoi: "Le Hurleur retire son nom de l'annonce : c'est au village de faire le lien." }
     ]
   },
@@ -539,7 +539,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { role: "villageois" }
     ],
     etapes: [
-      { quoi: "Même si personne n'est éliminé, le meneur répond à sa question après le vote.", pourquoi: "Des votes ont eu lieu : savoir si un loup a voté comme lui reste utile." },
+      { quoi: "Même si personne n'est éliminé, l'oracle répond à sa question après le vote.", pourquoi: "Des votes ont eu lieu : savoir si un loup a voté comme lui reste utile." },
       { quoi: "Privé de pouvoir (ici par l'Ancien éliminé), il n'est pas questionné.", pourquoi: "Un joueur bloqué n'a aucune décision urgente." },
       { quoi: "La nuit suivante, il n'apprend rien, pas même la réponse de la veille.", pourquoi: "La réponse est rangée avec le numéro de la nuit où elle sert : elle ne correspond plus." }
     ]
@@ -604,7 +604,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { quoi: "Le vote du joueur silencé ne compte pas, au premier vote comme au second.", pourquoi: "Le médaillon agit toute la journée qui suit, jusqu'à l'aube suivante : plaidoirie comprise." },
       { quoi: "Il n'y a jamais un silencé et un dirigé le même jour.", pourquoi: "L'hypnotiseur n'utilise qu'un médaillon par nuit, et chacun ne dure qu'une journée." },
       { quoi: "Une autre nuit, avec la suggestion, sa cible votera comme lui, sauf s'il est mort.", pourquoi: "Sans hypnotiseur vivant, il n'y a plus personne à suivre." },
-      { quoi: "Rien n'est révélé pendant le débat : le meneur le voit seulement à l'écran du vote.", pourquoi: "Le rappel est affiché au vote, jamais avant." }
+      { quoi: "Rien n'est révélé pendant le débat : l'oracle le voit seulement à l'écran du vote.", pourquoi: "Le rappel est affiché au vote, jamais avant." }
     ]
   }
 ];

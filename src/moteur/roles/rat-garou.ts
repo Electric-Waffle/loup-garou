@@ -7,7 +7,7 @@ import type { Joueur, Role } from "../types";
  *
  * Déroulé :
  *   1. Chaque nuit, il se réveille avec les loups (rejoint: ["loup"]) mais ne vote pas :
- *      le meneur ne tient pas compte de son avis, et passe la carte s'il est seul.
+ *      l'oracle ne tient pas compte de son avis, et passe la carte s'il est seul.
  *   2. À l'aube, s'il est le dernier vivant du camp des loups, il meurt (crochet aube).
  *   3. S'il est éliminé par le vote, le maire attrape la peste.
  *
@@ -24,11 +24,11 @@ const ratGarou: Role = {
   description: "Un rat passé du côté de la meute. Il connaît les loups mais ne vote pas avec eux. S'il est le dernier loup, il meurt. Éliminé par le village, il contamine le maire.",
   explication: [
     "Un Rat qui a rejoint la meute, ou une carte distribuée telle quelle.",
-    "Il se réveille avec les loups et les connaît, mais il ne vote pas : le meneur ignore son avis.",
+    "Il se réveille avec les loups et les connaît, mais il ne vote pas : l'oracle ignore son avis.",
     "Il compte comme un loup pour la victoire. Mais s'il devient le dernier loup vivant, il meurt à l'aube.",
     "Face à un seul autre joueur, il ne fait pas gagner les loups : c'est le village qui gagne.",
     "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
-    "Carte hybride : à sa mort, le meneur annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
+    "Carte hybride : à sa mort, l'oracle annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
   ],
   rejoint: ["loup"],
 

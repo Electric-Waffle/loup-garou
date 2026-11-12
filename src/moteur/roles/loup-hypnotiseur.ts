@@ -9,7 +9,7 @@ import type { OptionChoix, Role } from "../types";
  *   2. Effet : il DONNE "silence" ou "dirige" à sa cible, avec son propre id en meta.par.
  *      Le tag dure jusqu'à l'aube SUIVANTE ("aube_suivante") : il couvre tous les votes du
  *      jour, y compris un second vote racheté avec l'or.
- *   3. Au vote, partie.rappelsDuVote() rappelle au meneur de ne pas compter le vote du silencé,
+ *   3. Au vote, partie.rappelsDuVote() rappelle à l'oracle de ne pas compter le vote du silencé,
  *      et de faire voter le dirigé comme le Loup hypnotiseur. Rien n'est révélé pendant le débat.
  *   4. Cible protégée par le Salvateur : rien n'est donné, le médaillon est perdu quand même,
  *      et rien n'est annoncé (même règle que les autres loups bloqués par le Salvateur).
@@ -36,7 +36,7 @@ const loupHypnotiseur: Role = {
     "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
     "Il a deux médaillons à usage unique, et peut en utiliser un par nuit (rang 115).",
     "Silence : le lendemain, le vote de sa cible ne compte pas. Suggestion : le lendemain, sa cible vote obligatoirement comme lui, sauf s'il est mort.",
-    "L'effet dure jusqu'à l'aube suivante : il couvre aussi le second vote d'une plaidoirie. Le meneur le voit rappelé à l'écran du vote, jamais pendant le débat.",
+    "L'effet dure jusqu'à l'aube suivante : il couvre aussi le second vote d'une plaidoirie. L'oracle le voit rappelé à l'écran du vote, jamais pendant le débat.",
     "Sur une cible protégée par le Salvateur, rien ne se passe et le médaillon est perdu quand même, sans annonce. La Caravane de lamas lui rend ses médaillons."
   ],
   priorite: 115,

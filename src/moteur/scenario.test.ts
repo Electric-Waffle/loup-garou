@@ -716,7 +716,7 @@ test("Loup hypnotiseur : le tag dure tout le vote du jour, puis disparaît à l'
   p.passer(); // loups
   p.leverLeJour();
 
-  // Au vote : le meneur est prévenu, pas avant (le débat n'affiche rien).
+  // Au vote : l'oracle est prévenu, pas avant (le débat n'affiche rien).
   assert.deepEqual(p.rappelsDuVote(), ["Faire pointer J2 vers le même joueur que J0 : il est dirigé."]);
 
   p.tour = 2;
@@ -1115,10 +1115,10 @@ test("Sablier : le second débat d'une plaidoirie ne change pas le report", () =
   assert.equal(p.reportDuSablier, 300);
 });
 
-test("Soleil : le débat garde la durée réglée par le meneur", () => {
+test("Soleil : le débat garde la durée réglée par l'oracle", () => {
   const p = jourAvecMaire();
   p.passerEvenement();
-  assert.equal(p.dureeDuDebat(5), 5); // Soleil : le réglage du meneur
+  assert.equal(p.dureeDuDebat(5), 5); // Soleil : le réglage de l'oracle
 });
 
 /* ---------- Les événements un par un ---------- */
@@ -1164,7 +1164,7 @@ test("Sauf-conduit : refusé au vote, même pour le second vote d'une plaidoirie
   p.ouvrirVote();
   assert.ok(p.rappelsDuVote().some(r => r.includes("J2 a trouvé asile au temple")));
   assert.throws(() => p.voter("j2"), /asile au temple/);
-  assert.equal(p.phase, "vote"); // rien n'a changé, le meneur peut recliquer
+  assert.equal(p.phase, "vote"); // rien n'a changé, l'oracle peut recliquer
   p.voter("j3");
   assert.equal(p.joueur("j3").vivant, false);
 });

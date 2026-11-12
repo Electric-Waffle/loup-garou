@@ -13,7 +13,7 @@ import type { Role } from "../types";
  * POURQUOI "apaisee" est un tag et pas sa memoire : c'est le Conciliabule qui lui retire son
  * pouvoir, et une autre carte ne lit ni n'écrit jamais la memoire d'un rôle.
  * ATTENTION : camp "village". Sa carte ressemble à celle du Marchand ou du Bâtisseur : à sa mort,
- * le rapport affiche « Pleureuse » au meneur, qui annonce seulement « une villageoise ».
+ * le rapport affiche « Pleureuse » à l'oracle, qui annonce seulement « une villageoise ».
  */
 const pleureuse: Role = {
   alias: "pleureuse",
@@ -26,7 +26,7 @@ const pleureuse: Role = {
     "Un maudit ne fait plus son rôle, jusqu'à la fin de la partie.",
     "Chaque nuit, les maudits vivants tiennent le Conciliabule (60 secondes) et désignent un joueur, mort ou vivant.",
     "S'ils désignent la Pleureuse, ils sont tous délivrés, et elle perd son pouvoir.",
-    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et le meneur savent lequel des quatre rôles c'était."
+    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
   ],
   priorite: 15,
   appelNuit: true,
@@ -45,7 +45,7 @@ const pleureuse: Role = {
     };
   },
 
-  // ATTENTION : aucun type de cible n'exclut les maudits. Si le meneur en choisit un quand même,
+  // ATTENTION : aucun type de cible n'exclut les maudits. Si l'oracle en choisit un quand même,
   // rien n'est donné : la nuit est perdue pour elle.
   agir(choix, partie) {
     const cible = partie.joueur(choix.cibles[0]);

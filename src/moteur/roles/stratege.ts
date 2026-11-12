@@ -8,10 +8,10 @@ import type { Role } from "../types";
  *   1. Pendant le vote : rappelVote() affiche « regardez pour qui vote le stratège ».
  *   2. Après le vote : apresVote() ouvre une décision URGENTE, « Oui » ou « Non ». agir() range la
  *      réponse dans sa memoire, avec le numéro de la nuit où elle servira (tour + 1).
- *   3. La nuit : decision() (sans choix) dit au meneur quoi lui répondre.
+ *   3. La nuit : decision() (sans choix) dit à l'oracle quoi lui répondre.
  *
- * POURQUOI une question au meneur : le moteur ne connaît que l'éliminé, pas qui a voté pour qui
- * (comme le Fêtard). La poser tout de suite évite au meneur de s'en souvenir jusqu'à la nuit.
+ * POURQUOI une question à l'oracle : le moteur ne connaît que l'éliminé, pas qui a voté pour qui
+ * (comme le Fêtard). La poser tout de suite évite à l'oracle de s'en souvenir jusqu'à la nuit.
  * POURQUOI le numéro de nuit (comme le Loup barbare) : bloqué au vote (impuissant…), il n'est pas
  * questionné ; la réponse de la veille ne correspond plus à cette nuit et n'est pas redonnée.
  */
@@ -20,11 +20,11 @@ const stratege: Role = {
   titre: "Stratège",
   image: "♟️",
   camp: "village",
-  description: "Un chef de guerre qui lit les intentions de chacun. Chaque nuit à partir de la 2e, le meneur lui dit si au moins un loup a voté pour le même joueur que lui au vote du jour.",
+  description: "Un chef de guerre qui lit les intentions de chacun. Chaque nuit à partir de la 2e, l'oracle lui dit si au moins un loup a voté pour le même joueur que lui au vote du jour.",
   explication: [
-    "Pendant chaque vote, le meneur regarde pour qui vote le Stratège, et si un loup vote pour le même joueur.",
-    "Juste après le vote, le meneur répond à la question « un loup a-t-il voté comme lui ? ».",
-    "À partir de la nuit 2 (rang 85), le Stratège se réveille et le meneur lui donne la réponse.",
+    "Pendant chaque vote, l'oracle regarde pour qui vote le Stratège, et si un loup vote pour le même joueur.",
+    "Juste après le vote, l'oracle répond à la question « un loup a-t-il voté comme lui ? ».",
+    "À partir de la nuit 2 (rang 85), le Stratège se réveille et l'oracle lui donne la réponse.",
     "Privé de pouvoir au moment du vote, il n'apprend rien."
   ],
   // POURQUOI 85 : son information ne dépend d'aucune carte de la nuit. Après la Voyante (80).

@@ -49,7 +49,7 @@
 
 ## 2. Le projet
 
-Un site **local, en full JavaScript / TypeScript**, pour **préparer et animer des parties de Loup-Garou** du point de vue du **meneur** (une seule application, pilotée par le meneur, qui voit toutes les cartes).
+Un site **local, en full JavaScript / TypeScript**, pour **préparer et animer des parties de Loup-Garou** du point de vue de l'**oracle** (une seule application, pilotée par l'oracle, qui voit toutes les cartes).
 
 - **Dépôt** : `Electric-Waffle/loup-garou` (privé).
   - `main` : le premier prototype (8 rôles).
@@ -158,7 +158,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 
 ### Le cycle en 4 étapes
 1. **Carte montrée** : `role.decision(partie, moi)` renvoie un message et des options. Chaque option a un type de cible : `aucune`, `un_joueur`, `un_autre`, `un_mordu`, `deux_joueurs`, `n_importe_qui` (morts compris). Une décision sans option n'affiche que « Passer ».
-2. **Décision du meneur** : un `ChoixFait { id, cibles }`.
+2. **Décision de l'oracle** : un `ChoixFait { id, cibles }`.
 3. **DONNER** : `role.agir()` **ne modifie rien**. Il renvoie `{ donner: [{ tag, a, meta }], infos: [{ pour, texte }] }`.
 4. **RECEVOIR** : `donnerTag(partie, joueur, tag, meta, profondeur)` :
    - a. `role.recevoir()` du **receveur**, appelé AVANT : s'il renvoie une réponse, le traitement s'arrête là ;
@@ -191,7 +191,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
   - les pouvoirs passifs continuent (`recevoir` de l'Ancien, invulnérabilité, or) ;
   - une **étape** (carte avec `porteurs`) n'est bloquée que par `enchante` : sinon le Conciliabule, dont tous les porteurs sont maudits, ne se jouerait jamais.
 - **Cartes fantômes** (option de préparation) : les cartes activées mais non distribuées sont appelées la nuit, avec seulement « Passer », pour que personne ne sache lesquelles sont réellement en jeu.
-- **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), le meneur applique la règle de tête.
+- **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), l'oracle applique la règle de tête.
 
 ### Tags existants
 `mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie), `horrifie` (Aberration, permanent tant qu'elle vit), `catatonique` (bloquant, devient `mort` à l'aube, cause `horreur`), `possede` (Loup-démon), `ignifuge` (Loup salamandre : bloque une mort par vote, après l'or, jusqu'à l'aube suivante).
@@ -267,7 +267,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Cible protégée par le Salvateur : le lien échoue, sans seconde chance. Son partenaire ne vient à la Réunion des amoureux qu'à partir de la nuit 2. Vote avec les loups. |
 | Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Un compagnon protégé par le Salvateur fait échouer le lien : il reste seul jusqu'à la nuit suivante. Un nouveau compagnon ne vient à la Réunion des amoureux que la nuit d'après. Vote avec les loups. Ne vient pas à la Réunion des amoureux. |
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
-| Loup hypnotiseur | loups | Vote avec les loups. Deux médaillons à usage unique (`memoire`), un par nuit au plus : silence (tag `silence`) ou suggestion (tag `dirige`), qui durent jusqu'à l'aube suivante. Au vote seulement, `partie.rappelsDuVote()` rappelle au meneur de ne pas compter le vote du silencé et de faire voter le dirigé comme l'hypnotiseur (sauf s'il est mort). Sur une cible protégée par le Salvateur : rien, médaillon perdu, sans annonce. |
+| Loup hypnotiseur | loups | Vote avec les loups. Deux médaillons à usage unique (`memoire`), un par nuit au plus : silence (tag `silence`) ou suggestion (tag `dirige`), qui durent jusqu'à l'aube suivante. Au vote seulement, `partie.rappelsDuVote()` rappelle à l'oracle de ne pas compter le vote du silencé et de faire voter le dirigé comme l'hypnotiseur (sauf s'il est mort). Sur une cible protégée par le Salvateur : rien, médaillon perdu, sans annonce. |
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village (hybride) | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou (tag `devient`). Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups (hybride) | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |
@@ -281,23 +281,23 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Prêtre impur | loups (hybride) | Carte à part entière, distribuable seule, ou atteinte par un Prêtre pur. Aucun pouvoir vivant, ne se réveille pas avec la meute (les loups l'ignorent). Compte comme un loup pour la victoire. Mort, il peut chuchoter au maire (pour le tromper). |
 | Bâtisseur | village | Renforce une maison par nuit. Toutes les maisons des villageois vivants renforcées : le village gagne. |
 | Loup-démon | loups | Vote avec les loups. Éliminé par le vote du village : son `reagir()` donne `possede` puis `devient` (`role: "loup"`) à un villageois vivant tiré au hasard, qui devient Loup-Garou (tags et mémoire conservés). Tué autrement : il meurt simplement. |
-| Beau Parleur | village (hybride) | Nuit 1 (72) : « Rester Beau Parleur » ou « Devenir Faux Parleur » (`devient`). Deux vies face aux loups (`vie_perdue`). Maire : `avantVote()` suspend chaque vote, le meneur lui montre la carte de l'accusé ; il laisse la mort, ou relance le vote une fois par partie (`memoire.relanceUtilisee` ; il choisit son camp la nuit 1, avant toute élection, donc jamais de relance avant de devenir Faux Parleur). Bloqué (impuissant…), le vote tue tout de suite. Règle de table : le pouvoir de maire ne compte que s'il a été élu sans révéler sa carte ; le meneur en juge et, sinon, choisit « Laisser le vote » sans rien montrer. |
+| Beau Parleur | village (hybride) | Nuit 1 (72) : « Rester Beau Parleur » ou « Devenir Faux Parleur » (`devient`). Deux vies face aux loups (`vie_perdue`). Maire : `avantVote()` suspend chaque vote, l'oracle lui montre la carte de l'accusé ; il laisse la mort, ou relance le vote une fois par partie (`memoire.relanceUtilisee` ; il choisit son camp la nuit 1, avant toute élection, donc jamais de relance avant de devenir Faux Parleur). Bloqué (impuissant…), le vote tue tout de suite. Règle de table : le pouvoir de maire ne compte que s'il a été élu sans révéler sa carte ; l'oracle en juge et, sinon, choisit « Laisser le vote » sans rien montrer. |
 | Faux Parleur | loups (hybride) | Carte à part entière, distribuable seule, ou atteinte par un Beau Parleur. Vote avec la meute (`rejoint: ["loup"]`). Mêmes pouvoirs que le Beau Parleur (deux vies, regard du maire), recopiés dans son fichier. |
 | Loup barbare | loups | Ne vote PAS avec la meute (pas de `rejoint`) : les loups ignorent qu'il est loup. Son `apresVote()` retient la nuit suivante si le village a éliminé un non-loup ; cette nuit-là (124), il donne `mordu`. Compte comme un loup pour la victoire. |
 | Loup salamandre | loups | Chaque nuit, donne `ignifuge` (expire `aube_suivante`) à un joueur, jamais le même deux nuits de suite (`memoire`). Au vote FINAL (l'or se rachète d'abord), la mort d'un ignifuge est **bloquée** (`recevoir.ts`) : il ressort indemne des flammes, `voter()` annonce qu'un loup l'a protégé, et le jour compte comme « personne n'est éliminé » pour l'événement. Vote avec les loups. |
 | Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
 | Conquistador | village | Une balle (`memoire.balle`). Nuit (122) : donne `mort` (cause `conquistador`). Victime qui porte de l'or (lu avant le tir) : il garde sa balle, et la règle de l'or (`transmettreLOr`) lui donne cet or. Pas une morsure : Salvateur, Sorcière et Ancien n'y peuvent rien ; le Loup vampire y survit. |
-| Sourcier | village | Nuits impaires (82) : teste un joueur (memoire : `teste`, `nuitDuResultat`). Nuit suivante : le meneur lui montre « à N places du non-villageois le plus proche », rien si le testé est mort. Table = cercle des vivants dans l'ordre de `partie.joueurs`, plus court des deux sens, voisins = 1. Le testé est exclu : 0 = il n'y a pas d'autre non-villageois. |
+| Sourcier | village | Nuits impaires (82) : teste un joueur (memoire : `teste`, `nuitDuResultat`). Nuit suivante : l'oracle lui montre « à N places du non-villageois le plus proche », rien si le testé est mort. Table = cercle des vivants dans l'ordre de `partie.joueurs`, plus court des deux sens, voisins = 1. Le testé est exclu : 0 = il n'y a pas d'autre non-villageois. |
 | Hurleur | village | `estVise()` : la nuit, toute carte qui le désigne (morsure, Voyante, Salvateur…) ajoute une info publique « le Hurleur a été visé par Carte (« libellé ») », lue au rapport de l'aube. Jamais le nom du Hurleur : il le retire du libellé du bouton (« Sonder J3 » devient « Sonder »). Le Clair de lune le déclenche aussi : l'option impose sa cible (`OptionChoix.cibles`), recopiée par `partie.jouer()` dans `choix.cibles`. |
-| Stratège | village | `rappelVote()` : « regardez pour qui vote le stratège ». `apresVote()` : décision urgente « un loup a-t-il voté comme lui ? » (oui/non), rangée en memoire avec la nuit suivante. Nuit (85, dès la 2) : le meneur lui donne la réponse. |
-| Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande au meneur (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
-| Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, le meneur annonce « une villageoise ». |
+| Stratège | village | `rappelVote()` : « regardez pour qui vote le stratège ». `apresVote()` : décision urgente « un loup a-t-il voté comme lui ? » (oui/non), rangée en memoire avec la nuit suivante. Nuit (85, dès la 2) : l'oracle lui donne la réponse. |
+| Fêtard | village | Après un vote qui élimine un loup, `apresVote()` demande à l'oracle (décision urgente) s'il a voté contre lui. Oui : tag `fete` jusqu'à l'aube, et son `recevoir()` bloque la morsure cette nuit-là. Les loups ne le savent pas. |
+| Pleureuse | village | À partir de la nuit 2, maudit un joueur par nuit (`maudit` : il ne fait plus son rôle). Chaque nuit, le Conciliabule réunit les maudits vivants (60 s) qui désignent un joueur, mort ou vivant : si c'est elle, tous reçoivent `delivre` et elle `apaisee` (plus de pouvoir). Le Conciliabule continue après sa mort. À sa mort, l'oracle annonce « une villageoise ». |
 
 > [!note] Le Fou a changé de règle
 > L'idée d'origine (désigner un joueur A puis un joueur B, et faire l'action du rôle de A sur B) **n'est pas implémentée**. Le Fou actuel est celui décrit dans le tableau.
 
 ### Les événements (`src/moteur/evenements/`, un fichier chacun)
-Tirés après l'élection du maire. Le meneur peut demander « Un autre » ou « Passer » (Soleil) tant que l'événement n'est pas validé. Dans les événements où le maire désigne, il ne peut jamais se désigner (cible `un_autre`, avec le maire comme `moi`).
+Tirés après l'élection du maire. L'oracle peut demander « Un autre » ou « Passer » (Soleil) tant que l'événement n'est pas validé. Dans les événements où le maire désigne, il ne peut jamais se désigner (cible `un_autre`, avec le maire comme `moi`).
 
 | Genre | Événements |
 | --- | --- |
@@ -321,7 +321,7 @@ Tirés après l'élection du maire. Le meneur peut demander « Un autre » ou «
 - `decisionCourante()` peut modifier la file : elle saute une carte qui n'a plus de porteur vivant (sauf carte fantôme).
 - Pour une carte de groupe, `moi` est le premier porteur vivant, qui peut être un rôle qui la « rejoint » (Loup succube pendant le tour des loups) : ne pas lire sa `memoire` en croyant tenir un loup.
 - `joueur.memoire` est typé `any`.
-- Le vote ne compte pas les voix : le meneur clique directement sur l'éliminé. Le Fou et le Rat-garou « votent » avec les loups, mais c'est le meneur qui ignore leur avis.
+- Le vote ne compte pas les voix : l'oracle clique directement sur l'éliminé. Le Fou et le Rat-garou « votent » avec les loups, mais c'est l'oracle qui ignore leur avis.
 - `jouer()` vérifie le nombre de cibles, pas leur validité (c'est l'interface qui filtre).
 - Rien n'est sauvegardé pendant une partie.
 - **Alias connus en dehors de leur fichier** (raccourcis assumés) :
@@ -338,7 +338,7 @@ Tirés après l'élection du maire. Le meneur peut demander « Un autre » ou «
 ## 8. Questions de règles encore ouvertes
 - **Réseau d'amoureux** : un joueur peut être lié par plusieurs cartes. `recevoir.ts` (case `"amoureux"`) ajoute le nouveau partenaire à `meta.partenaires` au lieu de remplacer le tag, et la mort d'un amoureux emporte tous ses partenaires, en cascade. La cascade s'arrête sur les morts ; la limite `PROFONDEUR_MAX` (5) suffit tant qu'il n'y a que trois cartes de lien.
 - **Réunion des amoureux** : chaque nuit (priorité 60), tous les amoureux vivants sauf le Loup succube se réveillent 60 secondes pour se reconnaître et comploter, s'ils sont au moins 2.
-- Le meneur choisit selon le nombre de joueurs quelles cartes de lien activer : trois liens dans une petite partie peuvent donner la majorité aux amoureux dès la première aube.
+- L'oracle choisit selon le nombre de joueurs quelles cartes de lien activer : trois liens dans une petite partie peuvent donner la majorité aux amoureux dès la première aube.
 - Le Fou : faut-il un jour revenir à l'idée d'origine (l'action de A sur B) ?
 - Conditions de victoire des futurs rôles solitaires.
 
@@ -355,7 +355,7 @@ Ces notes sont dans mon projet claude.ai « Paqari » et dans mon vault Obsidian
 - `design-patterns` : les 21 patterns utilisés, chacun comparé à ses alternatives.
 
 ## 10. Encore à trancher pour le projet
-- Le meneur seul, ou chaque joueur sur son téléphone ? Dans le second cas, le moteur passerait côté serveur.
+- L'oracle seul, ou chaque joueur sur son téléphone ? Dans le second cas, le moteur passerait côté serveur.
 - Le comptage réel des votes (le Fou et le Rat-garou en dépendent).
 - Le bouton « annuler ».
 - L'API Express + SQLite.

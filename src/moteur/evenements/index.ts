@@ -29,7 +29,7 @@ import urgence from "./urgence";
 export const LISTE_EVENEMENTS: Evenement[] = [
   // Rien ou presque
   soleil,
-  // Animations : le meneur lit la règle
+  // Animations : l'oracle lit la règle
   baillon,
   tenebres,
   carnaval,

@@ -10,7 +10,7 @@ const loup: Role = {
   description: "Des bêtes qui rôdent dans la nuit des Andes, sous le regard de Mama Killa. Chaque nuit, les loups désignent ensemble une victime.",
   explication: [
     "Chaque nuit (rang 120), les loups ouvrent les yeux ensemble et se mettent d'accord sur une victime.",
-    "Le meneur clique sur la victime : elle reçoit une morsure, qui ne la tue qu'à l'aube.",
+    "L'oracle clique sur la victime : elle reçoit une morsure, qui ne la tue qu'à l'aube.",
     "D'ici là, d'autres cartes peuvent changer son sort : le Salvateur bloque la morsure, la Sorcière peut la soigner, l'Ancien et le Beau Parleur y survivent une fois, le Fêtard qui fait la fête est introuvable.",
     "Les cartes qui « rejoignent » les loups (Loup voyante, Loup vampire, Fou, Rat-garou…) se réveillent en même temps qu'eux et assistent au choix.",
     "Si tous ceux qui se réveillent avec la meute sont blessés (Paysan) ou horrifiés (Aberration), les loups ne mangent personne cette nuit.",

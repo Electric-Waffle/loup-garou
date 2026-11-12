@@ -4,7 +4,7 @@ import type { Role } from "../types";
  * FOU : il se réveille avec les loups et vote avec eux, mais son vote ne compte pas.
  *
  * Déroulé :
- *   1. Chaque nuit, il rejoint la carte des loups (rejoint: ["loup"]). Seul le meneur sait
+ *   1. Chaque nuit, il rejoint la carte des loups (rejoint: ["loup"]). Seul l'oracle sait
  *      qu'il est le Fou, et il ignore son vote de tête.
  *   2. Son camp, « fou », n'est ni le village ni les loups : il ne compte pas comme un loup.
  *   3. Si les loups devraient gagner alors qu'il est vivant, c'est lui qui gagne (victoire.ts).
@@ -18,8 +18,8 @@ const fou: Role = {
   camp: "fou",
   description: "Un illuminé qui se croit enfant de la Lune. Il se réveille et vote avec les loups, mais son vote ne compte pas. Si les loups gagnent et qu'il est vivant, il gagne seul.",
   explication: [
-    "Il se réveille avec les loups et fait semblant d'être des leurs : seul le meneur sait qu'il est le Fou.",
-    "Son vote ne compte pas : le meneur ignore son avis pour choisir la victime.",
+    "Il se réveille avec les loups et fait semblant d'être des leurs : seul l'oracle sait qu'il est le Fou.",
+    "Son vote ne compte pas : l'oracle ignore son avis pour choisir la victime.",
     "Il n'est pas un loup : il ne compte pas dans le nombre de loups.",
     "Si les loups devraient gagner alors qu'il est vivant, c'est lui qui gagne, seul : les loups perdent."
   ],

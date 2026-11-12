@@ -108,7 +108,7 @@ export function Explications({ donnees }: { donnees: Donnees }) {
 
       <section>
         <h2>Événements</h2>
-        <p className="aide">Tirés chaque jour après l'élection du maire. Le meneur peut en demander un autre, ou passer.</p>
+        <p className="aide">Tirés chaque jour après l'élection du maire. L'oracle peut en demander un autre, ou passer.</p>
         <div className="liste-evenements">
           {Object.values(EVENEMENTS).map(evenement => (
             <button key={evenement.alias} className="ligne-cliquable" onClick={() => setEvenementOuvert(evenement)}>
@@ -173,7 +173,7 @@ function Regles() {
         <em> Paqari</em>, c'est l'aube en quechua, la langue des Incas : le moment où le village découvre qui la nuit a emporté.
       </p>
       <p>
-        Chaque joueur reçoit une carte secrète : elle dit son camp et son pouvoir. Le meneur, qui utilise cette application,
+        Chaque joueur reçoit une carte secrète : elle dit son camp et son pouvoir. L'oracle, qui utilise cette application,
         connaît toutes les cartes et guide la partie.
       </p>
       <h3>Les camps</h3>
@@ -184,13 +184,13 @@ function Regles() {
       </ul>
       <h3>La nuit</h3>
       <p>
-        Mama Killa, la Lune, se lève et tout le monde ferme les yeux. Le meneur appelle les cartes une par une, dans l'ordre de leur priorité :
+        Mama Killa, la Lune, se lève et tout le monde ferme les yeux. L'oracle appelle les cartes une par une, dans l'ordre de leur priorité :
         chacune ouvre les yeux, agit en silence en désignant un joueur, puis se rendort.
         Les loups se réveillent ensemble et choisissent une victime à dévorer.
       </p>
       <h3>L'aube</h3>
       <p>
-        Inti se lève et le village se réveille. Le meneur annonce qui est mort cette nuit, et révèle sa carte.
+        Inti se lève et le village se réveille. L'oracle annonce qui est mort cette nuit, et révèle sa carte.
         Un joueur mort ne parle plus et ne vote plus jusqu'à la fin de la partie.
       </p>
       <h3>Le jour</h3>
@@ -203,9 +203,26 @@ function Regles() {
       <p>Puis la nuit retombe, jusqu'à ce qu'un camp gagne.</p>
       <h3>Les liens et les tags</h3>
       <p>
-        Les pouvoirs laissent des marques sur les joueurs (mordu, protégé, amoureux, maudit…), visibles du meneur sur la table.
+        Les pouvoirs laissent des marques sur les joueurs (mordu, protégé, amoureux, maudit…), visibles de l'oracle sur la table.
         C'est leur combinaison qui crée les cas particuliers expliqués plus bas.
       </p>
+      <h3>Les amoureux</h3>
+      <p>
+        Tous les joueurs amoureux forment un camp à part, quels que soient leur carte et la personne qu'ils aiment
+        (liés par Cupidon, par le Loup amoureux ou par le Loup succube). Ce camp gagne dès que les amoureux vivants sont
+        <strong> strictement plus nombreux</strong> que les autres vivants.
+      </p>
+      <p>
+        Pour s'organiser, les amoureux se retrouvent chaque nuit en secret pendant 60 secondes : ils se reconnaissent
+        et complotent. Seul le Loup succube n'y est pas convié.
+      </p>
+      <ul>
+        <li><strong>Amoureux du même camp</strong> (tous loups, ou tous villageois) : rien ne change vraiment, ils gagnent avec leur camp.</li>
+        <li>
+          <strong>Amoureux de camps différents</strong> : leurs camps d'origine ne les feront jamais gagner ensemble.
+          Leur seul espoir est d'unir leurs forces jusqu'à être en surnombre.
+        </li>
+      </ul>
       <h3>Les cartes hybrides</h3>
       <p>{TEXTE_HYBRIDES}</p>
       <p>
@@ -215,7 +232,7 @@ function Regles() {
       <h3>Les cartes partagées</h3>
       <p>
         La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte. À la mort de l'un d'eux, le village
-        apprend seulement qu'un villageois est mort : seuls le joueur et le meneur savent lequel des quatre rôles c'était.
+        apprend seulement qu'un villageois est mort : seuls le joueur et l'oracle savent lequel des quatre rôles c'était.
       </p>
     </div>
   );

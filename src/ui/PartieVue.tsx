@@ -1,5 +1,5 @@
 /* =====================================================================================
- *  PartieVue.tsx — l'écran de jeu du meneur
+ *  PartieVue.tsx — l'écran de jeu de l'oracle
  * =====================================================================================
  *
  *  À gauche : la table, avec chaque joueur, sa carte et ses tags.
@@ -7,7 +7,7 @@
  *    - la DÉCISION en cours (une carte appelée la nuit, ou une décision urgente comme le
  *      Chasseur), avec ses options et le choix des cibles ;
  *    - sinon, l'ÉTAPE DU JOUR correspondant à la phase (rapport, événement, débat, vote, fin) ;
- *    - toujours, le journal du meneur.
+ *    - toujours, le journal de l'oracle.
  *
  *  Organisation du fichier :
  *    1. dictionnaires de libellés (TAGS, CAUSES, PHASES) ;
@@ -19,7 +19,7 @@
  *
  *  FLUX d'un tour de carte (détaillé dans la note fonctionnement-du-code, parties 4 et 6) :
  *    1. à chaque rendu, on demande au moteur : partie.decisionCourante() ;
- *    2. le meneur clique une option (choisirOption), puis ses cibles (cliquerJoueur) ;
+ *    2. l'oracle clique une option (choisirOption), puis ses cibles (cliquerJoueur) ;
  *       ces choix sont gardés dans l'état local `option` et `cibles` ;
  *    3. "Valider" appelle agir(() => partie.jouer(...)) : le moteur applique le choix,
  *       puis rafraichir() demande à React de redessiner ;
@@ -152,7 +152,7 @@ export function PartieVue({
   // carte" : c'est la succession des rendus (un par clic) qui fait avancer la nuit.
   const courante = partie.decisionCourante();
 
-  // État local : ce que le meneur est en train de sélectionner pour la décision en cours.
+  // État local : ce que l'oracle est en train de sélectionner pour la décision en cours.
   const [option, setOption] = useState<OptionChoix | null>(null); // l'option cliquée (Dévorer, Protéger...)
   const [cibles, setCibles] = useState<string[]>([]);             // les ids des joueurs sélectionnés
   const [erreur, setErreur] = useState<string | null>(null);      // le message si le moteur refuse
@@ -257,7 +257,7 @@ export function PartieVue({
   /**
    * Clic sur une option de la décision (Dévorer, Potion de vie, Ne rien faire...).
    * Sans cible : l'option est jouée immédiatement.
-   * Avec cible(s) : on la retient, et le meneur doit maintenant choisir les cibles.
+   * Avec cible(s) : on la retient, et l'oracle doit maintenant choisir les cibles.
    */
   function choisirOption(optionCliquee: OptionChoix) {
     const nombreDeCibles = nbCibles(optionCliquee.cible);
@@ -329,9 +329,9 @@ export function PartieVue({
       auClic = () => cliquerJoueur(joueur.id);
     } else if (ficheAuClic && !enVote && !enElection && possibles.length === 0) {
       // Aucun joueur à désigner en ce moment : le clic ouvre la fiche de sa carte (la vraie,
-      // même celle d'un Skinwalker déguisé : c'est l'écran du meneur).
+      // même celle d'un Skinwalker déguisé : c'est l'écran de l'oracle).
       // POURQUOI seulement dans ce cas : sinon un clic hors des cibles ouvrirait une fiche
-      // au lieu d'être ignoré, et le meneur croirait avoir choisi quelqu'un.
+      // au lieu d'être ignoré, et l'oracle croirait avoir choisi quelqu'un.
       auClic = () => setFicheOuverte(joueur.role);
     }
 
@@ -343,7 +343,7 @@ export function PartieVue({
         <>
           <Visuel src={joueur.image} nom={joueur.nom} taille={44} />
           <span className="siege-nom">{joueur.nom}</span>
-          {/* Le meneur voit toutes les cartes : c'est l'écran du maître du jeu. */}
+          {/* L'oracle voit toutes les cartes : c'est l'écran du maître du jeu. */}
           <span className="siege-carte">
             <Visuel src={partie.image(joueur.role)} nom={partie.titre(joueur.role)} taille={16} />
             <span className="siege-carte-titre">{partie.titre(joueur.role)}</span>
@@ -703,7 +703,7 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
       {partie.infosPubliques(estLAube ? ["nuit", "aube"] : ["resultat_vote"]).map((texte, index) => (
         <p key={index} className="info-publique">{texte}</p>
       ))}
-      {/* Coup double : le meneur peut rouvrir le vote (le débat se fait de tête). */}
+      {/* Coup double : l'oracle peut rouvrir le vote (le débat se fait de tête). */}
       {!estLAube && partie.peutRevoter && (
         <button className="bouton bouton-large" onClick={() => agir(() => partie.revoter())}>
           Voter quelqu'un d'autre (Chasse du puma)
@@ -793,7 +793,7 @@ function Minuteur({ minutes, surChangement }: { minutes: number; surChangement?:
 }
 
 /* =====================================================================================
- *  6. Le journal du meneur
+ *  6. Le journal de l'oracle
  * ===================================================================================== */
 
 /**
@@ -870,7 +870,7 @@ function Journal({ partie }: { partie: Partie }) {
 
   return (
     <details className="journal" open>
-      <summary>Journal du meneur (tour {partie.tour})</summary>
+      <summary>Journal de l'oracle (tour {partie.tour})</summary>
       <ol>
         {entreesAffichees.map((entree, index) => {
           // L'indentation reflète la profondeur de la chaîne de tags : une mort de chagrin

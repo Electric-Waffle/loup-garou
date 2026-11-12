@@ -50,7 +50,7 @@ const loupSalamandre: Role = {
     };
   },
 
-  // ATTENTION : aucun type de cible n'exclut le protégé d'hier. Si le meneur le choisit quand
+  // ATTENTION : aucun type de cible n'exclut le protégé d'hier. Si l'oracle le choisit quand
   // même, rien n'est donné : la nuit est perdue (comme le Salvateur, dont la protection est bloquée).
   agir(choix, partie, moi) {
     const cible = choix.cibles[0];

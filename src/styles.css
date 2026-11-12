@@ -295,6 +295,6 @@ button.siege:hover { border-color: var(--accent); }
   .siege > .visuel:first-child { width: 32px !important; height: 32px !important; }
   .siege-nom { font-size: .78rem; }
   /* POURQUOI cacher seulement le titre : 84px ne suffisent pas pour « Loup salamandre »,
-     mais l'image du rôle tient, et le meneur doit savoir qui est qui. */
+     mais l'image du rôle tient, et l'oracle doit savoir qui est qui. */
   .siege-carte-titre { display: none; }
 }

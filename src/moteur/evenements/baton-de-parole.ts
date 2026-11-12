@@ -2,7 +2,7 @@ import type { Evenement } from "../types";
 
 /**
  * BÂTON DE PAROLE (animation) : seul celui qui tient le bâton peut parler.
- * Aucun effet dans le moteur : le meneur lit la règle et la fait respecter.
+ * Aucun effet dans le moteur : l'oracle lit la règle et la fait respecter.
  */
 const batonDeParole: Evenement = {
   alias: "baton-de-parole",
@@ -12,7 +12,7 @@ const batonDeParole: Evenement = {
   explication: [
     "Un objet sert de bâton de Viracocha : seul celui qui le tient a le droit de parler.",
     "Le bâton passe de main en main pendant le débat.",
-    "C'est une animation : le meneur fait respecter la règle."
+    "C'est une animation : l'oracle fait respecter la règle."
   ]
 };
 

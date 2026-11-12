@@ -23,7 +23,7 @@ Liens : [[design-patterns]] · [[donner-recevoir]] · [[cas-particulier]] · [[a
 > 5. un tableau « je veux changer X → j'ouvre Y ».
 
 > [!info] Légende des couleurs (schémas 3 à 9)
-> - 🟨 **Jaune** : un clic du meneur dans l'interface.
+> - 🟨 **Jaune** : un clic de l'oracle dans l'interface.
 > - 🟩 **Vert** : du code React (dossier `src/ui/`).
 > - 🟦 **Bleu** : du code du moteur de jeu (dossier `src/moteur/`).
 > - ⬜ **Gris** : le stockage du navigateur.
@@ -49,7 +49,7 @@ flowchart TB
     APP["App.tsx<br/>état global + onglets"]
     OPT["Options.tsx<br/>titres, images, activation, joueurs"]
     PREP["Preparation.tsx<br/>qui joue, table, distribution"]
-    PV["PartieVue.tsx<br/>écran de jeu du meneur"]
+    PV["PartieVue.tsx<br/>écran de jeu de l'oracle"]
     TAB["Table.tsx<br/>dessine la table ronde"]
     VIS["Visuel.tsx<br/>affiche une image ou un emoji"]
     STO["stockage.ts<br/>charger et sauver les réglages"]
@@ -106,7 +106,7 @@ flowchart TB
 | `ui/App.tsx` | Garde les réglages (`donnees`) et la partie en cours, affiche l'onglet choisi. | Ajouter une page, changer ce qui se passe au lancement. |
 | `ui/Options.tsx` | Page Options : cartes et joueurs. | Changer l'affichage des cartes ou des joueurs. |
 | `ui/Preparation.tsx` | Page Préparer : joueurs présents, places, distribution, lancement. | Changer la préparation d'une partie. |
-| `ui/PartieVue.tsx` | Écran de jeu : table, décision en cours, étapes du jour, journal. | Changer ce que voit le meneur pendant la partie. |
+| `ui/PartieVue.tsx` | Écran de jeu : table, décision en cours, étapes du jour, journal. | Changer ce que voit l'oracle pendant la partie. |
 | `ui/Table.tsx` | Place des « sièges » en cercle. | Changer la forme de la table. |
 | `ui/Visuel.tsx` | Affiche une image, un emoji, ou une initiale. | Changer l'affichage des images. |
 | `ui/stockage.ts` | Lit et écrit les réglages dans le navigateur. | Brancher l'API Express + SQLite. |
@@ -237,7 +237,7 @@ classDiagram
 > - **Un `Joueur` ne contient pas son rôle**, seulement son **alias** (`role: "sorciere"`). Pour obtenir l'objet rôle complet, on appelle `partie.roleDe(joueur)`, qui va le chercher dans le registre `ROLES`.
 > - **Les objets `Role` sont partagés** : il n'existe qu'un seul objet `sorciere`, même s'il y avait deux sorcières. Tout ce qui doit être retenu *pour un joueur* (potions utilisées…) va donc dans **`joueur.memoire`**, jamais dans l'objet rôle.
 > - **Un `Tag` est une étiquette avec des métadonnées** : `type` (son nom), `source` (qui l'a donné), `cause` (pourquoi, utile pour les morts), `expire` (quand il disparaît).
-> - **`ChoixFait`** est ce que l'interface envoie au moteur quand le meneur valide : l'`id` de l'option cliquée et les `id` des joueurs ciblés.
+> - **`ChoixFait`** est ce que l'interface envoie au moteur quand l'oracle valide : l'`id` de l'option cliquée et les `id` des joueurs ciblés.
 > - **`ResultatAction`** est ce qu'un rôle renvoie depuis `agir()` : il ne modifie rien lui-même, il **décrit** ce qu'il veut donner.
 
 ### Le champ `phase`
@@ -368,7 +368,7 @@ flowchart TD
 
 1. **La boucle de la nuit (bloc 4) est une boucle de rendus React**, pas une boucle `for`. Il n'y a nulle part de code « pour chaque carte, faire… » qui attendrait les clics. À chaque rendu, `PartieVue` **demande** au moteur « qui joue maintenant ? » (`decisionCourante()`). Après un clic, le moteur retire la carte de la file, React redessine, et la question est reposée. Quand la file est vide, la réponse est « personne », et l'écran affiche le bouton « Le village se réveille ».
 2. **Une décision urgente passe avant tout** (losange D2). C'est ce qui permet au Chasseur de tirer pendant l'aube ou après un vote, alors que ce n'est pas la nuit.
-3. **La victoire n'est vérifiée qu'à deux endroits** : en cliquant « Événement du jour » et en cliquant « La nuit tombe ». Le meneur voit donc toujours le rapport des morts avant l'écran de victoire.
+3. **La victoire n'est vérifiée qu'à deux endroits** : en cliquant « Événement du jour » et en cliquant « La nuit tombe ». L'oracle voit donc toujours le rapport des morts avant l'écran de victoire.
 4. **Le vote, l'aube, les événements et les rôles utilisent tous `donnerTag()`**. Une mort par vote déclenche donc le Chasseur et les amoureux exactement comme une mort de nuit, sans code dédié.
 
 ---
@@ -404,7 +404,7 @@ C'est le rôle de **`rafraichir`**. `useReducer` est utilisé ici comme un compt
 ```mermaid
 sequenceDiagram
   autonumber
-  actor M as Meneur
+  actor M as Oracle
   participant PV as PartieVue.tsx
   participant P as objet partie (partie.ts)
   participant APP as App.tsx
@@ -439,7 +439,7 @@ useEffect(() => {
 }, [cle]);
 ```
 
-`option` et `cibles` sont l'état local de l'écran : « quelle option le meneur a cliquée » et « quels joueurs il a sélectionnés ». Quand une carte a fini de jouer, cette sélection ne doit pas déborder sur la carte suivante. La « clé » est construite à partir de deux valeurs qui changent forcément dès que le moteur avance : la longueur du journal (chaque action ajoute au moins une ligne) et la phase. Dès qu'elle change, l'effet vide la sélection.
+`option` et `cibles` sont l'état local de l'écran : « quelle option l'oracle a cliquée » et « quels joueurs il a sélectionnés ». Quand une carte a fini de jouer, cette sélection ne doit pas déborder sur la carte suivante. La « clé » est construite à partir de deux valeurs qui changent forcément dès que le moteur avance : la longueur du journal (chaque action ajoute au moins une ligne) et la phase. Dès qu'elle change, l'effet vide la sélection.
 
 ### Le `useEffect` du minuteur
 
@@ -510,7 +510,7 @@ Exemple : c'est au tour des loups, qui attaquent David (Villageois).
 ```mermaid
 sequenceDiagram
   autonumber
-  actor M as Meneur
+  actor M as Oracle
   participant PV as PartieVue.tsx
   participant P as partie.ts
   participant L as roles/loup.ts
@@ -638,7 +638,7 @@ Pour « faire quelque chose quand je meurs », c'est `reagir()`. Pour « ne pas 
 
 ### La profondeur
 
-`profondeur` compte combien de `donnerTag` sont imbriqués les uns dans les autres. Le loup qui mord : profondeur 0. L'Ancien qui transforme sa mort : `vie_perdue` arrive en profondeur 1. Un amoureux qui meurt de chagrin : profondeur 1. Au-delà de 5, le moteur s'arrête avec une erreur plutôt que de tourner en boucle à l'infini (deux rôles qui se redirigeraient un tag l'un à l'autre, par exemple). Dans le journal du meneur, cette profondeur se voit sous forme d'indentation.
+`profondeur` compte combien de `donnerTag` sont imbriqués les uns dans les autres. Le loup qui mord : profondeur 0. L'Ancien qui transforme sa mort : `vie_perdue` arrive en profondeur 1. Un amoureux qui meurt de chagrin : profondeur 1. Au-delà de 5, le moteur s'arrête avec une erreur plutôt que de tourner en boucle à l'infini (deux rôles qui se redirigeraient un tag l'un à l'autre, par exemple). Dans le journal de l'oracle, cette profondeur se voit sous forme d'indentation.
 
 ---
 
@@ -690,7 +690,7 @@ sequenceDiagram
   participant CH as roles/chasseur.ts
   participant P as partie.ts
   participant PV as PartieVue.tsx
-  actor M as Meneur
+  actor M as Oracle
 
   AUB->>REC: donnerTag(Hugo, "mort", { cause: "poison" })
   REC->>REC: chasseur.recevoir n'existe pas : switch, case "mort"
@@ -764,7 +764,7 @@ Testées dans cet ordre, la première vraie l'emporte :
 | Je veux… | Fichier(s) | Où exactement |
 | --- | --- | --- |
 | Ajouter un rôle | `roles/<alias>.ts` + `roles/index.ts` | Copier `_template.ts`, voir [[ajouter-corbeau]] |
-| Changer ce qu'un rôle propose au meneur | `roles/<alias>.ts` | `decision()` |
+| Changer ce qu'un rôle propose à l'oracle | `roles/<alias>.ts` | `decision()` |
 | Changer ce qu'un rôle fait | `roles/<alias>.ts` | `agir()` |
 | Qu'un rôle réagisse différemment à un tag qu'il reçoit | `roles/<alias>.ts` | `recevoir()` (avant) ou `reagir()` (après) |
 | Changer l'ordre d'appel la nuit | `roles/<alias>.ts` | `priorite` |
@@ -793,7 +793,7 @@ Ce sont des choix simplificateurs du prototype. Ils fonctionnent, mais il vaut m
 
 - **`decisionCourante()` peut modifier la file.** Si une carte de la file n'a plus de porteur vivant, la méthode la retire et passe à la suivante. Avec les rôles actuels, ça n'arrive pas (personne ne meurt avant l'aube), mais un futur rôle qui tue immédiatement pendant la nuit le déclencherait. Une fonction qui « lit » et qui modifie en même temps est une source de surprises : si un jour elle doit être appelée ailleurs, garder ce comportement en tête.
 - **`joueur.memoire` n'est pas typé** (`Record<string, any>`). TypeScript ne signalera pas une faute de frappe comme `moi.memoire.potionVi`.
-- **Le vote ne compte pas les voix** : le meneur clique directement sur l'éliminé.
+- **Le vote ne compte pas les voix** : l'oracle clique directement sur l'éliminé.
 - **Pour un rôle en plusieurs exemplaires, `moi` est le premier porteur vivant** (voir partie 6).
 - **Le journal n'est jamais vidé.** Le composant `Journal` n'affiche que le tour en cours, mais tout reste en mémoire. Sur une très longue partie, ce n'est pas un problème en pratique.
 - **Rien n'est sauvegardé pendant une partie** : recharger la page en cours de partie la perd (les réglages, eux, sont conservés).

@@ -9,7 +9,7 @@ const DUREE_EN_SECONDES = 60;
  *   1. Chaque nuit, après tous les liens (priorité 60), si au moins 2 amoureux vivants peuvent
  *      se réveiller, ils ouvrent les yeux ensemble : liés entre eux ou pas, loups ou non.
  *   2. Pendant 60 secondes, ils se voient, montrent leurs cartes et complotent en silence.
- *      La décision n'a aucun choix : le meneur clique « Passer » à la fin du minuteur.
+ *      La décision n'a aucun choix : l'oracle clique « Passer » à la fin du minuteur.
  *
  * PATTERN : une carte de groupe dont les porteurs sont CALCULÉS (champ porteurs) au lieu
  * d'être lus dans les rôles. porteursDe() et la file de la nuit la traitent comme les autres.

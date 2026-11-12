@@ -173,7 +173,7 @@ export function charger(): Donnees {
 
     // Le cas inverse : un rôle SUPPRIMÉ du code (ex. custom.ts) peut rester dans la distribution
     // enregistrée, et ROLES[alias] vaut alors undefined → page blanche. On jette la distribution :
-    // le meneur n'a qu'à redistribuer.
+    // l'oracle n'a qu'à redistribuer.
     const distributionLue = lu.distribution ?? {};
     const aliasDistribues = Object.values(distributionLue);
     const distributionValide = aliasDistribues.every(alias => ROLES[alias] !== undefined);

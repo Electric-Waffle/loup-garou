@@ -8,7 +8,7 @@ import type { Role } from "../types";
  *   1. La nuit, une carte le désigne (morsure, Voyante, Salvateur, Sorcière, Fée…).
  *   2. Le moteur appelle estVise() avant l'action ; le Hurleur ajoute une info PUBLIQUE avec le
  *      titre de la carte et le libellé de l'option choisie (« Dévorer », « Sonder », « Protéger »…).
- *   3. Le meneur la lit à voix haute au rapport de l'aube.
+ *   3. L'oracle la lit à voix haute au rapport de l'aube.
  *
  * ATTENTION : jamais le nom du Hurleur dans l'annonce, même quand on pourrait le deviner (Clair de
  * lune). Les boutons peuvent contenir son nom (« Sonder J3 ») : le Hurleur le retire du libellé.
@@ -16,7 +16,7 @@ import type { Role } from "../types";
  * POURQUOI estVise() et pas reagir() : reagir() ne voit que les tags reçus. La Voyante regarde sans
  * rien donner : elle serait passée inaperçue.
  * POURQUOI relire decision() pour le libellé : le choix fait ne garde que l'id ("sonder") ; le
- * libellé est celui que le meneur a vu sur le bouton. Relu AVANT agir(), l'état n'a pas encore changé.
+ * libellé est celui que l'oracle a vu sur le bouton. Relu AVANT agir(), l'état n'a pas encore changé.
  */
 const hurleur: Role = {
   alias: "hurleur",
@@ -27,7 +27,7 @@ const hurleur: Role = {
   explication: [
     "Un villageois qui hurle dès qu'une carte s'en prend à lui pendant la nuit.",
     "Morsure, regard de la Voyante, protection du Salvateur, potion, enchantement… toute carte qui le désigne déclenche un hurlement.",
-    "Au rapport de l'aube, le meneur annonce que le Hurleur a été visé, par quelle carte et avec quelle action.",
+    "Au rapport de l'aube, l'oracle annonce que le Hurleur a été visé, par quelle carte et avec quelle action.",
     "Son nom n'est jamais donné : le village sait seulement que le Hurleur a été visé."
   ],
 

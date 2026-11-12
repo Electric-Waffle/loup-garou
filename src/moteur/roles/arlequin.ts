@@ -7,7 +7,7 @@ import type { Role } from "../types";
  *   1. Appelé juste après la Fée (priorité 20) et avant tous les autres.
  *   2. Il DONNE "lie" aux deux joueurs, chacun avec l'id de son partenaire, expirant à l'aube.
  *   3. Le MOTEUR applique la règle : partie.ciblesPossibles() ne propose à un joueur lié que
- *      lui-même et son partenaire, quand il joue seul sa carte. Pour les loups, le meneur décide de tête.
+ *      lui-même et son partenaire, quand il joue seul sa carte. Pour les loups, l'oracle décide de tête.
  *
  * ATTENTION : le lien expire à la fin de l'aube, AVANT la décision urgente d'un Chasseur tué
  * cette nuit-là. Il ne s'applique donc pas à ce Chasseur.
@@ -21,7 +21,7 @@ const arlequin: Role = {
   explication: [
     "La première nuit, puis une nuit sur deux (rang 20), il lie deux joueurs jusqu'à l'aube.",
     "Un joueur lié qui joue seul sa carte ne peut viser que lui-même ou son partenaire.",
-    "Pour une carte de groupe comme les loups, le meneur applique la règle de tête.",
+    "Pour une carte de groupe comme les loups, l'oracle applique la règle de tête.",
     "Le lien disparaît à la fin de l'aube : un Chasseur tué cette nuit-là tire librement."
   ],
   priorite: 20,

@@ -8,7 +8,7 @@ import type { Joueur, Role } from "../types";
  * Déroulé :
  *   1. Nuits impaires (1, 3, 5…) : decision() propose « Tester » ; agir() range le testé et le
  *      numéro de la nuit du résultat (tour + 1) dans sa memoire.
- *   2. Nuit suivante : decision() (sans choix) donne le résultat au meneur, qui le lui montre avec
+ *   2. Nuit suivante : decision() (sans choix) donne le résultat à l'oracle, qui le lui montre avec
  *      les doigts. Testé mort entre-temps : aucune info.
  *
  * CONCEPT : la table est un cercle des VIVANTS, dans l'ordre de partie.joueurs (les morts ne
@@ -28,7 +28,7 @@ const sourcier: Role = {
   description: "Un chercheur de sources, guidé par sa baguette. Une nuit sur deux, il teste un joueur. La nuit suivante, si ce joueur est encore en vie, il apprend à combien de places se trouve le non-villageois (loup, Fou, Skinwalker…) le plus proche de lui.",
   explication: [
     "Les nuits impaires (rang 82), il choisit un joueur à tester.",
-    "La nuit suivante, si ce joueur est encore en vie, le meneur lui dit à combien de places se trouve le non-villageois vivant le plus proche (loup, Fou, Skinwalker…).",
+    "La nuit suivante, si ce joueur est encore en vie, l'oracle lui dit à combien de places se trouve le non-villageois vivant le plus proche (loup, Fou, Skinwalker…).",
     "On compte autour de la table, dans le sens le plus court, sans les morts : deux voisins sont à 1 place.",
     "Le testé ne compte pas : « 0 » veut dire qu'il n'y a pas d'autre non-villageois que lui.",
     "Si le testé meurt avant la réponse, le Sourcier n'apprend rien : il faut bien choisir, et à l'avance."

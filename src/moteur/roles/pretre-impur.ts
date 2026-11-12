@@ -27,7 +27,7 @@ const pretreImpur: Role = {
     "Il ne se réveille pas avec la meute : les loups ignorent qu'il est des leurs.",
     "Il compte comme un loup : tant qu'il vit, le village n'a pas gagné, et il rapproche la meute de la victoire.",
     "Mort, comme le Prêtre pur, il garde les yeux ouverts le jour et les ferme la nuit. Il ne vote plus, mais pendant le débat il peut chuchoter au maire… pour le tromper.",
-    "Carte hybride : à sa mort, le meneur annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
+    "Carte hybride : à sa mort, l'oracle annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
   ]
 };
 

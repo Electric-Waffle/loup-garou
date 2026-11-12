@@ -49,7 +49,7 @@ const aberration: Role = {
 
   reagir(tag, _meta, partie) {
     if (tag !== "mort") return;
-    // POURQUOI retirerTag avec une profondeur : l'opération est tracée au journal du meneur.
+    // POURQUOI retirerTag avec une profondeur : l'opération est tracée au journal de l'oracle.
     for (const joueur of partie.joueurs.filter(j => partie.aTag(j, "horrifie"))) {
       partie.retirerTag(joueur, "horrifie", 1);
     }

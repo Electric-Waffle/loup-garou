@@ -3,7 +3,7 @@ import type { Evenement } from "../types";
 /**
  * CLAIR DE LUNE : cette nuit, la Voyante et le Loup voyante ne peuvent voir que la carte de la personne désignée.
  * Ce sont ces deux cartes qui lisent le tag "eclaire" (posé le jour, il couvre la nuit).
- * Sans voyante en jeu, l'événement tombe à plat : le meneur fait semblant, c'est voulu.
+ * Sans voyante en jeu, l'événement tombe à plat : l'oracle fait semblant, c'est voulu.
  *
  * PATTERN : même contrat qu'un rôle. decision() décrit le choix, agir() renvoie ce qu'il DONNE ;
  * le maire tient la place de moi, donc la cible "un_autre" l'exclut (il ne se désigne jamais).
@@ -17,7 +17,7 @@ const clairDeLune: Evenement = {
     "Le maire désigne une personne, jamais lui-même.",
     "Cette nuit, Mama Killa n'éclaire qu'elle : la Voyante et le Loup voyante ne peuvent regarder que sa carte.",
     "Si c'est le Hurleur, le regard le fait hurler, sans révéler son nom.",
-    "Sans voyante en jeu, l'événement tombe à plat : le meneur fait semblant."
+    "Sans voyante en jeu, l'événement tombe à plat : l'oracle fait semblant."
   ],
 
   decision: (_partie, maire) => ({

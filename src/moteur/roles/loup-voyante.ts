@@ -14,7 +14,7 @@ const OPTION_ECLAIRE = "sonder-eclaire";
  * Une correction de la logique « sonder » est donc à reporter dans les deux fichiers.
  * POURQUOI priorité 107 : APRÈS le Salvateur (100), pour que sa protection bloque la vision,
  * et avant le tour des loups (120), pour qu'elle sache avant de choisir la victime.
- * ATTENTION : un échec ne peut pas être silencieux (le meneur doit lui montrer quelque chose).
+ * ATTENTION : un échec ne peut pas être silencieux (l'oracle doit lui montrer quelque chose).
  * Elle apprend donc que sa cible est protégée cette nuit, et la meute peut s'en servir au vote des loups.
  */
 const loupVoyante: Role = {

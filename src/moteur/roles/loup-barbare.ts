@@ -13,7 +13,7 @@ import type { Role } from "../types";
  *      vie de l'Ancien et potion de la Sorcière s'appliquent sans une ligne de plus.
  *
  * POURQUOI un numéro de nuit plutôt qu'un simple « peutMordre = true » : il n'y a rien à remettre
- * à zéro. Si le meneur passe son tour, la nuit d'après le numéro ne correspond plus.
+ * à zéro. Si l'oracle passe son tour, la nuit d'après le numéro ne correspond plus.
  * ATTENTION : il compte comme un loup pour la victoire (camp "loups"), même si la meute l'ignore.
  */
 const loupBarbare: Role = {

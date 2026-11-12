@@ -2,7 +2,7 @@ import type { Evenement } from "../types";
 
 /**
  * TÉNÈBRES (animation) : débat et vote les yeux fermés, sauf le maire.
- * Aucun effet dans le moteur : le meneur lit la règle et la fait respecter.
+ * Aucun effet dans le moteur : l'oracle lit la règle et la fait respecter.
  */
 const tenebres: Evenement = {
   alias: "tenebres",
@@ -12,7 +12,7 @@ const tenebres: Evenement = {
   explication: [
     "Pour les Incas, une éclipse, c'est un puma qui attaque le Soleil.",
     "Tout le monde ferme les yeux pendant le débat et le vote, sauf le maire : lui seul voit qui accuse qui et qui vote quoi.",
-    "C'est une animation : le meneur fait respecter la règle."
+    "C'est une animation : l'oracle fait respecter la règle."
   ]
 };
 

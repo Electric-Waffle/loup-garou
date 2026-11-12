@@ -7,7 +7,7 @@ import type { Role } from "../types";
  * Déroulé :
  *   1. Nuit 1 : decision() propose « Pur » ou « Impur ». Impur, agir() DONNE "devient" : sa carte
  *      devient le Prêtre impur (pretre-impur.ts, camp "loups").
- *      Seuls le Prêtre et le meneur (qui voit sa carte sur la table) connaissent ce choix.
+ *      Seuls le Prêtre et l'oracle (qui voit sa carte sur la table) connaissent ce choix.
  *   2. De son vivant : aucun pouvoir.
  *   3. Mort (et annoncé) : il garde les yeux fermés la nuit et ouverts le jour comme les vivants,
  *      ne vote plus, mais peut chuchoter au maire pendant le débat (rappel affiché par PartieVue).
@@ -26,12 +26,12 @@ const pretre: Role = {
   hybride: true,
   description: "Un prêtre du temple du Soleil. La 1re nuit, il choisit en secret d'être pur (il reste villageois) ou impur (il devient Prêtre impur, du camp des loups). Mort, il peut chuchoter au maire.",
   explication: [
-    "La première nuit (rang 70), il choisit en secret d'être pur ou impur. Seuls lui et le meneur le savent.",
+    "La première nuit (rang 70), il choisit en secret d'être pur ou impur. Seuls lui et l'oracle le savent.",
     "Pur, ou s'il passe : il reste un villageois.",
     "Impur : sa carte devient Prêtre impur, du camp des loups, sans que les loups le sachent.",
     "De son vivant, il n'a aucun pouvoir.",
     "Mort, il continue de jouer comme un vivant : il garde les yeux ouverts le jour et les ferme la nuit. Il ne vote plus, mais pendant le débat il peut chuchoter au maire, pour l'aider.",
-    "Carte hybride : à sa mort, le meneur annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
+    "Carte hybride : à sa mort, l'oracle annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
   ],
   // POURQUOI 70 : n'importe quelle place convient (son choix n'affecte personne la nuit 1).
   // Juste après les liens (Loup amoureux 30, Cupidon 50, Réunion des amoureux 60) et avant la Voyante (80).

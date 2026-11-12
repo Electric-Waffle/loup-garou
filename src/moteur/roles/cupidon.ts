@@ -35,7 +35,7 @@ const cupidon: Role = {
   // decision() n'a pas besoin de changer : elle distingue seulement « nuit du lien » et « autre nuit ».
   tours: { de: 1, chaque: 2, a: 3 },
 
-  // POURQUOI le titre lu dans la partie plutôt que « Cupidon » en dur : le meneur peut
+  // POURQUOI le titre lu dans la partie plutôt que « Cupidon » en dur : l'oracle peut
   // renommer la carte dans Options.
   decision(partie, moi) {
     const titre = partie.titre(moi.role);
@@ -80,7 +80,7 @@ function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
 
 /**
  * Nuit 3 : une info réservée au porteur de la carte (moi), avec les rôles sans les noms.
- * Le meneur choisit ensuite comment transmettre l'information.
+ * L'oracle choisit ensuite comment transmettre l'information.
  */
 function revelerLesAmoureux(partie: Partie, moi: Joueur): ResultatAction {
   // Tous les amoureux VIVANTS, quel que soit le lien : ceux de Cupidon, le Loup amoureux et son

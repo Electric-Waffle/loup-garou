@@ -11,7 +11,7 @@ const treve: Evenement = {
   description: "Pachamama, la Terre Mère, apaise les esprits : pas de minuteur aujourd'hui, et le village peut décider de n'éliminer personne.",
   explication: [
     "Pas de minuteur : le débat dure le temps qu'il faut.",
-    "Le village a le droit de n'éliminer personne : le meneur choisit « Personne n'est éliminé » à l'écran du vote."
+    "Le village a le droit de n'éliminer personne : l'oracle choisit « Personne n'est éliminé » à l'écran du vote."
   ],
   minuteur: null
 };

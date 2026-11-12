@@ -38,7 +38,7 @@ export interface DecisionCourante {
 }
 
 /**
- * Tags qui empêchent un joueur de faire son rôle, avec le libellé affiché au meneur.
+ * Tags qui empêchent un joueur de faire son rôle, avec le libellé affiché à l'oracle.
  * RÉUTILISABLE : une nouvelle cause de blocage = une ligne ici, rien dans les rôles.
  */
 const TAGS_BLOQUANTS: Record<string, string> = {
@@ -231,7 +231,7 @@ export class Partie {
    * Règle de l'Arlequin : un joueur lié qui joue SEUL sa carte ne peut viser que lui-même
    * et son partenaire (même mort : le Chasseur lié dont le partenaire est mort ne peut plus tirer).
    * POURQUOI pas pour une carte de groupe : un seul loup lié ne doit pas restreindre toute la
-   * meute ; le meneur applique la règle de tête.
+   * meute ; l'oracle applique la règle de tête.
    */
   ciblesPossibles(type: TypeCible = "aucune", moi?: Joueur, porteurs: Joueur[] = moi ? [moi] : []): Joueur[] {
     const cibles = this.ciblesDuType(type, moi);
@@ -330,7 +330,7 @@ export class Partie {
     return { message: `${this.titre(alias)} se réveille… (${raison}).`, choix: [] };
   }
 
-  /** Le meneur valide un choix pour la décision courante (étapes 2 → 3 → 4). */
+  /** L'oracle valide un choix pour la décision courante (étapes 2 → 3 → 4). */
   jouer(choix: ChoixFait): void {
     const courante = this.decisionCourante();
     if (!courante) throw new Error("Aucune décision en cours.");
@@ -361,7 +361,7 @@ export class Partie {
     tourDeCarte(this, courante.alias, choix, courante.moi);
   }
 
-  /** Le meneur passe le tour de la carte courante sans action. */
+  /** L'oracle passe le tour de la carte courante sans action. */
   passer(): void {
     const courante = this.decisionCourante();
     if (!courante) return;
@@ -444,7 +444,7 @@ export class Partie {
   /** Vrai si aucun joueur VIVANT n'a le tag "maire" : il faut en élire un. */
   aBesoinDUnMaire(): boolean { return this.joueursAvecTag("maire").length === 0; }
 
-  /** Le meneur désigne le maire. Le tag passe par donnerTag, comme le reste, puis l'événement est tiré. */
+  /** L'oracle désigne le maire. Le tag passe par donnerTag, comme le reste, puis l'événement est tiré. */
   elire(id: string): void {
     appliquerResultat(this, { donner: [{ tag: "maire", a: id }] }, "election");
     this.ouvrirEvenement();
@@ -513,7 +513,7 @@ export class Partie {
 
   /**
    * Durée du débat en minutes (null = pas de minuteur), dans l'ordre :
-   * la suite du Sablier, puis le minuteur de l'événement du jour, puis le réglage du meneur.
+   * la suite du Sablier, puis le minuteur de l'événement du jour, puis le réglage de l'oracle.
    */
   dureeDuDebat(parDefaut: number): number | null {
     if (this.dureeImposee !== undefined) return this.dureeImposee;
@@ -547,7 +547,7 @@ export class Partie {
    */
   voter(id: string | null): void {
     // Sauf-conduit : garde-fou du moteur, même si l'interface rend déjà le siège non cliquable.
-    // ATTENTION : vérifié AVANT tout changement d'état, pour que le meneur puisse recliquer.
+    // ATTENTION : vérifié AVANT tout changement d'état, pour que l'oracle puisse recliquer.
     if (id && this.aTag(this.joueur(id), "sauf_conduit")) {
       throw new Error(`${this.joueur(id).nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
     }
@@ -639,7 +639,7 @@ export class Partie {
     if (resultat.revoter && !this.aRevote) this.peutRevoter = true;
   }
 
-  /** Coup double : le meneur rouvre le vote (le débat se fait de tête, sans minuteur). */
+  /** Coup double : l'oracle rouvre le vote (le débat se fait de tête, sans minuteur). */
   revoter(): void {
     if (!this.peutRevoter) throw new Error("Aucun second vote n'est proposé.");
     this.peutRevoter = false;
@@ -675,7 +675,7 @@ export class Partie {
   }
 
   /**
-   * Ce que le meneur doit appliquer au vote, d'après les tags "silence" et "dirige"
+   * Ce que l'oracle doit appliquer au vote, d'après les tags "silence" et "dirige"
    * (Loup hypnotiseur). Lu seulement pendant la phase de vote : rien n'est révélé au débat.
    * POURQUOI ici et pas dans loup-hypnotiseur.ts : ce sont des règles de TAGS, valables pour tout
    * futur rôle qui les donnerait (comme "enchante" dans decisionCourante).

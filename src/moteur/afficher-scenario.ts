@@ -1,4 +1,4 @@
-// npm run scenario : affiche le journal du cas particulier, comme le verrait le meneur.
+// npm run scenario : affiche le journal du cas particulier, comme le verrait l'oracle.
 import { nuitDeux, nuitUn } from "./scenario";
 
 const p = nuitUn();

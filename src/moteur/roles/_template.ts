@@ -21,8 +21,8 @@
  *  RAPPEL : LE CYCLE DONNER / RECEVOIR
  * -------------------------------------------------------------------------------------
  *
- *    1. Carte montrée       → le moteur appelle  decision()   (ce que voit le meneur)
- *    2. Décision du meneur  → le meneur choisit une option et ses cibles
+ *    1. Carte montrée       → le moteur appelle  decision()   (ce que voit l'oracle)
+ *    2. Décision de l'oracle  → l'oracle choisit une option et ses cibles
  *    3. DONNER              → le moteur appelle  agir()       (tags donnés + infos)
  *    4. RECEVOIR            → pour chaque tag donné, le moteur appelle donnerTag() :
  *                               a. recevoir() du rôle du RECEVEUR (peut intercepter)
@@ -153,7 +153,7 @@ const template: Role = {
    * =================================================================================== */
 
   /**
-   * true  → le meneur appelle cette carte pendant la nuit (il faut aussi une méthode decision()).
+   * true  → l'oracle appelle cette carte pendant la nuit (il faut aussi une méthode decision()).
    * false → la carte n'est jamais appelée la nuit (Villageois, Ancien, Chasseur…).
    *         Elle peut quand même agir via recevoir(), reagir() ou une décision en attente.
    */
@@ -249,13 +249,13 @@ const template: Role = {
   /* ===================================================================================
    *  ÉTAPES 1-2 : decision()
    *  Appelée quand la carte est montrée (la nuit, ou pour une décision en attente).
-   *  Elle ne modifie RIEN : elle décrit seulement ce que le meneur voit et peut choisir.
+   *  Elle ne modifie RIEN : elle décrit seulement ce que l'oracle voit et peut choisir.
    * =================================================================================== */
 
   /**
    * @param partie  l'état complet de la partie (voir la boîte à outils en bas du fichier)
    * @param moi     le joueur qui porte ce rôle (pour les loups : le premier loup vivant)
-   * @returns       un message pour le meneur et la liste des choix possibles
+   * @returns       un message pour l'oracle et la liste des choix possibles
    *
    * Types de cible disponibles (champ `cible` d'un choix) :
    *   "aucune"        → pas de cible, le choix est validé dès le clic
@@ -273,7 +273,7 @@ const template: Role = {
     //   if (moi.memoire.chargesRestantes > 0) choix.push({ id: "agir", label: "Agir", cible: "un_autre" });
     //   choix.push({ id: "rien", label: "Ne rien faire", cible: "aucune" });
 
-    // Exemple : montrer une information au meneur dans le message.
+    // Exemple : montrer une information à l'oracle dans le message.
     //   const mordus = partie.joueursAvecTag("mordu").map(j => j.nom).join(", ");
 
     return {
@@ -287,7 +287,7 @@ const template: Role = {
 
   /* ===================================================================================
    *  ÉTAPE 3 : agir()  —  DONNER
-   *  Appelée quand le meneur valide un choix.
+   *  Appelée quand l'oracle valide un choix.
    *  Elle renvoie ce que le rôle DONNE (des tags) et ce qu'il APPREND (des infos).
    *  C'est le moteur (donner.ts) qui distribue ensuite les tags via donnerTag().
    * =================================================================================== */
@@ -417,7 +417,7 @@ const template: Role = {
 
   /**
    * Comme reagir() : ne renvoie rien, agit via partie.mettreEnAttente() ou appliquerResultat().
-   * Exemple (Fêtard) : si l'éliminé est un loup, le meneur indique s'il a voté contre lui.
+   * Exemple (Fêtard) : si l'éliminé est un loup, l'oracle indique s'il a voté contre lui.
    */
   apresVote(partie: Partie, moi: Joueur, elimine: Joueur): void {
     // Par défaut : rien.

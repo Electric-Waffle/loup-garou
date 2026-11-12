@@ -26,7 +26,7 @@ const marchand: Role = {
     "Tué autrement, son or passe à un de ses tueurs vivants : un loup s'il a été dévoré, la Sorcière s'il a été empoisonné…",
     "Sans tueur vivant (peste, chagrin…), il choisit lui-même à qui donner son or.",
     "L'or appartient à celui qui le porte : un loup qui en hérite peut racheter son propre vote.",
-    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et le meneur savent lequel des quatre rôles c'était."
+    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
   ],
 
   debut: (_partie, moi) => ({

@@ -2,7 +2,7 @@ import type { Evenement } from "../types";
 
 /**
  * MURMURES D'OUTRE-TOMBE (animation) : les loups morts désignent un joueur, sans autre effet. Sans loup mort, « Un autre » ou « Passer ».
- * Aucun effet dans le moteur : le meneur lit la règle et la fait respecter.
+ * Aucun effet dans le moteur : l'oracle lit la règle et la fait respecter.
  */
 const murmures: Evenement = {
   alias: "murmures",
@@ -12,7 +12,7 @@ const murmures: Evenement = {
   explication: [
     "Les loups morts désignent ensemble un joueur, sans autre effet.",
     "Au village d'en tirer quelque chose… ou de s'en méfier.",
-    "Sans loup mort, le meneur tire un autre événement ou passe."
+    "Sans loup mort, l'oracle tire un autre événement ou passe."
   ]
 };
 

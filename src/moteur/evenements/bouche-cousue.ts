@@ -2,7 +2,7 @@ import type { Evenement } from "../types";
 
 /**
  * BOUCHE COUSUE (animation) : on parle les lèvres collées pendant le vote.
- * Aucun effet dans le moteur : le meneur lit la règle et la fait respecter.
+ * Aucun effet dans le moteur : l'oracle lit la règle et la fait respecter.
  */
 const boucheCousue: Evenement = {
   alias: "bouche-cousue",
@@ -12,7 +12,7 @@ const boucheCousue: Evenement = {
   explication: [
     "Les masques de jade couvrent les visages pendant le vote : personne n'a le droit d'ouvrir la bouche.",
     "On peut parler, mais les lèvres toujours collées.",
-    "C'est une animation : le meneur fait respecter la règle."
+    "C'est une animation : l'oracle fait respecter la règle."
   ]
 };
 

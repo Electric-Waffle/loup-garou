@@ -8,7 +8,7 @@ import type { Role } from "../types";
  *   1. Il se réveille et vote avec la meute (rejoint: ["loup"]) ; il compte comme un loup.
  *   2. Deux vies face aux loups (un Loup barbare peut le mordre) : sa première mort par morsure
  *      devient "vie_perdue".
- *   3. S'il est maire : avantVote() suspend chaque vote. Le meneur lui montre en secret la carte
+ *   3. S'il est maire : avantVote() suspend chaque vote. L'oracle lui montre en secret la carte
  *      de l'accusé, puis il laisse la mort avoir lieu, ou, UNE fois par partie, relance le vote
  *      (pour sauver un loup, cette fois).
  *
@@ -28,10 +28,10 @@ const fauxParleur: Role = {
     "Il se réveille avec les loups et assiste au choix de la victime.",
     "Il a deux vies face aux loups, comme le Beau Parleur.",
     "Maire, il voit en secret la carte de chaque accusé avant sa mort, et peut relancer le vote une fois par partie : de quoi sauver un loup.",
-    "Son pouvoir de maire ne compte que s'il a été élu grâce à son éloquence, sans avoir révélé sa carte. S'il s'est fait élire en laissant entendre qu'il était Beau Parleur ou Faux Parleur, il n'a pas de pouvoir : c'est le meneur qui en juge.",
-    "Dans ce cas, à chaque vote, le meneur choisit simplement « Laisser le vote », sans lui montrer la carte de l'accusé.",
+    "Son pouvoir de maire ne compte que s'il a été élu grâce à son éloquence, sans avoir révélé sa carte. S'il s'est fait élire en laissant entendre qu'il était Beau Parleur ou Faux Parleur, il n'a pas de pouvoir : c'est l'oracle qui en juge.",
+    "Dans ce cas, à chaque vote, l'oracle choisit simplement « Laisser le vote », sans lui montrer la carte de l'accusé.",
     "Il peut aussi devenir maire plus tard dans la partie : il a donc intérêt à garder sa carte secrète jusqu'au bout.",
-    "Carte hybride : à sa mort, le meneur annonce « Beau Parleur », sans jamais révéler le camp que le joueur avait choisi."
+    "Carte hybride : à sa mort, l'oracle annonce « Beau Parleur », sans jamais révéler le camp que le joueur avait choisi."
   ],
   rejoint: ["loup"],
 

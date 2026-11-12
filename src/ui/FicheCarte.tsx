@@ -3,9 +3,9 @@
  * =====================================================================================
  *
  *  RÉUTILISABLE : la page Explications affiche les pastilles et ouvre la fiche au clic ;
- *  PartieVue ouvre la même fiche quand le meneur clique sur un joueur sans rien à cibler.
+ *  PartieVue ouvre la même fiche quand l'oracle clique sur un joueur sans rien à cibler.
  *
- *  POURQUOI `titre` et `image` à part du rôle : le meneur peut renommer une carte ou changer
+ *  POURQUOI `titre` et `image` à part du rôle : l'oracle peut renommer une carte ou changer
  *  son image dans les options. L'appelant passe l'apparence choisie ; le rôle donne le reste.
  * ===================================================================================== */
 

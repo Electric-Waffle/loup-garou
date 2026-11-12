@@ -16,7 +16,7 @@ export const sablier: Evenement = {
   description: "Inti traverse le ciel : le débat dure 8 minutes. Le temps qui reste au moment du vote sera la durée du débat de demain.",
   explication: [
     "Le débat dure 8 minutes, le temps qu'Inti avance dans le ciel.",
-    "Le temps qui reste quand le meneur passe au vote est gardé.",
+    "Le temps qui reste quand l'oracle passe au vote est gardé.",
     "Le lendemain, aucun événement n'est tiré : le débat dure exactement ce temps restant (Course d'Inti, suite).",
     "Un village qui vote vite s'offre donc un long débat le lendemain."
   ],

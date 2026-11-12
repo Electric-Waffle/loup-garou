@@ -2,7 +2,7 @@ import type { Evenement } from "../types";
 
 /**
  * BÂILLON (animation) : le maire désigne une personne qui se tait pendant le vote.
- * Aucun effet dans le moteur : le meneur lit la règle et la fait respecter.
+ * Aucun effet dans le moteur : l'oracle lit la règle et la fait respecter.
  */
 const baillon: Evenement = {
   alias: "baillon",
@@ -12,7 +12,7 @@ const baillon: Evenement = {
   explication: [
     "Le maire désigne une personne : Supay lui vole la voix.",
     "Elle n'a pas le droit de parler pendant le vote.",
-    "C'est une animation : l'application ne vérifie rien, le meneur fait respecter la règle."
+    "C'est une animation : l'application ne vérifie rien, l'oracle fait respecter la règle."
   ]
 };
 

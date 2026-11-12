@@ -4,7 +4,7 @@ import type { Evenement } from "../types";
  * COUP DOUBLE : si le joueur éliminé est un loup, le village peut voter une seconde fois.
  *
  * FLUX : apresVote() renvoie revoter ; le moteur propose alors partie.revoter(), et l'écran du
- * résultat affiche « Voter quelqu'un d'autre ». Le débat de ce second vote, le meneur le gère
+ * résultat affiche « Voter quelqu'un d'autre ». Le débat de ce second vote, l'oracle le gère
  * de tête : on revient directement au vote.
  * POURQUOI le moteur limite à un second vote (et pas l'événement) : l'événement n'a pas d'état ;
  * partie.aRevote, remis à zéro chaque jour, s'en souvient.
