@@ -23,6 +23,13 @@ const loupAmoureux: Role = {
   image: "💞",
   camp: "loups",
   description: "Un loup qui, la première nuit, se lie à un joueur. Si l'un meurt, l'autre meurt de chagrin.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "La première nuit (rang 102), il se lie lui-même à un joueur : si l'un meurt, l'autre meurt de chagrin.",
+    "Son partenaire est prévenu : il sait qu'il aime un loup. Il vient à la Réunion des amoureux à partir de la nuit 2.",
+    "Il joue après le Salvateur : si sa cible est protégée, le lien échoue, sans seconde chance.",
+    "Si sa cible est déjà liée par Cupidon, les liens s'additionnent."
+  ],
   priorite: 102,
   appelNuit: true,
   tours: { de: 1, a: 1 },

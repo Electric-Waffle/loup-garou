@@ -957,6 +957,33 @@ test("Skinwalker : vivant, il vole la victoire du village", () => {
   assert.equal(verifierVictoire(p), "Le village");
 });
 
+/* ---------- Conquistador ---------- */
+
+test("Conquistador : une seule balle, qui tue même un joueur protégé", () => {
+  const p = partieAvec(["loup", "conquistador", "salvateur", "villageois", "villageois", "villageois"]);
+  jouerJusqua(p, "salvateur");
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  jouerJusqua(p, "conquistador");
+  p.jouer({ id: "tirer", cibles: ["j3"] });
+  assert.equal(p.joueur("j3").vivant, false); // une balle n'est pas une morsure
+
+  allerALaNuit(p, 2);
+  jouerJusqua(p, "conquistador");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []); // plus de balle
+});
+
+test("Conquistador : la victime avait de l'or, il récupère sa balle et l'or", () => {
+  const p = partieAvec(["loup", "conquistador", "marchand", "villageois", "villageois", "villageois"]);
+  jouerJusqua(p, "conquistador");
+  p.jouer({ id: "tirer", cibles: ["j2"] });
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.ok(p.aTag(p.joueur("j1"), "or"));
+
+  allerALaNuit(p, 2);
+  jouerJusqua(p, "conquistador");
+  assert.equal(p.decisionCourante()?.decision.choix[0]?.id, "tirer");
+});
+
 /* ---------- Sourcier ---------- */
 
 /** Message du Sourcier la nuit n (nuit paire : celle du résultat). */

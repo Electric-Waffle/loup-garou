@@ -8,7 +8,12 @@ const murmures: Evenement = {
   alias: "murmures",
   titre: "Murmures d'outre-tombe",
   image: "👻",
-  description: "Les loups morts désignent un joueur. C'est tout."
+  description: "Les loups morts désignent un joueur. C'est tout.",
+  explication: [
+    "Les loups morts désignent ensemble un joueur, sans autre effet.",
+    "Au village d'en tirer quelque chose… ou de s'en méfier.",
+    "Sans loup mort, le meneur tire un autre événement ou passe."
+  ]
 };
 
 export default murmures;

@@ -26,6 +26,13 @@ const beauParleur: Role = {
   camp: "village",
   hybride: true,
   description: "Il survit à la première attaque des loups. Maire, il voit la carte de chaque accusé avant sa mort et peut, une fois par partie, relancer le vote. La 1re nuit, il peut devenir Faux Parleur.",
+  explication: [
+    "La première nuit (rang 72), il choisit en secret de rester Beau Parleur ou de devenir Faux Parleur, du camp des loups.",
+    "Il a deux vies face aux loups : la première morsure qui devrait le tuer lui fait seulement perdre une vie.",
+    "S'il est maire, chaque vote est suspendu avant la mort : le meneur lui montre en secret la carte de l'accusé.",
+    "Il peut alors laisser la mort se produire, ou relancer le vote, une seule fois par partie.",
+    "Privé de pouvoir (Ancien, Fée, Pleureuse), le vote tue tout de suite."
+  ],
   priorite: 72,
   appelNuit: true,
   tours: { de: 1, a: 1 },

@@ -15,6 +15,12 @@ const loupSavant: Role = {
   image: "📚",
   camp: "loups",
   description: "Un loup qui, la première nuit, découvre 3 cartes activées que personne n'a reçues.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "La première nuit (rang 110), le meneur lui montre 3 cartes activées dans les options mais que personne n'a reçues.",
+    "Il sait donc quelles cartes ne sont pas en jeu, et peut bluffer en prétendant en avoir une.",
+    "Ces 3 cartes existent aussi pour la Voyante et le Loup voyante, qui peuvent les sonder pour apprendre qu'elles ne sont à personne."
+  ],
   // POURQUOI 110 : juste avant le tour des loups (120), pour qu'il sache avant de voter.
   priorite: 110,
   appelNuit: true,

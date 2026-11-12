@@ -14,6 +14,12 @@ const benediction: Evenement = {
   titre: "Bénédiction",
   image: "✨",
   description: "Le maire désigne une personne : elle a la protection du Salvateur la nuit venue.",
+  explication: [
+    "Le maire désigne une personne, jamais lui-même.",
+    "La nuit suivante, elle a la protection complète du Salvateur : la morsure est bloquée, et les loups qui agissent seuls (Loup amoureux, Loup voyante…) échouent sur elle.",
+    "Elle peut protéger quelqu'un que le Salvateur a protégé la veille.",
+    "Elle compte comme une vraie protection : le Salvateur ne pourra pas protéger cette personne la nuit d'après."
+  ],
 
   decision: (_partie, maire) => ({
     message: `${maire.nom}, le maire, désigne la personne qui sera protégée cette nuit, comme par le Salvateur.`,

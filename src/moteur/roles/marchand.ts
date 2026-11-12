@@ -20,6 +20,13 @@ const marchand: Role = {
   image: "💰",
   camp: "village",
   description: "Commence avec de l'or. Voté, il le dépense pour un second vote où lui seul a la parole. Tué, son or passe à son tueur.",
+  explication: [
+    "Il commence la partie avec de l'or.",
+    "Voté par le village, il dépense son or : le vote est annulé, il a seul la parole pour se défendre, puis le village revote.",
+    "Tué autrement, son or passe à un de ses tueurs vivants : un loup s'il a été dévoré, la Sorcière s'il a été empoisonné…",
+    "Sans tueur vivant (peste, chagrin…), il choisit lui-même à qui donner son or.",
+    "L'or appartient à celui qui le porte : un loup qui en hérite peut racheter son propre vote."
+  ],
 
   debut: (_partie, moi) => ({
     donner: [{ tag: "or", a: moi.id }]

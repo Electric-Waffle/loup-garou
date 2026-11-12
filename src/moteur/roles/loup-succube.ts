@@ -28,6 +28,13 @@ const loupSuccube: Role = {
   image: "💋",
   camp: "loups",
   description: "Un loup qui se lie à un compagnon. S'il meurt, son compagnon meurt aussi ; si le compagnon meurt, il en choisit un autre la nuit suivante.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "À son tour (rang 105), s'il n'a pas de compagnon vivant, il s'en choisit un.",
+    "Le lien est à sens unique : si le Succube meurt, son compagnon meurt avec lui ; si le compagnon meurt, le Succube survit et en choisit un autre la nuit suivante.",
+    "Le compagnon vient à la Réunion des amoureux à partir de la nuit suivante ; le Succube, jamais.",
+    "Il joue après le Salvateur : un compagnon protégé fait échouer le lien, et il reste seul jusqu'à la nuit suivante."
+  ],
   // POURQUOI 105 : APRÈS le Salvateur (100), sinon sa protection n'existe pas encore quand le
   // Succube se lie. Prix : la Réunion des amoureux (60) est déjà passée, un nouveau compagnon
   // n'y vient qu'à partir de la nuit suivante.

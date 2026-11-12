@@ -19,6 +19,12 @@ const fee: Role = {
   image: "🧚",
   camp: "village",
   description: "À partir de la 2e nuit, elle enchante un joueur : il ne peut rien faire de la nuit.",
+  explication: [
+    "À partir de la nuit 2, elle est appelée la toute première (rang 10) et enchante un joueur.",
+    "L'enchanté ne fait rien de la nuit : sa carte n'offre que « Passer », et ses réactions (tir du Chasseur, choix du Rat) n'ont pas lieu.",
+    "L'enchantement dure jusqu'à la fin de l'aube : un Chasseur enchanté tué cette nuit-là meurt sans tirer.",
+    "Si elle enchante un loup, la meute chasse quand même tant qu'un autre loup peut jouer."
+  ],
   priorite: 10,
   appelNuit: true,
   tours: { de: 2 },

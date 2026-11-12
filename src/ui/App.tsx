@@ -4,7 +4,7 @@
  *
  *  Ce que App garde en mémoire (son état) :
  *    - donnees : les réglages (joueurs, cartes, table, distribution), lus et sauvés via stockage.ts ;
- *    - page    : l'onglet affiché ("options", "preparation" ou "partie") ;
+ *    - page    : l'onglet affiché ("options", "preparation", "partie" ou "explications") ;
  *    - partie  : l'objet Partie du moteur pendant une partie, null sinon.
  *
  *  Déroulé :
@@ -27,13 +27,14 @@
 
 import { useEffect, useReducer, useState } from "react";
 import { Partie, type Apparence, type JoueurInitial } from "../moteur/partie";
+import { Explications } from "./Explications";
 import { Options } from "./Options";
 import { PartieVue } from "./PartieVue";
 import { Preparation } from "./Preparation";
 import { cartesActives, charger, sauver, type CarteReglage, type Donnees } from "./stockage";
 
 /** Les onglets possibles. Une union de chaînes : TypeScript refuse toute autre valeur. */
-type Page = "options" | "preparation" | "partie";
+type Page = "options" | "preparation" | "partie" | "explications";
 
 /* -------------------------------------------------------------------------------------
  *  Fonctions de préparation du lancement (en dehors du composant)
@@ -182,6 +183,10 @@ export function App() {
               Partie en cours
             </button>
           )}
+          {/* En dernier : tout à droite de la barre. Consultable à tout moment, même en partie. */}
+          <button className={classeOnglet("explications", page)} onClick={() => setPage("explications")}>
+            Explications
+          </button>
         </nav>
       </header>
 
@@ -197,8 +202,10 @@ export function App() {
         {/* Les deux conditions sont nécessaires : TypeScript sait ainsi que `partie` n'est
             pas null quand on la passe à PartieVue. */}
         {page === "partie" && partie && (
-          <PartieVue partie={partie} rafraichir={rafraichir} dureeDebat={donnees.dureeDebat} quitter={quitter} />
+          <PartieVue partie={partie} rafraichir={rafraichir} dureeDebat={donnees.dureeDebat} ficheAuClic={donnees.ficheAuClic} quitter={quitter} />
         )}
+
+        {page === "explications" && <Explications donnees={donnees} />}
       </main>
     </div>
   );

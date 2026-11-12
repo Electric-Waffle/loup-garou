@@ -14,6 +14,11 @@ const marcheNoir: Evenement = {
   titre: "Marché noir",
   image: "🛒",
   description: "Un colporteur passe au village : la Sorcière et le Loup hypnotiseur retrouvent toutes leurs potions et médaillons.",
+  explication: [
+    "Un colporteur passe : la Sorcière retrouve ses deux potions, et le Loup hypnotiseur ses deux médaillons.",
+    "Les potions et médaillons ne se cumulent pas : on revient simplement au plein.",
+    "Les autres joueurs ne gagnent rien."
+  ],
 
   appliquer: (partie) => ({
     donner: partie.vivants().map(joueur => ({ tag: "recharge", a: joueur.id }))

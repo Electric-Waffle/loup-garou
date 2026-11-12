@@ -15,6 +15,12 @@ const batisseur: Role = {
   image: "🧱",
   camp: "village",
   description: "Chaque nuit, il renforce une maison. Quand toutes les maisons des villageois vivants sont renforcées, le village gagne.",
+  explication: [
+    "Chaque nuit (rang 90), il renforce une maison, la sienne comprise. Une maison reste renforcée toute la partie.",
+    "Quand toutes les maisons des villageois vivants sont renforcées, le village gagne aussitôt, même s'il reste des loups.",
+    "Renforcer la maison d'un loup est une nuit perdue : elle ne compte pas.",
+    "Si sa victoire et celle des loups arrivent en même temps, c'est la sienne qui l'emporte."
+  ],
   priorite: 90,
   appelNuit: true,
 

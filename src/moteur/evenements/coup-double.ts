@@ -14,6 +14,11 @@ const coupDouble: Evenement = {
   titre: "Coup double",
   image: "🎯",
   description: "Si le village élimine un loup aujourd'hui, il peut voter une seconde fois.",
+  explication: [
+    "Si le village élimine un loup aujourd'hui, il peut voter une seconde fois.",
+    "Le second vote se fait sans nouveau débat.",
+    "Un seul second vote par jour, même si le deuxième éliminé est aussi un loup."
+  ],
   rappelVote: "Coup double : si l'éliminé est un loup, le village pourra voter une seconde fois.",
 
   apresVote(partie, elimine) {

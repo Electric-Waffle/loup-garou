@@ -22,6 +22,12 @@ const loupDemon: Role = {
   image: "😈",
   camp: "loups",
   description: "Un loup qui, s'il est éliminé par le vote du village, possède un villageois au hasard : celui-ci devient Loup-Garou. Tué autrement, il meurt simplement.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "S'il est éliminé par le vote du village, il possède un joueur du camp du village tiré au hasard : celui-ci devient Loup-Garou.",
+    "Le possédé garde ses liens (amoureux, or…) mais chasse désormais avec la meute. Le meneur le prévient discrètement.",
+    "Tué autrement (morsure, poison, chagrin…), il meurt simplement, sans possession."
+  ],
   rejoint: ["loup"],
 
   reagir(tag, meta, partie, moi) {

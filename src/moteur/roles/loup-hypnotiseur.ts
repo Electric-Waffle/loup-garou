@@ -32,6 +32,13 @@ const loupHypnotiseur: Role = {
   image: "🌀",
   camp: "loups",
   description: "Un loup avec deux médaillons à usage unique. Silence : le vote de la cible ne compte pas. Suggestion : la cible vote comme lui. Le Salvateur bloque l'effet, en silence.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "Il a deux médaillons à usage unique, et peut en utiliser un par nuit (rang 115).",
+    "Silence : le lendemain, le vote de sa cible ne compte pas. Suggestion : le lendemain, sa cible vote obligatoirement comme lui, sauf s'il est mort.",
+    "L'effet dure jusqu'à l'aube suivante : il couvre aussi le second vote d'une plaidoirie. Le meneur le voit rappelé à l'écran du vote, jamais pendant le débat.",
+    "Sur une cible protégée par le Salvateur, rien ne se passe et le médaillon est perdu quand même, sans annonce. Le Marché noir lui rend ses médaillons."
+  ],
   priorite: 115,
   appelNuit: true,
   rejoint: ["loup"],

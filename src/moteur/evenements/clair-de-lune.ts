@@ -13,6 +13,12 @@ const clairDeLune: Evenement = {
   titre: "Clair de lune",
   image: "🌕",
   description: "Le maire désigne une personne : cette nuit, la Voyante et le Loup voyante ne pourront voir que sa carte.",
+  explication: [
+    "Le maire désigne une personne, jamais lui-même.",
+    "Cette nuit, la Voyante et le Loup voyante ne peuvent regarder que la carte de cette personne.",
+    "Si c'est le Hurleur, le regard le fait hurler, sans révéler son nom.",
+    "Sans voyante en jeu, l'événement tombe à plat : le meneur fait semblant."
+  ],
 
   decision: (_partie, maire) => ({
     message: `${maire.nom}, le maire, désigne la personne que la lune éclaire cette nuit.`,

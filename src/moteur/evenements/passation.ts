@@ -13,6 +13,10 @@ const passation: Evenement = {
   titre: "Passation",
   image: "🎖️",
   description: "Le maire désigne son successeur : cette personne devient le nouveau maire.",
+  explication: [
+    "Le maire désigne son successeur, jamais lui-même.",
+    "La personne désignée devient le nouveau maire, et l'ancien perd son titre : il n'y a toujours qu'un seul maire."
+  ],
 
   decision: (_partie, maire) => ({
     message: `${maire.nom}, le maire, désigne son successeur.`,

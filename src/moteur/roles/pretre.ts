@@ -25,6 +25,12 @@ const pretre: Role = {
   camp: "village",
   hybride: true,
   description: "La 1re nuit, il choisit en secret d'être pur (il reste villageois) ou impur (il devient Prêtre impur, du camp des loups). Mort, il peut chuchoter au maire.",
+  explication: [
+    "La première nuit (rang 70), il choisit en secret d'être pur ou impur. Seuls lui et le meneur le savent.",
+    "Pur, ou s'il passe : il reste un villageois.",
+    "Impur : sa carte devient Prêtre impur, du camp des loups, sans que les loups le sachent.",
+    "De son vivant, il n'a aucun pouvoir. Mort, il garde les yeux ouverts le jour et peut chuchoter au maire pendant le débat, pour l'aider."
+  ],
   // POURQUOI 70 : n'importe quelle place convient (son choix n'affecte personne la nuit 1).
   // Juste après les liens (Loup amoureux 30, Cupidon 50, Réunion des amoureux 60) et avant la Voyante (80).
   priorite: 70,

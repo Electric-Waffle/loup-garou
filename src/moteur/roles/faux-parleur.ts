@@ -23,6 +23,13 @@ const fauxParleur: Role = {
   camp: "loups",
   hybride: true,
   description: "Un loup qui vote avec la meute et survit à la première attaque des loups. Maire, il voit la carte de chaque accusé avant sa mort et peut, une fois par partie, relancer le vote.",
+  explication: [
+    "Un Beau Parleur au service des loups : distribué directement, ou atteint par un Beau Parleur qui a choisi la meute.",
+    "Il se réveille avec les loups et assiste au choix de la victime.",
+    "Il a deux vies face aux loups, comme le Beau Parleur.",
+    "Maire, il voit en secret la carte de chaque accusé avant sa mort, et peut relancer le vote une fois par partie : de quoi sauver un loup.",
+    "S'il était Beau Parleur et a déjà relancé un vote, il ne peut plus le refaire."
+  ],
   rejoint: ["loup"],
 
   init: () => ({ relanceUtilisee: false }),

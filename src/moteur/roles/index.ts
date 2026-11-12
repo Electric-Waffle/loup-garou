@@ -8,6 +8,7 @@ import chasseur from "./chasseur";
 import conciliabule from "./conciliabule";
 import cupidon from "./cupidon";
 import fauxParleur from "./faux-parleur";
+import conquistador from "./conquistador";
 import fee from "./fee";
 import sourcier from "./sourcier";
 import hurleur from "./hurleur";
@@ -79,6 +80,7 @@ export const LISTE_ROLES: Role[] = [
   stratege,
   hurleur,
   sourcier,
+  conquistador,
   aberration,
   skinwalker
 ];

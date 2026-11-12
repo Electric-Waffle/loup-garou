@@ -14,6 +14,13 @@ const voyante: Role = {
   image: "🔮",
   camp: "village",
   description: "Chaque nuit, elle découvre la carte d'un joueur, ou une des cartes hors jeu connues du Loup savant.",
+  explication: [
+    "Chaque nuit (rang 80), elle désigne un joueur, et le meneur lui montre sa carte en secret.",
+    "Si le Loup savant est en jeu, elle peut à la place sonder une des 3 cartes que personne n'a reçues : elle apprend alors que cette carte n'est pas en jeu.",
+    "Clair de lune : cette nuit-là, elle ne peut voir que la carte du joueur éclairé.",
+    "Face à un Skinwalker déguisé, elle voit la carte qu'il a volée, pas la sienne.",
+    "Si elle regarde la carte de l'Aberration, elle devient catatonique : elle ne fait plus rien et meurt à l'aube."
+  ],
   priorite: 80,
   appelNuit: true,
 

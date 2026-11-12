@@ -23,6 +23,13 @@ const loupVoyante: Role = {
   image: "👁️",
   camp: "loups",
   description: "Un loup qui, chaque nuit, découvre la carte d'un joueur, comme la Voyante.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "En plus, à son propre tour (rang 107), il regarde la carte d'un joueur comme la Voyante, ou une des cartes non distribuées connues du Loup savant.",
+    "Il joue après le Salvateur : si sa cible est protégée, la vision échoue (« la carte reste cachée »). Il apprend donc que ce joueur est protégé.",
+    "Clair de lune : il ne peut voir que le joueur éclairé. Face à un Skinwalker déguisé, il voit la carte volée.",
+    "Comme la Voyante, s'il regarde la carte de l'Aberration, il devient catatonique et meurt à l'aube."
+  ],
   priorite: 107,
   appelNuit: true,
   rejoint: ["loup"],

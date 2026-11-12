@@ -27,6 +27,13 @@ const aberration: Role = {
   image: "🦑",
   camp: "aberration",
   description: "Chaque nuit, elle horrifie un joueur. Loups tous horrifiés : ils ne mangent plus. Villageois tous horrifiés : plus de vote. Qui voit sa carte meurt. Tant qu'elle vit, personne d'autre ne gagne ; elle gagne quand tous les survivants sont horrifiés.",
+  explication: [
+    "Une créature qui forme un camp à elle seule.",
+    "Chaque nuit (rang 25), elle horrifie un autre joueur. L'horreur dure tant qu'elle est en vie.",
+    "Si tous ceux qui chassent avec la meute sont horrifiés, les loups ne mangent plus. Si tous les villageois vivants sont horrifiés, le village ne peut plus voter.",
+    "La Voyante ou le Loup voyante qui voit sa carte devient catatonique et meurt à l'aube.",
+    "Tant qu'elle vit, personne d'autre ne peut gagner. Elle gagne quand tous les autres survivants sont horrifiés. Morte, toute l'horreur disparaît."
+  ],
   priorite: 25,
   appelNuit: true,
 

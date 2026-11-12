@@ -21,6 +21,12 @@ const stratege: Role = {
   image: "♟️",
   camp: "village",
   description: "Chaque nuit à partir de la 2e, le meneur lui dit si au moins un loup a voté pour le même joueur que lui au vote du jour.",
+  explication: [
+    "Pendant chaque vote, le meneur regarde pour qui vote le Stratège, et si un loup vote pour le même joueur.",
+    "Juste après le vote, le meneur répond à la question « un loup a-t-il voté comme lui ? ».",
+    "À partir de la nuit 2 (rang 85), le Stratège se réveille et le meneur lui donne la réponse.",
+    "Privé de pouvoir au moment du vote, il n'apprend rien."
+  ],
   // POURQUOI 85 : son information ne dépend d'aucune carte de la nuit. Après la Voyante (80).
   priorite: 85,
   appelNuit: true,

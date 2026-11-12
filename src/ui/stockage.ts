@@ -52,6 +52,7 @@ export interface Donnees {
   dureeDebat: number;                     // en minutes
   nbLoups: number;                        // cartes du camp des loups à distribuer
   cartesFantomes: boolean;                // la nuit, appeler aussi les cartes activées non distribuées
+  ficheAuClic: boolean;                   // en partie, un clic sur un joueur ouvre la fiche de sa carte
 }
 
 /**
@@ -124,7 +125,9 @@ function parDefaut(): Donnees {
     // ATTENTION : des réglages enregistrés avant ce champ n'ont pas de nbLoups.
     // charger() le complète avec cette valeur grâce à la fusion « ...defaut, ...lu ».
     nbLoups: 2,
-    cartesFantomes: false
+    cartesFantomes: false,
+    // Désactivée par défaut : sans elle, un clic hors des cibles ne fait rien, comme avant.
+    ficheAuClic: false
   };
 }
 

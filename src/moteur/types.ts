@@ -100,6 +100,8 @@ export interface Role {
   image: string;        // image par défaut : emoji, URL ou data-URL
   camp: Camp;
   description: string;
+  /** Explication détaillée, une ligne par paragraphe : affichée dans la fiche de la page Explications. */
+  explication?: string[];
 
   priorite?: number;    // ordre d'appel la nuit (petit = d'abord)
   appelNuit?: boolean;  // le meneur appelle-t-il cette carte la nuit ?
@@ -174,6 +176,8 @@ export interface Evenement {
   titre: string;
   image: string;
   description: string;
+  /** Explication détaillée, une ligne par paragraphe : affichée dans la fiche de la page Explications. */
+  explication?: string[];
 
   /** Effet sans choix, à la validation (ex. la Rumeur). Comme agir() : renvoie ce qu'il donne. */
   appliquer?(partie: Partie): ResultatAction | void;

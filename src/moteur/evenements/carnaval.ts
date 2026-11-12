@@ -8,7 +8,12 @@ const carnaval: Evenement = {
   alias: "carnaval",
   titre: "Carnaval",
   image: "🎭",
-  description: "Interdit d'appeler quelqu'un par son nom : uniquement par un surnom de personnage de film d'animation."
+  description: "Interdit d'appeler quelqu'un par son nom : uniquement par un surnom de personnage de film d'animation.",
+  explication: [
+    "Toute la journée, interdit d'appeler un joueur par son nom.",
+    "On ne le désigne que par un surnom de personnage de film d'animation.",
+    "C'est une animation : le meneur fait respecter la règle."
+  ]
 };
 
 export default carnaval;

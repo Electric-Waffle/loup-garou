@@ -23,6 +23,14 @@ const rat: Role = {
   camp: "village",
   hybride: true,
   description: "Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
+  explication: [
+    "Un villageois qui ne se laisse pas dévorer sans réagir.",
+    "Mordu par les loups, il choisit en silence, juste après leur tour : mordre un loup, ou rejoindre la meute.",
+    "Mordre : il meurt à l'aube, sans que la Sorcière puisse le sauver, et un des loups attrape la peste : il mourra 3 nuits plus tard.",
+    "Rejoindre la meute : la morsure est annulée, et il devient Rat-garou.",
+    "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
+    "Personne ne sait ce qu'il a choisi : les loups le devineront en voyant s'il est encore en vie."
+  ],
 
   reagir(tag, meta, partie, moi) {
     if (tag === "mordu") partie.mettreEnAttente("rat", moi);

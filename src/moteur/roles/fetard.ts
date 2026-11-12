@@ -24,6 +24,12 @@ const fetard: Role = {
   image: "🥳",
   camp: "village",
   description: "S'il a voté contre un loup éliminé par le village, il fait la fête toute la nuit : les loups ne peuvent pas le mordre.",
+  explication: [
+    "Il n'a pas de pouvoir de nuit.",
+    "Quand le village élimine un loup, le meneur indique s'il a voté contre lui.",
+    "Si oui, il fait la fête toute la nuit : les loups ne peuvent pas le mordre, car il n'est pas chez lui.",
+    "Les loups ne savent pas pourquoi leur morsure a échoué. La fête ne dure qu'une nuit."
+  ],
 
   apresVote(partie, moi, elimine) {
     if (!elimine || partie.roleDe(elimine).camp !== "loups") return;

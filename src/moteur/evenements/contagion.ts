@@ -13,6 +13,11 @@ const contagion: Evenement = {
   titre: "Contagion",
   image: "🦠",
   description: "Le maire désigne une personne : elle attrape la peste et mourra dans 3 jours.",
+  explication: [
+    "Le maire désigne une personne, jamais lui-même.",
+    "Elle attrape la peste et mourra à la 3e aube.",
+    "Comme la peste du Rat, aucune potion ne la soigne. Seul un Loup vampire, invulnérable, y survivrait."
+  ],
 
   decision: (_partie, maire) => ({
     message: `${maire.nom}, le maire, désigne la personne qui attrape la peste.`,

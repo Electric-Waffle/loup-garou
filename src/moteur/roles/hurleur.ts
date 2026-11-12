@@ -24,6 +24,12 @@ const hurleur: Role = {
   image: "📢",
   camp: "village",
   description: "Si une carte s'en prend à lui pendant la nuit (morsure, regard, protection…), il hurle : tout le village l'apprend à l'aube.",
+  explication: [
+    "Un villageois qui hurle dès qu'une carte s'en prend à lui pendant la nuit.",
+    "Morsure, regard de la Voyante, protection du Salvateur, potion, enchantement… toute carte qui le désigne déclenche un hurlement.",
+    "Au rapport de l'aube, le meneur annonce que le Hurleur a été visé, par quelle carte et avec quelle action.",
+    "Son nom n'est jamais donné : le village sait seulement que le Hurleur a été visé."
+  ],
 
   estVise(partie, moi, alias, choix, acteur) {
     if (partie.phase !== "nuit") return;

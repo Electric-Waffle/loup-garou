@@ -28,6 +28,14 @@ const skinwalker: Role = {
   image: "👤​",
   camp: "skinwalker",
   description: "Chaque nuit à partir de la 3e, il tue un joueur (sauf s'il est protégé par le Salvateur) et prend sa carte, sans la révéler. S'il est vivant quand le village gagne, il gagne seul.",
+  explication: [
+    "Une créature qui forme un camp à elle seule et se cache parmi les villageois.",
+    "À partir de la nuit 3 (rang 126), il tue un joueur chaque nuit : ni la Sorcière, ni la deuxième vie de l'Ancien n'y peuvent rien.",
+    "Au rapport de l'aube, la carte de sa victime n'est pas révélée.",
+    "Il prend la carte de sa victime, neuve, et la joue en plus de la sienne. La Voyante qui le regarde voit cette carte-là.",
+    "Si sa victime est protégée par le Salvateur, il échoue, et ne peut tuer personne la nuit suivante.",
+    "Si le village gagne alors qu'il est vivant, c'est lui qui gagne, seul."
+  ],
   priorite: 126,
   appelNuit: true,
   tours: { de: 3 },

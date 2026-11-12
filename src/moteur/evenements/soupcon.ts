@@ -12,6 +12,11 @@ const soupcon: Evenement = {
   titre: "Soupçon",
   image: "🧐",
   description: "Le maire désigne une personne : elle commence le vote avec 2 voix contre elle. Le maire ne vote pas.",
+  explication: [
+    "Le maire désigne une personne, jamais lui-même.",
+    "Elle commence le vote avec 2 voix contre elle, et le maire ne vote pas.",
+    "L'application ne compte pas les voix : le meneur l'applique de tête, aidé par le rappel affiché au vote."
+  ],
 
   decision: (_partie, maire) => ({
     message: `${maire.nom}, le maire, désigne la personne qui part avec 2 voix contre elle. Il ne votera pas.`,

@@ -25,6 +25,12 @@ const ancien: Role = {
   image: "👴",
   camp: "village",
   description: "Il survit à la première attaque des loups. S'il est éliminé par le vote du village, plus personne, à part les loups, ne peut utiliser son pouvoir jusqu'à la fin de la partie.",
+  explication: [
+    "Il a deux vies face aux loups : la première morsure qui devrait le tuer lui fait seulement perdre une vie.",
+    "Les autres morts (poison, vote, chagrin, Chasseur) le tuent du premier coup.",
+    "S'il est éliminé par le vote du village, c'est une catastrophe : tous les joueurs vivants qui ne sont pas du camp des loups perdent leur pouvoir jusqu'à la fin de la partie.",
+    "Seuls les loups gardent leurs pouvoirs : le Fou et le Prêtre pur perdent aussi les leurs."
+  ],
 
   recevoir(tag, meta, r, partie, moi) {
     if (tag === "mort" && meta.cause === "mordu" && !partie.aTag(moi, "vie_perdue")) {

@@ -8,6 +8,13 @@ const salvateur: Role = {
   image: "🛡️",
   camp: "village",
   description: "Chaque nuit, il protège un joueur des loups. Jamais deux nuits de suite le même.",
+  explication: [
+    "Chaque nuit (rang 100), il choisit un joueur à protéger, lui-même compris.",
+    "Le joueur protégé ne peut pas être mordu cette nuit : la morsure est bloquée, et la Sorcière ne voit aucune victime.",
+    "La protection fait aussi échouer les loups qui agissent seuls (lien du Loup amoureux ou du Loup succube, vision du Loup voyante, médaillon du Loup hypnotiseur) et le meurtre du Skinwalker.",
+    "Il ne peut jamais protéger la même personne deux nuits de suite.",
+    "Elle ne protège ni du poison de la Sorcière, ni du tir du Chasseur, ni de la peste."
+  ],
   priorite: 100,
   appelNuit: true,
 

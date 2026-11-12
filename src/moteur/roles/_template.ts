@@ -185,6 +185,7 @@ const template: Role = {
    *   110  Loup savant
    *   115  Loup hypnotiseur        ┘
    *   120  Loup-Garou
+   *   122  Conquistador            (après la meute)
    *   124  Loup barbare            (après la meute, avant la Sorcière qui doit voir sa victime)
    *   126  Skinwalker              (après le Salvateur, dont la protection le fait échouer)
    *   125  Corbeau                 (si ajouté)

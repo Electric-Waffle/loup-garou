@@ -9,7 +9,11 @@ const soleil: Evenement = {
   alias: "soleil",
   titre: "Soleil",
   image: "☀️",
-  description: "Une belle journée : rien de particulier ne se passe."
+  description: "Une belle journée : rien de particulier ne se passe.",
+  explication: [
+    "Rien de particulier : le débat et le vote se déroulent normalement.",
+    "C'est aussi l'événement imposé quand le meneur choisit « Passer »."
+  ]
 };
 
 export default soleil;

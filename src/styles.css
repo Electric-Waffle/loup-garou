@@ -85,6 +85,7 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .camp-solo { background: #3e3420; color: #f0d08c; }
 .camp-aberration { background: #33224a; color: #d4b8f5; }
 .camp-fou { background: #706a11; color: #ffef00; }
+.camp-skinwalker { background: #3a3a3a; color: #d8d8d8; }
 
 /* ---------- Options : joueurs ---------- */
 .liste-joueurs { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .5rem; max-width: 560px; }
@@ -153,6 +154,58 @@ button.siege:hover { border-color: var(--accent); }
 .entree-info { color: #f0d08c; }
 
 .theme-jour .table-plateau { background: radial-gradient(circle at 40% 35%, #7a5a35, #4c3720 70%); }
+
+/* ---------- Modale ---------- */
+/* padding 0 sur le <dialog> : le contenu remplit toute la boîte, donc un clic sur le dialog lui-même
+   ne peut venir que du fond (voir Modale.tsx). */
+.modale {
+  padding: 0; border: 1px solid var(--bord); border-radius: var(--rayon);
+  background: var(--surface); color: var(--texte);
+  width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+}
+.modale::backdrop { background: #000a; }
+.modale-contenu { position: relative; padding: 1.25rem; }
+.modale-fermer {
+  position: absolute; top: .5rem; right: .6rem; background: none; border: 0; color: var(--texte-doux);
+  font-size: 1.6rem; line-height: 1; cursor: pointer; padding: .2rem .45rem; border-radius: 8px;
+}
+.modale-fermer:hover { color: var(--texte); background: var(--surface-2); }
+.fiche-entete { display: flex; gap: 1rem; align-items: center; margin-bottom: .6rem; padding-right: 2rem; }
+.fiche-resume { color: var(--texte-doux); font-style: italic; }
+
+/* ---------- Explications ---------- */
+.titre-section { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.titre-section h2 { margin: 0 0 0 .5rem; }
+.filtre { width: auto; max-width: 220px; }
+.regles { max-width: 760px; }
+.regles ul, .regles ol { padding-left: 1.2rem; line-height: 1.5; }
+.grille-pastilles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .6rem; margin: .5rem 0 1.2rem; }
+.pastille {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .7rem .4rem;
+  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
+  color: var(--texte); font: inherit; cursor: pointer; text-align: center;
+}
+.pastille:hover, .ligne-cliquable:hover, .cas:hover { border-color: var(--accent); }
+.pastille-nom { font-weight: 600; font-size: .88rem; }
+.liste-evenements { display: grid; gap: .4rem; margin-top: .6rem; }
+.ligne-cliquable {
+  display: flex; align-items: center; gap: .7rem; padding: .5rem .7rem; text-align: left;
+  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
+  color: var(--texte); font: inherit; cursor: pointer;
+}
+.grille-cas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .7rem; margin-top: .6rem; }
+.cas {
+  display: flex; flex-direction: column; gap: .3rem; align-items: flex-start; padding: .8rem; text-align: left;
+  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
+  color: var(--texte); font: inherit; cursor: pointer;
+}
+.cas h3 { margin: 0; }
+/* La table du cas : plus petite que celle de la partie, et des sièges plus étroits. */
+.table-cas { max-width: 440px; margin: .5rem auto 1rem; }
+.table-cas .siege { width: 96px; padding: .3rem .2rem; }
+.etapes { padding-left: 1.2rem; }
+.etapes li { margin-bottom: .6rem; }
+.etapes p { margin: .15rem 0; }
 
 /* ---------- Mobile ---------- */
 @media (max-width: 820px) {

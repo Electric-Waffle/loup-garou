@@ -34,6 +34,8 @@ import { useEffect, useRef, useState } from "react";
 import { nbCibles, type Partie } from "../moteur/partie";
 import type { Entree, Joueur, OptionChoix } from "../moteur/types";
 import { Table, type Siege } from "./Table";
+import { FicheCarte } from "./FicheCarte";
+import { TAGS } from "./libelles";
 import { Visuel } from "./Visuel";
 
 /* =====================================================================================
@@ -42,41 +44,6 @@ import { Visuel } from "./Visuel";
  *  c'est ajouter UNE ligne ici, sans toucher au code d'affichage.
  * ===================================================================================== */
 
-/** Libellé affiché sur la table pour chaque tag. Un tag absent d'ici s'affiche avec son nom brut. */
-const TAGS: Record<string, string> = {
-  mordu: "🩸 mordu",
-  protege: "🛡️ protégé",
-  protege_hier: "⏳ protégé hier",
-  empoisonne: "☠️ empoisonné",
-  amoureux: "💘 amoureux",
-  vie_perdue: "💔 vie perdue",
-  agonisant: "🐀 agonisant",
-  peste: "🦠 peste (4 aubes)",
-  peste_active: "🦠 peste (3 aubes)",
-  peste_imminente: "🦠 peste (2 aubes)",
-  peste_mortelle: "🦠 peste (dernière aube)",
-  maire: "🎖️ maire",
-  enchante: "✨ enchanté",
-  lie: "🎭 lié",
-  or: "💰 or",
-  blesse: "🩹 blessé",
-  renforce: "🧱 maison renforcée",
-  invulnerable: "🦇 invulnérable",
-  silence: "🤐 silencé",
-  dirige: "🌀 dirigé",
-  maudit: "😢 maudit",
-  fete: "🥳 fait la fête",
-  horrifie: "😱 horrifié",
-  possede: "😈 possédé",
-  ignifuge: "🦎 ignifuge",
-  catatonique: "🫥 catatonique",
-  impuissant: "🚫 sans pouvoir",
-  sauf_conduit: "📜 sauf-conduit",
-  soupcon: "🧐 soupçonné",
-  eclaire: "🌕 éclairé",
-  apaisee: "🕊️ démasquée",
-  mort: "⚰️ mort"
-};
 
 /** Explication affichée dans le rapport pour chaque cause de mort (meta.cause du tag "mort"). */
 const CAUSES: Record<string, string> = {
@@ -89,6 +56,7 @@ const CAUSES: Record<string, string> = {
   vote: "éliminé par le village",
   peste: "emporté par la peste",
   isole: "dernier de la meute, dévoré par la nuit",
+  conquistador: "abattu par le conquistador",
   skinwalker: "mort dans la nuit"
 };
 
@@ -163,17 +131,20 @@ function selectionApresClic(selectionActuelle: string[], idClique: string, nombr
  * @param partie     l'objet du moteur. Il se modifie lui-même quand on appelle ses méthodes.
  * @param rafraichir fonction de App.tsx qui force un nouveau rendu (voir App.tsx)
  * @param dureeDebat durée du débat en minutes, depuis les réglages
+ * @param ficheAuClic réglage : un clic sur un joueur sans cible à choisir ouvre la fiche de sa carte
  * @param quitter    fonction de App.tsx qui ferme la partie
  */
 export function PartieVue({
   partie,
   rafraichir,
   dureeDebat,
+  ficheAuClic,
   quitter
 }: {
   partie: Partie;
   rafraichir: () => void;
   dureeDebat: number;
+  ficheAuClic: boolean;
   quitter: () => void;
 }) {
   // La décision à prendre maintenant, ou undefined s'il n'y en a pas.
@@ -185,6 +156,7 @@ export function PartieVue({
   const [option, setOption] = useState<OptionChoix | null>(null); // l'option cliquée (Dévorer, Protéger...)
   const [cibles, setCibles] = useState<string[]>([]);             // les ids des joueurs sélectionnés
   const [erreur, setErreur] = useState<string | null>(null);      // le message si le moteur refuse
+  const [ficheOuverte, setFicheOuverte] = useState<string | null>(null); // alias de la carte affichée en fiche
 
   // PATTERN : réinitialisation par clé.
   // POURQUOI : quand une carte a fini de jouer, sa sélection ne doit pas déborder sur la
@@ -355,6 +327,12 @@ export function PartieVue({
     let auClic: (() => void) | undefined = undefined;
     if (estCliquable) {
       auClic = () => cliquerJoueur(joueur.id);
+    } else if (ficheAuClic && !enVote && !enElection && possibles.length === 0) {
+      // Aucun joueur à désigner en ce moment : le clic ouvre la fiche de sa carte (la vraie,
+      // même celle d'un Skinwalker déguisé : c'est l'écran du meneur).
+      // POURQUOI seulement dans ce cas : sinon un clic hors des cibles ouvrirait une fiche
+      // au lieu d'être ignoré, et le meneur croirait avoir choisi quelqu'un.
+      auClic = () => setFicheOuverte(joueur.role);
     }
 
     const siege: Siege = {
@@ -399,6 +377,16 @@ export function PartieVue({
         }
         sieges={sieges}
       />
+
+      {/* RÉUTILISABLE : la même fiche que la page Explications, avec l'apparence de la partie. */}
+      {ficheOuverte && (
+        <FicheCarte
+          role={partie.role(ficheOuverte)}
+          titre={partie.titre(ficheOuverte)}
+          image={partie.image(ficheOuverte)}
+          fermer={() => setFicheOuverte(null)}
+        />
+      )}
 
       <aside className="panneau">
         {/* Une décision est en cours : on l'affiche. Sinon : l'étape du jour. */}

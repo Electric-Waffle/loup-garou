@@ -22,6 +22,13 @@ const cupidon: Role = {
   image: "💘",
   camp: "village",
   description: "La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
+  explication: [
+    "La première nuit (rang 50), il désigne deux joueurs qui tombent amoureux, lui-même compris s'il le veut.",
+    "Si l'un des amoureux meurt, l'autre meurt aussitôt de chagrin. Un joueur peut être lié à plusieurs personnes : la mort se propage alors à tous, de proche en proche.",
+    "La troisième nuit, il découvre les cartes de tous les amoureux encore vivants.",
+    "Les amoureux gagnent ensemble s'ils sont strictement plus nombreux que les autres vivants, quel que soit leur camp.",
+    "Chaque nuit, les amoureux se retrouvent en secret pendant la Réunion des amoureux (60 secondes)."
+  ],
   priorite: 50,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5… ; « a: 3 » coupe après la 3.

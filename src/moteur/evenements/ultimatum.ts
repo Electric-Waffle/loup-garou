@@ -15,6 +15,12 @@ const ultimatum: Evenement = {
   titre: "Ultimatum",
   image: "⚖️",
   description: "Si le village n'élimine pas un loup aujourd'hui, le maire meurt.",
+  explication: [
+    "Si le village n'élimine pas un loup aujourd'hui, le maire meurt.",
+    "« Pas un loup » : un joueur hors du camp des loups (le Fou compris), personne, ou un joueur sauvé des flammes par le Loup salamandre.",
+    "Un vote racheté avec l'or ne compte pas : seul le vote final décide.",
+    "La mort du maire suit les règles habituelles : chagrin des amoureux, tir du Chasseur, invulnérabilité du Loup vampire."
+  ],
   rappelVote: "Ultimatum : si le village n'élimine pas un loup, le maire meurt.",
 
   apresVote(partie, elimine) {

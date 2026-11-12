@@ -22,6 +22,12 @@ const loupBarbare: Role = {
   image: "🗡️",
   camp: "loups",
   description: "Un loup qui ne se réveille pas avec la meute. Si le village élimine un joueur qui n'est pas un loup, il peut mordre quelqu'un la nuit suivante, après les loups.",
+  explication: [
+    "Un loup solitaire : il ne se réveille pas avec la meute, et les autres loups ignorent qu'il est des leurs.",
+    "Quand le village élimine un joueur qui n'est pas un loup, il se réveille la nuit suivante (rang 124, après la meute et avant la Sorcière) et mord une victime.",
+    "Les autres nuits, sa carte est appelée mais il reste caché. Si le village n'élimine personne, il ne mord pas non plus.",
+    "Il compte comme un loup pour la victoire, même si la meute ne le sait pas."
+  ],
   priorite: 124,
   appelNuit: true,
 

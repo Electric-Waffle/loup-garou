@@ -20,6 +20,12 @@ const paysan: Role = {
   image: "🪓",
   camp: "village",
   description: "Voté, il assomme 2 joueurs qui dorment la nuit suivante. Dévoré, il blesse les loups : ils ne tuent personne la nuit suivante.",
+  explication: [
+    "Il ne meurt pas sans se défendre.",
+    "Éliminé par le vote du village, il assomme 2 joueurs : ils ne feront rien la nuit suivante, comme s'ils étaient enchantés par la Fée.",
+    "Dévoré par les loups, il les blesse tous : la nuit suivante, la meute ne mange personne.",
+    "Le Loup barbare, qui ne chasse pas avec la meute, n'est pas blessé."
+  ],
 
   reagir(tag, meta, partie, moi) {
     if (tag !== "mort") return;

@@ -18,6 +18,12 @@ const arlequin: Role = {
   image: "🎭",
   camp: "village",
   description: "La 1re nuit, puis une nuit sur deux, il lie deux joueurs : ils ne peuvent agir que sur eux-mêmes ou sur l'autre.",
+  explication: [
+    "La première nuit, puis une nuit sur deux (rang 20), il lie deux joueurs jusqu'à l'aube.",
+    "Un joueur lié qui joue seul sa carte ne peut viser que lui-même ou son partenaire.",
+    "Pour une carte de groupe comme les loups, le meneur applique la règle de tête.",
+    "Le lien disparaît à la fin de l'aube : un Chasseur tué cette nuit-là tire librement."
+  ],
   priorite: 20,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5…

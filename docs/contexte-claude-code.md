@@ -209,11 +209,12 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 ### Ajouter un rôle (checklist)
 1. Copier `roles/_template.ts` en `roles/<alias>.ts`.
 2. L'enregistrer dans `roles/index.ts`. Il apparaît alors automatiquement dans Options et dans la distribution. Il est appelé la nuit s'il a `appelNuit: true` et une méthode `decision()`.
-3. Si le rôle invente un nouveau tag : un `case` dans `recevoir.ts`, éventuellement une ligne dans `aube.ts`, et un libellé dans `TAGS` de `PartieVue.tsx`.
+3. Si le rôle invente un nouveau tag : un `case` dans `recevoir.ts`, éventuellement une ligne dans `aube.ts`, et un libellé dans `TAGS` de `src/ui/libelles.ts`.
 4. Si un tag doit durer au-delà de l'aube : un nouveau moment dans `Meta.expire` (`types.ts`), et son retrait au bon moment.
 5. Nouveau type de cible : `TypeCible`, `ciblesDuType()`, `nbCibles()`.
-6. Nouveau camp ou condition de victoire : `types.ts` (`Camp`), `victoire.ts`, `LIBELLES_CAMPS` dans `Options.tsx`. Nouvelle cause de mort : `CAUSES` dans `PartieVue.tsx`.
+6. Nouveau camp ou condition de victoire : `types.ts` (`Camp`), `victoire.ts`, `LIBELLES_CAMPS` et `LIBELLES_GROUPES` dans `src/ui/libelles.ts`, plus une couleur `.camp-<camp>` dans `styles.css`. Nouvelle cause de mort : `CAUSES` dans `PartieVue.tsx`.
 7. Écrire un test dans `scenario.test.ts`.
+8. Remplir `explication` (une ligne par paragraphe) : c'est la fiche de la page Explications. `src/ui/explications.test.ts` vérifie que chaque carte et chaque événement en a une. Un cas particulier qui la concerne s'ajoute dans `src/ui/casParticuliers.ts` (4 cas au plus par carte, vérifié par le même test).
 
 ### Ordre d'appel la nuit (`priorite`)
 Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombre simple (ex. 125), jamais de décimales. Sans priorité, une carte joue en fin de nuit (999).
@@ -241,6 +242,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 110 | Loup savant | 1 |
 | 115 | Loup hypnotiseur | toutes, tant qu'il lui reste un médaillon |
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
+| 122 | Conquistador | toutes, tant qu'il a sa balle |
 | 124 | Loup barbare | toutes ; ne mord que la nuit qui suit l'élimination d'un non-loup par le village |
 | 126 | Skinwalker | à partir de la 3 ; après le Salvateur, dont la protection fait échouer le meurtre |
 | 130 | Sorcière | toutes |
@@ -284,6 +286,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup barbare | loups | Ne vote PAS avec la meute (pas de `rejoint`) : les loups ignorent qu'il est loup. Son `apresVote()` retient la nuit suivante si le village a éliminé un non-loup ; cette nuit-là (124), il donne `mordu`. Compte comme un loup pour la victoire. |
 | Loup salamandre | loups | Chaque nuit, donne `ignifuge` (expire `aube_suivante`) à un joueur, jamais le même deux nuits de suite (`memoire`). Au vote FINAL (l'or se rachète d'abord), la mort d'un ignifuge est **bloquée** (`recevoir.ts`) : il ressort indemne des flammes, `voter()` annonce qu'un loup l'a protégé, et le jour compte comme « personne n'est éliminé » pour l'événement. Vote avec les loups. |
 | Aberration | aberration | Chaque nuit, donne `horrifie` (permanent) à un autre joueur. Tous ceux qui votent avec les loups horrifiés : ils ne mangent plus (`loup.ts`). Tous les villageois vivants horrifiés : pas de vote (`voteImpossible()`). La Voyante ou le Loup voyante qui voit sa carte devient `catatonique` (tag bloquant) et meurt à l'aube (cause `horreur`), sauf si la vision échoue (protection). Vivante, elle bloque toutes les autres victoires. Morte, son `reagir()` retire `horrifie` à tout le monde. |
+| Conquistador | village | Une balle (`memoire.balle`). Nuit (122) : donne `mort` (cause `conquistador`). Victime qui porte de l'or (lu avant le tir) : il garde sa balle, et la règle de l'or (`transmettreLOr`) lui donne cet or. Pas une morsure : Salvateur, Sorcière et Ancien n'y peuvent rien ; le Loup vampire y survit. |
 | Sourcier | village | Nuits impaires (82) : teste un joueur (memoire : `teste`, `nuitDuResultat`). Nuit suivante : le meneur lui montre « à N places du non-villageois le plus proche », rien si le testé est mort. Table = cercle des vivants dans l'ordre de `partie.joueurs`, plus court des deux sens, voisins = 1. Le testé est exclu : 0 = il n'y a pas d'autre non-villageois. |
 | Hurleur | village | `estVise()` : la nuit, toute carte qui le désigne (morsure, Voyante, Salvateur…) ajoute une info publique « le Hurleur a été visé par Carte (« libellé ») », lue au rapport de l'aube. Jamais le nom du Hurleur : il le retire du libellé du bouton (« Sonder J3 » devient « Sonder »). Le Clair de lune le déclenche aussi : l'option impose sa cible (`OptionChoix.cibles`), recopiée par `partie.jouer()` dans `choix.cibles`. |
 | Stratège | village | `rappelVote()` : « regardez pour qui vote le stratège ». `apresVote()` : décision urgente « un loup a-t-il voté comme lui ? » (oui/non), rangée en memoire avec la nuit suivante. Nuit (85, dès la 2) : le meneur lui donne la réponse. |

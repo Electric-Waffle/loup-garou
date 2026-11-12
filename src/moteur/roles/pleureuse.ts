@@ -21,6 +21,13 @@ const pleureuse: Role = {
   image: "😢",
   camp: "village",
   description: "À partir de la 2e nuit, elle maudit un joueur chaque nuit : il ne fait plus son rôle. Les maudits peuvent la démasquer pendant leur conciliabule.",
+  explication: [
+    "À partir de la nuit 2 (rang 15), elle pleure devant la porte d'un joueur, qui devient maudit.",
+    "Un maudit ne fait plus son rôle, jusqu'à la fin de la partie.",
+    "Chaque nuit, les maudits vivants tiennent le Conciliabule (60 secondes) et désignent un joueur, mort ou vivant.",
+    "S'ils désignent la Pleureuse, ils sont tous délivrés, et elle perd son pouvoir.",
+    "À sa mort, le meneur annonce seulement « une villageoise »."
+  ],
   priorite: 15,
   appelNuit: true,
   tours: { de: 2 },
