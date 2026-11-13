@@ -34,6 +34,7 @@ import { useEffect, useRef, useState } from "react";
 import { nbCibles, type Partie } from "../moteur/partie";
 import type { Entree, Joueur, OptionChoix } from "../moteur/types";
 import { Table, type Siege } from "./Table";
+import { Cadran, finDuCadran, TitreDeFin, type FinCadran } from "./Cadran";
 import { FicheCarte } from "./FicheCarte";
 import { TAGS } from "./libelles";
 import { Visuel } from "./Visuel";
@@ -139,13 +140,16 @@ export function PartieVue({
   rafraichir,
   dureeDebat,
   ficheAuClic,
-  quitter
+  quitter,
+  finTest
 }: {
   partie: Partie;
   rafraichir: () => void;
   dureeDebat: number;
   ficheAuClic: boolean;
   quitter: () => void;
+  /** Boutons de test (soleil du titre) : une fin à montrer sur le cadran, sans toucher à la partie. */
+  finTest?: { fin: FinCadran; n: number } | null;
 }) {
   // La décision à prendre maintenant, ou undefined s'il n'y en a pas.
   // FLUX : cette question est reposée à CHAQUE rendu. Il n'y a pas de boucle "pour chaque
@@ -364,16 +368,29 @@ export function PartieVue({
   });
 
   const classesPage = estNuit ? "page partie theme-nuit" : "page partie theme-jour";
-  const iconeMoment = estNuit ? "🌙" : "☀️";
+  // La fin montrée par le cadran : celle des boutons de test, sinon la vraie (si la partie est finie).
+  const enFin = !!finTest || partie.phase === "fin";
+  const finCadran = finTest?.fin ?? finDuCadran(partie.vainqueur);
+  const survivants = partie.vivants().length; // autant de villageois en fête sur le cadran
 
   return (
     <div className={classesPage}>
+      {partie.phase === "fin" && <RecapEntete partie={partie} />}
       <Table
         centre={
-          <div className="table-centre">
-            <span className="table-tour">{iconeMoment} Tour {partie.tour}</span>
-            <span className="table-titre">{PHASES[partie.phase]}</span>
-          </div>
+          <>
+            {/* Le cadran occupe la moitié haute du plateau ; le texte passe en dessous de l'horizon. */}
+            <Cadran phase={enFin ? "fin" : partie.phase} fin={finCadran} rejouer={finTest?.n} survivants={survivants} />
+            {enFin ? (
+              // Même key que le dessin du cadran : un test rejoué relance aussi la bascule du titre.
+              <TitreDeFin key={`${finCadran}-${finTest?.n ?? 0}`} fin={finCadran} vainqueur={partie.vainqueur} survivants={survivants} />
+            ) : (
+              <div className="table-centre table-centre-partie">
+                <span className="table-tour">Tour {partie.tour}</span>
+                <span className="table-titre">{PHASES[partie.phase]}</span>
+              </div>
+            )}
+          </>
         }
         sieges={sieges}
       />
@@ -484,6 +501,8 @@ export function PartieVue({
 
         <Journal partie={partie} />
       </aside>
+
+      {partie.phase === "fin" && <RecapJournal partie={partie} />}
     </div>
   );
 }
@@ -642,12 +661,72 @@ function EtapeDeJour({
     case "fin":
       return (
         <section className="fin">
-          <h2>🏆 {partie.vainqueur}</h2>
+          <h2>🏆 Partie terminée</h2>
           <p>La partie est terminée après {partie.tour} tour(s).</p>
+          <button className="bouton bouton-large" onClick={imprimerRecap}>Télécharger le récap (PDF)</button>
           <button className="bouton bouton-principal bouton-large" onClick={quitter}>Nouvelle partie</button>
         </section>
       );
   }
+}
+
+/**
+ * Le récap PDF de la partie : on passe par l'impression du navigateur (« Enregistrer au format PDF »).
+ * POURQUOI pas une librairie qui fabrique le PDF (html2canvas + jsPDF) : elles redessinent la page
+ * en image et ne savent pas rendre clip-path, backdrop-filter ni les dégradés coniques : le cadran,
+ * la pancarte et la table perdraient leur aspect. L'impression, elle, utilise le vrai moteur du
+ * navigateur ; la mise en page du récap est dans styles.css (section « Récap imprimable »).
+ * ATTENTION : le nom du fichier PDF proposé par le navigateur est le titre de la page : on le
+ * change le temps de l'impression. window.print() bloque jusqu'à la fermeture de la fenêtre.
+ */
+function imprimerRecap() {
+  const titre = document.title;
+  document.title = `Paqari - récap du ${new Date().toISOString().slice(0, 10)}`;
+  window.print();
+  document.title = titre;
+}
+
+/**
+ * Pour le récap imprimé : l'en-tête (titre du jeu, date, durée), puis la table finale s'imprime
+ * telle qu'elle est à l'écran, puis le journal complet, tour par tour.
+ * Invisible à l'écran (classe « imprimer-seulement »).
+ */
+function RecapEntete({ partie }: { partie: Partie }) {
+  return (
+    <header className="imprimer-seulement recap-entete">
+      <h1><span className="logo">☀️</span> Paqari</h1>
+      <p>
+        Récapitulatif de partie · {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+        {" · "}{partie.joueurs.length} joueurs · {partie.tour} tour(s)
+      </p>
+    </header>
+  );
+}
+
+function RecapJournal({ partie }: { partie: Partie }) {
+  // CONCEPT : regrouper une liste par clé. Map garde l'ordre d'insertion : les tours sortent dans
+  // l'ordre où ils ont été joués. Les entrées de la fin portent le numéro du dernier tour.
+  const parTour = new Map<number, Entree[]>();
+  for (const entree of partie.journal) {
+    parTour.set(entree.tour, [...(parTour.get(entree.tour) ?? []), entree]);
+  }
+  return (
+    <section className="imprimer-seulement recap-journal">
+      <h2>Journal de l'oracle</h2>
+      {[...parTour].map(([tour, entrees]) => (
+        <section key={tour} className="recap-tour">
+          <h3>Tour {tour}</h3>
+          <ol>
+            {entrees.map((entree, index) => (
+              <li key={index} className={`entree entree-${entree.type}`} style={{ paddingLeft: `${(entree.profondeur ?? 0) * 1.2}rem` }}>
+                {decrire(entree, partie)}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </section>
+  );
 }
 
 /**

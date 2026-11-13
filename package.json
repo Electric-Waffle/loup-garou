@@ -7,7 +7,7 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
-    "test": "tsx --test src/moteur/scenario.test.ts src/ui/explications.test.ts",
+    "test": "tsx --test src/moteur/scenario.test.ts src/ui/explications.test.ts src/ui/cadran.test.ts",
     "scenario": "tsx src/moteur/afficher-scenario.ts"
   },
   "dependencies": {
