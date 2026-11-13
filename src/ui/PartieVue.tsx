@@ -618,7 +618,9 @@ function EtapeDeJour({
       // Second débat payé avec l'or : le moteur dit qui parle seul.
       const accuse = partie.plaidoirie ? partie.joueur(partie.plaidoirie) : undefined;
       // shortcut : l'interface connaît les alias des deux prêtres ; à remplacer par un champ de Role si d'autres rappels arrivent.
-      const pretreMort = partie.joueurs.some(j => !j.vivant && (j.role === "pretre" || j.role === "pretre-impur"));
+      // Un prêtre « sans pouvoir » (Ancien éliminé par le village) ne chuchote plus, même mort.
+      const pretreMort = partie.joueurs.some(j =>
+        !j.vivant && (j.role === "pretre" || j.role === "pretre-impur") && !partie.aTag(j, "impuissant"));
       const rappelPretre = pretreMort && !partie.aBesoinDUnMaire();
       const duree = partie.dureeDuDebat(dureeDebat);
       return (

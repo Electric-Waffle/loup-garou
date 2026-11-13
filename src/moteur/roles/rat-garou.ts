@@ -49,6 +49,8 @@ const ratGarou: Role = {
 
 /** Le maire vivant attrape la peste (voir la même fonction dans rat.ts). */
 function contaminerLeMaire(partie: Partie, moi: Joueur): void {
+  // Sans pouvoir : pas de peste non plus, exactement comme le Rat (sinon on verrait son camp).
+  if (partie.estEmpeche(moi, moi.role)) return;
   const maire = partie.joueursAvecTag("maire")[0];
   if (!maire) return;
   appliquerResultat(partie, { donner: [{ tag: "peste", a: maire.id }] }, moi.role);

@@ -33,6 +33,7 @@ const hurleur: Role = {
 
   estVise(partie, moi, alias, choix, acteur) {
     if (partie.phase !== "nuit") return;
+    if (partie.estEmpeche(moi, "hurleur")) return; // sans pouvoir, il ne hurle plus
     const option = partie.role(alias).decision?.(partie, acteur)?.choix.find(c => c.id === choix.id);
     // « Sonder J3 » → « Sonder » : le libellé du bouton, sans le nom du Hurleur.
     // POURQUOI la DERNIÈRE occurrence seulement : le nom suit l'action. Un Hurleur nommé « Sonde »

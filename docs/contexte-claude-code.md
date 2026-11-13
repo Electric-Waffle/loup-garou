@@ -188,7 +188,8 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **Tags bloquants** (`TAGS_BLOQUANTS` dans `partie.ts`) : `enchante` (Fée, Paysan), `maudit` (Pleureuse), `impuissant` (Ancien éliminé par le vote) et `catatonique` (a vu l'Aberration).
   - une carte dont tous les porteurs sont bloqués n'offre que « Passer » ;
   - `mettreEnAttente()` ignore un joueur bloqué : un Chasseur enchanté ou maudit ne tire pas, un Rat ne choisit pas ;
-  - les pouvoirs passifs continuent (`recevoir` de l'Ancien, invulnérabilité, or) ;
+  - un pouvoir qui agit tout de suite, sans file d'attente, commence par `if (partie.estEmpeche(moi, alias)) return;` : peste du Rat éliminé, hurlement du Hurleur, loups blessés par le Paysan. Les rappels de vote (`rappelVote`, Stratège) sont aussi ignorés pour un joueur bloqué ;
+  - les pouvoirs passifs continuent (`recevoir` de l'Ancien, invulnérabilité, or) ; seule exception : `impuissant` retire aussi la seconde vie du Beau et du Faux Parleur ;
   - une **étape** (carte avec `porteurs`) n'est bloquée que par `enchante` : sinon le Conciliabule, dont tous les porteurs sont maudits, ne se jouerait jamais.
 - **Cartes fantômes** (option de préparation) : les cartes activées mais non distribuées sont appelées la nuit, avec seulement « Passer », pour que personne ne sache lesquelles sont réellement en jeu.
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), l'oracle applique la règle de tête.
@@ -262,7 +263,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Sorcière | village | Une potion de vie, une potion de mort. |
 | Salvateur | village | Protège un joueur, jamais deux nuits de suite le même. |
 | Chasseur | village | En mourant, abat un joueur (décision urgente). |
-| Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). Éliminé par le vote du village : son `reagir()` donne `impuissant` à tous les vivants hors du camp des loups (Fou et Prêtre pur compris ; le Prêtre impur est un loup), qui ne font plus leur rôle jusqu'à la fin de la partie. |
+| Ancien | village | Survit à la première morsure (sa mort devient `vie_perdue`). Éliminé par le vote du village : son `reagir()` donne `impuissant` (voir `perdLeurPouvoir()`) aux villageois vivants et à **toutes les cartes hybrides**, quel que soit leur camp et même mortes (un Prêtre mort ne chuchote plus). Le Fou, l'Aberration, le Skinwalker et les loups le gardent. Sans pouvoir, un Beau ou Faux Parleur perd aussi sa seconde vie. Raison : un hybride côté loups qui agirait encore trahirait son camp. |
 | Cupidon | village | Nuit 1 : lie deux amoureux, même déjà liés à quelqu'un d'autre (réseau). Nuit 3 : voit les rôles de tous les amoureux vivants. |
 | Loup amoureux | loups | Nuit 1 : se lie à un joueur (chagrin dans les deux sens, partenaire prévenu). Cible protégée par le Salvateur : le lien échoue, sans seconde chance. Son partenaire ne vient à la Réunion des amoureux qu'à partir de la nuit 2. Vote avec les loups. |
 | Loup succube | loups | Se lie à un compagnon à sens unique : le compagnon est dans ses `partenaires`, mais lui n'est pas dans ceux du compagnon. S'il meurt, le compagnon meurt ; si le compagnon meurt, il en choisit un autre la nuit suivante (compagnon gardé dans sa `memoire`). Un compagnon protégé par le Salvateur fait échouer le lien : il reste seul jusqu'à la nuit suivante. Un nouveau compagnon ne vient à la Réunion des amoureux que la nuit d'après. Vote avec les loups. Ne vient pas à la Réunion des amoureux. |

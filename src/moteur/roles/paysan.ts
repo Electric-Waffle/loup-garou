@@ -36,6 +36,7 @@ const paysan: Role = {
     }
 
     if (meta.cause === "mordu" && meta.source === "loup") {
+      if (partie.estEmpeche(moi, "paysan")) return; // sans pouvoir, il ne blesse pas les loups
       // POURQUOI appliquerResultat : reagir ne renvoie rien, mais on garde le chemin commun (journal, recevoir).
       const blessures = partie.porteursDe("loup").map(loup => ({
         tag: "blesse",

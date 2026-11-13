@@ -76,6 +76,8 @@ const rat: Role = {
  * et joueursAvecTag (vivants seulement) ne le trouve plus.
  */
 function contaminerLeMaire(partie: Partie, moi: Joueur): void {
+  // Sans pouvoir (ou enchanté, maudit) : il ne répand pas la peste, comme le Chasseur ne tire pas.
+  if (partie.estEmpeche(moi, moi.role)) return;
   const maire = partie.joueursAvecTag("maire")[0];
   if (!maire) return;
   appliquerResultat(partie, { donner: [{ tag: "peste", a: maire.id }] }, moi.role);

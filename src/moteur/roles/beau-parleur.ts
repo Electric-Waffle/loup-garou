@@ -44,7 +44,8 @@ const beauParleur: Role = {
   init: () => ({ relanceUtilisee: false }),
 
   recevoir(tag, meta, r, partie, moi) {
-    if (tag === "mort" && meta.cause === "mordu" && !partie.aTag(moi, "vie_perdue")) {
+    // Sans pouvoir (Ancien éliminé par le village) : plus de seconde vie, il meurt comme un autre.
+    if (tag === "mort" && meta.cause === "mordu" && !partie.aTag(moi, "vie_perdue") && !partie.aTag(moi, "impuissant")) {
       return r.transformer("vie_perdue");
     }
   },

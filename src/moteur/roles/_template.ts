@@ -463,7 +463,7 @@ export default template;
  *    empoisonne    donné par la Sorcière ; devient "mort" (cause "poison") à l'aube
  *    amoureux      Cupidon, Loup amoureux, Loup succube ; meta.partenaires (liste, réseau) meurent de chagrin avec le porteur ; liste absente = sens unique
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
- *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
+ *    impuissant    donné par l'Ancien éliminé au vote aux villageois vivants et aux hybrides ; bloquant, sans expiration
  *    horrifie      Aberration ; loups tous horrifiés = pas de chasse, villageois tous horrifiés = pas de vote ;
  *                  retiré à tous à la mort de l'Aberration
  *    ignifuge      Loup salamandre ; une mort par vote est bloquée, APRÈS l'or (recevoir.ts) ; expire "aube_suivante"

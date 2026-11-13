@@ -54,19 +54,19 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
   {
     titre: "L'Ancien éliminé par le village",
     contexte: "Le village vote contre l'Ancien, en croyant qu'il est un loup.",
-    roles: ["ancien", "fou"],
+    roles: ["ancien", "faux-parleur"],
     table: [
       { role: "ancien", tags: ["mort"] },
       { role: "voyante", tags: ["impuissant"] },
-      { role: "sorciere", tags: ["impuissant"] },
-      { role: "fou", tags: ["impuissant"] },
+      { role: "faux-parleur", tags: ["impuissant"] },
+      { role: "fou" },
       { role: "loup" }
     ],
     etapes: [
-      { quoi: "L'Ancien meurt, et tous les vivants qui ne sont pas du camp des loups perdent leur pouvoir.", pourquoi: "Sa mort par le vote donne « sans pouvoir » à chacun d'eux, pour toute la partie." },
-      { quoi: "La Voyante et la Sorcière ne font plus rien : leur carte n'offre que « Passer ».", pourquoi: "« Sans pouvoir » est un tag bloquant, comme l'enchantement de la Fée, mais il n'expire jamais." },
-      { quoi: "Le Fou perd aussi ses pouvoirs, mais les loups gardent les leurs.", pourquoi: "Le Fou n'est pas du camp des loups : seule la meute est épargnée." },
-      { quoi: "Une carte devenue loup avant ce vote (Prêtre impur, Faux Parleur) garde ses pouvoirs.", pourquoi: "La règle regarde le camp au moment du vote." }
+      { quoi: "L'Ancien meurt : les villageois vivants et toutes les cartes hybrides perdent leur pouvoir.", pourquoi: "Sa mort par le vote leur donne « sans pouvoir », pour toute la partie." },
+      { quoi: "La Voyante ne fait plus rien : sa carte n'offre que « Passer ».", pourquoi: "« Sans pouvoir » est un tag bloquant, comme l'enchantement de la Fée, mais il n'expire jamais." },
+      { quoi: "Le Faux Parleur perd sa relance et sa seconde vie, comme s'il était resté Beau Parleur.", pourquoi: "Une carte hybride compte comme villageoise : si elle agissait encore, on comprendrait qu'elle a rejoint les loups." },
+      { quoi: "Le Fou et les loups gardent leurs pouvoirs.", pourquoi: "Ils ne sont pas villageois. L'Aberration et le Skinwalker non plus." }
     ]
   },
   {

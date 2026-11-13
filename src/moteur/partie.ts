@@ -205,14 +205,25 @@ export class Partie {
   }
 
   mettreEnAttente(alias: string, moi: Joueur): void {
-    // Un joueur enchanté ou maudit ne fait pas son rôle : aucune décision, aucune réaction
-    // (le Chasseur tué ne tire pas, le Rat mordu ne choisit pas). Valable pour tous les rôles.
+    // Un joueur enchanté, maudit ou sans pouvoir ne fait pas son rôle : aucune décision, aucune
+    // réaction (le Chasseur tué ne tire pas, le Rat mordu ne choisit pas). Valable pour tous les rôles.
+    if (this.estEmpeche(moi, alias)) return;
+    this.attente.push({ alias, joueur: moi.id });
+  }
+
+  /**
+   * true si le joueur ne peut pas faire son rôle (enchanté, maudit, sans pouvoir…), et la raison est
+   * écrite au journal de l'oracle.
+   * RÉUTILISABLE : pour les pouvoirs qui agissent tout de suite, sans passer par mettreEnAttente()
+   * (la peste du Rat éliminé, le hurlement du Hurleur, les loups blessés par le Paysan). Ils
+   * commencent par `if (partie.estEmpeche(moi, alias)) return;`, comme le Chasseur qui ne tire pas.
+   */
+  estEmpeche(moi: Joueur, alias: string): boolean {
     const raison = this.raisonDuBlocage(moi, TAGS_BLOQUANTS);
     if (raison) {
-      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est ${raison} : ${this.titre(alias)} ne se réveille pas.` });
-      return;
+      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est ${raison} : ${this.titre(alias)} ne fait pas son rôle.` });
     }
-    this.attente.push({ alias, joueur: moi.id });
+    return raison !== undefined;
   }
 
   /**
@@ -698,6 +709,8 @@ export class Partie {
     if (interdiction) rappels.push(interdiction);
     if (this.evenement?.rappelVote) rappels.push(this.evenement.rappelVote);
     for (const joueur of this.vivants()) {
+      // Un joueur bloqué ne fait pas son rôle : pas de rappel (le Stratège sans pouvoir n'enquête plus).
+      if (this.raisonDuBlocage(joueur, TAGS_BLOQUANTS)) continue;
       const rappel = this.roleDe(joueur).rappelVote?.(this, joueur);
       if (rappel) rappels.push(rappel);
     }

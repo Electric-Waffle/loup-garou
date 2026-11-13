@@ -1281,11 +1281,12 @@ test("Animations : aucun effet, la validation suffit", () => {
 
 /* ---------- Ancien éliminé par le village ---------- */
 
-test("Ancien voté : seuls les loups gardent leurs pouvoirs, jusqu'à la fin de la partie", () => {
+test("Ancien voté : les villageois perdent leurs pouvoirs jusqu'à la fin de la partie, pas le Fou", () => {
   const p = partieAvec(["loup", "ancien", "voyante", "chasseur", "villageois", "fou"]);
   p.voter("j1");
-  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4", "j5"]);
+  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4"]);
   assert.ok(!p.aTag(p.joueur("j0"), "impuissant"));
+  assert.ok(!p.aTag(p.joueur("j5"), "impuissant"), "le Fou n'est pas villageois");
 
   // Le Chasseur, éliminé ensuite, ne tire pas.
   p.voter("j3");
@@ -1302,6 +1303,60 @@ test("Ancien voté : seuls les loups gardent leurs pouvoirs, jusqu'à la fin de 
   p.passer();
   p.leverLeJour();
   assert.ok(p.aTag(p.joueur("j2"), "impuissant"));
+});
+
+test("Ancien voté : les hybrides perdent leurs pouvoirs même côté loups ; Aberration et Skinwalker les gardent", () => {
+  const p = partieAvec(["loup", "ancien", "faux-parleur", "pretre-impur", "rat-garou", "aberration", "skinwalker", "villageois"]);
+  p.voter("j1");
+  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4", "j7"]);
+});
+
+test("Ancien voté : le Faux Parleur perd sa seconde vie", () => {
+  const p = partieAvec(["loup", "ancien", "faux-parleur", "villageois", "villageois", "villageois"]);
+  p.voter("j1");
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "mordu" });
+  assert.equal(p.joueur("j2").vivant, false);
+});
+
+test("Ancien voté : un Prêtre déjà mort ne peut plus chuchoter (il reçoit aussi « sans pouvoir »)", () => {
+  const p = partieAvec(["loup", "ancien", "pretre", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "poison" });
+  p.voter("j1");
+  assert.ok(p.aTag(p.joueur("j2"), "impuissant"));
+});
+
+/* Sans pouvoir, les pouvoirs qui agissent tout de suite (sans file d'attente) sont bloqués aussi. */
+
+test("Sans pouvoir : le Rat éliminé par le village ne donne pas la peste au maire", () => {
+  const p = partieAvec(["loup", "rat", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "maire");
+  donnerTag(p, p.joueur("j1"), "impuissant");
+  p.voter("j1");
+  assert.equal(p.joueur("j1").vivant, false);
+  assert.ok(!p.aTag(p.joueur("j2"), "peste"));
+});
+
+test("Sans pouvoir : le Hurleur ne hurle plus", () => {
+  const p = partieAvec(["loup", "hurleur", "voyante", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "impuissant");
+  jouerJusqua(p, "voyante");
+  p.jouer({ id: "sonder", cibles: ["j1"] });
+  assert.deepEqual(p.infosPubliques(["nuit"]), []);
+});
+
+test("Sans pouvoir : le Paysan dévoré ne blesse pas les loups", () => {
+  const p = partieAvec(["loup", "loup", "paysan", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "impuissant");
+  p.jouer({ id: "devorer", cibles: ["j2"] });
+  p.leverLeJour();
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.deepEqual(p.joueursAvecTag("blesse"), []);
+});
+
+test("Sans pouvoir : plus de rappel du Stratège au vote", () => {
+  const p = partieAvec(["loup", "stratege", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "impuissant");
+  assert.ok(!p.rappelsDuVote().some(r => r.includes("stratège")));
 });
 
 test("Ancien tué autrement que par le vote : personne ne perd ses pouvoirs", () => {
