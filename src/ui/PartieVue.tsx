@@ -71,6 +71,21 @@ const CAUSES: Record<string, string> = {
  * Typé Record<string, string> (et non Record<Phase, string>) parce que decrire() le lit
  * aussi avec le texte d'une entrée du journal, qui est une simple chaîne.
  */
+/**
+ * Téléphone : nombre d'icônes de tags affichées sur un siège ; les suivantes deviennent « +n ».
+ * POURQUOI une limite : au téléphone, un siège a une HAUTEUR FIXE (une seule rangée de tags),
+ * sinon chaque tag ajouté le ferait grandir et chevaucher ses voisins. Le détail complet reste
+ * dans la fiche du joueur (un appui sur son siège).
+ * POURQUOI selon le nombre de joueurs : la largeur des sièges en dépend (--largeur-siege dans
+ * styles.css). Jusqu'à 10 joueurs, un siège fait au moins 76 px : 3 icônes et « +n » tiennent.
+ * Au-delà, il descend à 58 px : 2 icônes seulement.
+ * shortcut : la limite répète ici une règle de taille qui vit dans le CSS ; si la formule de
+ * --largeur-siege change, revoir ce seuil.
+ */
+function iconesParSiege(nombreDeJoueurs: number): number {
+  return nombreDeJoueurs > 10 ? 2 : 3;
+}
+
 const PHASES: Record<string, string> = {
   nuit: "Nuit",
   aube: "Aube",
@@ -173,6 +188,8 @@ export function PartieVue({
   // Téléphone : le panneau du meneur se replie pour laisser toute la place à la table.
   const [panneauReplie, setPanneauReplie] = useState(false);
   const [journalOuvert, setJournalOuvert] = useState(false);
+  // Le contenu défilant du panneau : on le ramène en haut à chaque nouvelle étape (voir l'effet ci-dessous).
+  const corpsDuPanneau = useRef<HTMLDivElement>(null);
 
   // PATTERN : réinitialisation par clé.
   // POURQUOI : quand une carte a fini de jouer, sa sélection ne doit pas déborder sur la
@@ -193,6 +210,9 @@ export function PartieVue({
     setDesigne(null);
     // Une nouvelle étape réclame l'attention du meneur : le panneau se rouvre de lui-même.
     setPanneauReplie(false);
+    // ATTENTION : le <div> défilant est le MÊME d'une étape à l'autre (React le réutilise), il garde
+    // donc sa position de défilement. Sans cette ligne, une étape s'ouvrirait au milieu de son texte.
+    corpsDuPanneau.current?.scrollTo({ top: 0 });
   }, [cle]);
 
   /**
@@ -235,8 +255,14 @@ export function PartieVue({
   // Combien de cibles l'option choisie demande (0 si aucune option).
   // option?.cible : si option est null, l'expression vaut undefined, et nbCibles(undefined) = 0.
   const attendu = nbCibles(option?.cible);
-  // "Bob + Chloé" : les cibles choisies, dans l'ordre des clics.
+  // Le bouton Valider dit ce qu'il reste à faire, puis redit le choix (« Valider : Bob + Chloé »).
+  // POURQUOI : au téléphone, c'est la seule consigne affichée (voir le pied de la décision).
+  const ciblesManquantes = attendu - cibles.length;
   const nomsDesCibles = cibles.map(id => partie.joueur(id).nom).join(" + ");
+  let libelleValider = `Valider : ${nomsDesCibles}`;
+  if (ciblesManquantes > 0) {
+    libelleValider = ciblesManquantes === 2 ? "Touche deux joueurs sur la table" : "Touche un joueur sur la table";
+  }
 
   const enVote = partie.phase === "vote";
   const enElection = partie.phase === "election";
@@ -323,6 +349,8 @@ export function PartieVue({
     return classes.join(" ");
   }
 
+  const maxIcones = iconesParSiege(partie.joueurs.length);
+
   // Un siège par joueur, morts compris (ils restent visibles, grisés).
   const sieges: Siege[] = partie.joueurs.map(joueur => {
     // Le joueur porte-t-il la carte qui joue en ce moment ? (plusieurs loups : tous surlignés)
@@ -370,16 +398,22 @@ export function PartieVue({
               {/* key={tag.type} : un joueur ne porte jamais deux fois le même tag
                   (r.accepter() retire le doublon), le type est donc une clé unique.
                   Sur téléphone, styles.css cache .tag-texte : il ne reste que l'icône. */}
-              {joueur.tags.map(tag => {
+              {joueur.tags.map((tag, index) => {
                 const { icone, texte } = decouperTag(tag.type);
+                // Au-delà de la limite, le tag est caché au téléphone (« +n » le signale).
+                const enTrop = index >= maxIcones ? " tag-en-trop" : "";
                 return (
-                  <span key={tag.type} className={`tag tag-${tag.type}`} title={texte}>
+                  <span key={tag.type} className={`tag tag-${tag.type}${enTrop}`} title={texte}>
                     {icone && <span aria-hidden="true">{icone}</span>}
                     {/* Sans icône (tag sans libellé), le texte reste visible partout. */}
                     <span className={icone ? "tag-texte" : undefined}>{texte}</span>
                   </span>
                 );
               })}
+              {/* Téléphone seulement (styles.css) : combien de tags ne tiennent pas sur le siège. */}
+              {joueur.tags.length > maxIcones && (
+                <span className="tag tag-plus">+{joueur.tags.length - maxIcones}</span>
+              )}
             </span>
           )}
         </>
@@ -451,7 +485,7 @@ export function PartieVue({
           <button className="bouton bouton-petit" onClick={() => setJournalOuvert(true)}>📜 Journal</button>
         </div>
 
-        <div className="panneau-corps">
+        <div className="panneau-corps" ref={corpsDuPanneau}>
           <DerniersResultats partie={partie} />
 
           {/* Une décision est en cours : on l'affiche. Sinon : l'étape du jour. */}
@@ -479,71 +513,76 @@ export function PartieVue({
                 <Minuteur key={`${courante.alias}-${partie.tour}`} minutes={courante.decision.minuteur / 60} />
               )}
 
-              {/* Les options proposées par role.decision(). */}
-              <div className="actions">
-                {courante.decision.choix.map(optionProposee => {
-                  const estChoisie = option?.id === optionProposee.id;
-                  return (
-                    <button
-                      key={optionProposee.id}
-                      className={estChoisie ? "bouton bouton-principal" : "bouton"}
-                      onClick={() => choisirOption(optionProposee)}
-                    >
-                      {optionProposee.label}
-                    </button>
-                  );
-                })}
+              {/* Le pied du panneau : les options, puis le choix des cibles et « Valider ».
+                  POURQUOI un bloc à part : au téléphone, il reste collé en bas du panneau (sticky,
+                  voir styles.css), toujours au même endroit sous le pouce ; c'est le texte au-dessus
+                  qui défile quand le contenu est trop long. */}
+              <div className="panneau-pied">
+                {/* Les options proposées par role.decision(). */}
+                <div className="actions">
+                  {courante.decision.choix.map(optionProposee => {
+                    const estChoisie = option?.id === optionProposee.id;
+                    return (
+                      <button
+                        key={optionProposee.id}
+                        className={estChoisie ? "bouton bouton-principal" : "bouton"}
+                        onClick={() => choisirOption(optionProposee)}
+                      >
+                        {optionProposee.label}
+                      </button>
+                    );
+                  })}
 
-                {/* POURQUOI pas de "Passer" pour une décision urgente : la partie ne peut pas
-                    avancer tant qu'elle n'est pas jouée. Le rôle doit donc proposer lui-même une
-                    option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
-                {!courante.urgente && (
-                  <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
-                    {courante.evenement ? "Passer (Inti rayonne)" : "Passer"}
-                  </button>
-                )}
-                {courante.evenement && (
-                  <button className="bouton bouton-discret" onClick={() => agir(() => partie.autreEvenement())}>
-                    Un autre
-                  </button>
+                  {/* POURQUOI pas de "Passer" pour une décision urgente : la partie ne peut pas
+                      avancer tant qu'elle n'est pas jouée. Le rôle doit donc proposer lui-même une
+                      option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
+                  {!courante.urgente && (
+                    <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
+                      {courante.evenement ? "Passer (Inti rayonne)" : "Passer"}
+                    </button>
+                  )}
+                  {courante.evenement && (
+                    <button className="bouton bouton-discret" onClick={() => agir(() => partie.autreEvenement())}>
+                      Un autre
+                    </button>
+                  )}
+                </div>
+
+                {/* Choix des cibles : seulement quand l'option choisie en demande. */}
+                {option && attendu > 0 && (
+                  <>
+                    {/* Grand écran seulement : la consigne et la liste des joueurs. Au téléphone, la
+                        table est juste au-dessus, et chaque ligne de plus dans le pied repoussait
+                        Valider hors du panneau ; la consigne est alors portée par Valider lui-même. */}
+                    <p className="aide grand-ecran-seulement">
+                      Choisis {attendu === 2 ? "deux joueurs" : "un joueur"} sur la table ou ici :
+                    </p>
+                    <div className="actions grand-ecran-seulement">
+                      {possibles.map(idJoueur => {
+                        const estSelectionne = cibles.includes(idJoueur);
+                        return (
+                          <button
+                            key={idJoueur}
+                            className={estSelectionne ? "bouton bouton-petit bouton-principal" : "bouton bouton-petit"}
+                            onClick={() => cliquerJoueur(idJoueur)}
+                          >
+                            {partie.joueur(idJoueur).nom}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* Le moteur revérifie le nombre de cibles dans jouer(), mais on évite
+                        d'envoyer un choix incomplet. */}
+                    <button
+                      className="bouton bouton-principal bouton-large"
+                      disabled={cibles.length !== attendu}
+                      onClick={valider}
+                    >
+                      {libelleValider}
+                    </button>
+                  </>
                 )}
               </div>
-
-              {/* Choix des cibles : seulement quand l'option choisie en demande. */}
-              {option && attendu > 0 && (
-                <>
-                  <p className="aide">
-                    Touche {attendu === 2 ? "deux joueurs" : "un joueur"} sur la table
-                    <span className="grand-ecran-seulement"> ou ici</span>.
-                  </p>
-                  {/* Grand écran seulement : au téléphone, la table est juste au-dessus et cette liste
-                      doublait sa hauteur dans le panneau, au point d'écraser la table. */}
-                  <div className="actions grand-ecran-seulement">
-                    {possibles.map(idJoueur => {
-                      const estSelectionne = cibles.includes(idJoueur);
-                      return (
-                        <button
-                          key={idJoueur}
-                          className={estSelectionne ? "bouton bouton-petit bouton-principal" : "bouton bouton-petit"}
-                          onClick={() => cliquerJoueur(idJoueur)}
-                        >
-                          {partie.joueur(idJoueur).nom}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {/* Le moteur revérifie le nombre de cibles dans jouer(), mais on évite
-                      d'envoyer un choix incomplet. */}
-                  <button
-                    className="bouton bouton-principal bouton-large"
-                    disabled={cibles.length !== attendu}
-                    onClick={valider}
-                  >
-                    {/* Le bouton redit qui est choisi : sans la liste ci-dessus, c'est le seul rappel au téléphone. */}
-                    Valider{nomsDesCibles ? ` : ${nomsDesCibles}` : ""}
-                  </button>
-                </>
-              )}
             </section>
           ) : (
             <EtapeDeJour partie={partie} agir={agir} dureeDebat={dureeDebat} quitter={quitter} designe={designe} />
@@ -607,9 +646,12 @@ function EtapeDeJour({
         <section>
           <h2>Fin de la nuit</h2>
           <p>Toutes les cartes ont joué.</p>
-          <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.leverLeJour())}>
-            Le village se réveille
-          </button>
+          {/* panneau-pied : collé en bas du panneau au téléphone (voir la décision dans PartieVue). */}
+          <div className="panneau-pied">
+            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.leverLeJour())}>
+              Le village se réveille
+            </button>
+          </div>
         </section>
       );
 
@@ -642,26 +684,28 @@ function EtapeDeJour({
           {infosPubliques.map((texte, index) => (
             <p key={index} className="info-publique">{texte}</p>
           ))}
-          {applique ? (
-            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.ouvrirDebat())}>
-              Ouvrir le débat
-            </button>
-          ) : (
-            <div className="actions">
-              <button className="bouton bouton-principal" onClick={() => agir(() => partie.appliquerEvenement())}>
-                Valider l'événement
+          <div className="panneau-pied">
+            {applique ? (
+              <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.ouvrirDebat())}>
+                Ouvrir le débat
               </button>
-              {/* La suite du Sablier est imposée : ni remplacée, ni passée. */}
-              {!evenement?.force && (
-                <>
-                  <button className="bouton" onClick={() => agir(() => partie.autreEvenement())}>Un autre</button>
-                  <button className="bouton bouton-discret" onClick={() => agir(() => partie.passerEvenement())}>
-                    Passer (Soleil)
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+            ) : (
+              <div className="actions">
+                <button className="bouton bouton-principal" onClick={() => agir(() => partie.appliquerEvenement())}>
+                  Valider l'événement
+                </button>
+                {/* La suite du Sablier est imposée : ni remplacée, ni passée. */}
+                {!evenement?.force && (
+                  <>
+                    <button className="bouton" onClick={() => agir(() => partie.autreEvenement())}>Un autre</button>
+                    <button className="bouton bouton-discret" onClick={() => agir(() => partie.passerEvenement())}>
+                      Passer (Soleil)
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </section>
       );
     }
@@ -671,13 +715,15 @@ function EtapeDeJour({
       return (
         <section>
           <h2>Élection du maire</h2>
-          {designe ? (
-            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.elire(designe))}>
-              Élire {nomDuDesigne}
-            </button>
-          ) : (
-            <p>Touche sur la table le joueur élu maire par le village.</p>
-          )}
+          <div className="panneau-pied">
+            {designe ? (
+              <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.elire(designe))}>
+                Élire {nomDuDesigne}
+              </button>
+            ) : (
+              <p>Touche sur la table le joueur élu maire par le village.</p>
+            )}
+          </div>
         </section>
       );
 
@@ -698,15 +744,18 @@ function EtapeDeJour({
           {/* Le minuteur garde son propre état. Il est détruit (et son intervalle arrêté)
               dès qu'on quitte la phase de débat, puisque ce JSX n'est plus rendu.
               Durée : celle de l'événement du jour (Sablier, Urgence…) ou le réglage ; null = pas de minuteur. */}
-          {duree !== null && (
-            <Minuteur minutes={duree} surChangement={secondes => { secondesRestantes.current = secondes; }} />
-          )}
-          <button
-            className="bouton bouton-principal bouton-large"
-            onClick={() => agir(() => partie.ouvrirVote(duree === null ? undefined : secondesRestantes.current))}
-          >
-            Passer au vote
-          </button>
+          {/* Le minuteur reste dans le pied : on doit le voir et le mettre en pause sans défiler. */}
+          <div className="panneau-pied">
+            {duree !== null && (
+              <Minuteur minutes={duree} surChangement={secondes => { secondesRestantes.current = secondes; }} />
+            )}
+            <button
+              className="bouton bouton-principal bouton-large"
+              onClick={() => agir(() => partie.ouvrirVote(duree === null ? undefined : secondesRestantes.current))}
+            >
+              Passer au vote
+            </button>
+          </div>
         </section>
       );
     }
@@ -720,16 +769,18 @@ function EtapeDeJour({
           {partie.rappelsDuVote().map((rappel, index) => (
             <p key={index} className="aide">⚠️ {rappel}</p>
           ))}
-          {designe ? (
-            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.voter(designe))}>
-              Éliminer {nomDuDesigne}
+          <div className="panneau-pied">
+            {designe ? (
+              <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.voter(designe))}>
+                Éliminer {nomDuDesigne}
+              </button>
+            ) : (
+              <p>Touche sur la table le joueur éliminé par le village.</p>
+            )}
+            <button className="bouton bouton-discret bouton-large" onClick={() => agir(() => partie.voter(null))}>
+              Personne n'est éliminé
             </button>
-          ) : (
-            <p>Touche sur la table le joueur éliminé par le village.</p>
-          )}
-          <button className="bouton bouton-discret bouton-large" onClick={() => agir(() => partie.voter(null))}>
-            Personne n'est éliminé
-          </button>
+          </div>
         </section>
       );
 
@@ -738,8 +789,10 @@ function EtapeDeJour({
         <section className="fin">
           <h2>🏆 Partie terminée</h2>
           <p>La partie est terminée après {partie.tour} tour(s).</p>
-          <button className="bouton bouton-large" onClick={imprimerRecap}>Télécharger le récap (PDF)</button>
-          <button className="bouton bouton-principal bouton-large" onClick={quitter}>Nouvelle partie</button>
+          <div className="panneau-pied">
+            <button className="bouton bouton-large" onClick={imprimerRecap}>Télécharger le récap (PDF)</button>
+            <button className="bouton bouton-principal bouton-large" onClick={quitter}>Nouvelle partie</button>
+          </div>
         </section>
       );
   }
@@ -857,15 +910,17 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
       {partie.infosPubliques(estLAube ? ["nuit", "aube"] : ["resultat_vote"]).map((texte, index) => (
         <p key={index} className="info-publique">{texte}</p>
       ))}
-      {/* Coup double : l'oracle peut rouvrir le vote (le débat se fait de tête). */}
-      {!estLAube && partie.peutRevoter && (
-        <button className="bouton bouton-large" onClick={() => agir(() => partie.revoter())}>
-          Voter quelqu'un d'autre (Chasse du puma)
+      <div className="panneau-pied">
+        {/* Coup double : l'oracle peut rouvrir le vote (le débat se fait de tête). */}
+        {!estLAube && partie.peutRevoter && (
+          <button className="bouton bouton-large" onClick={() => agir(() => partie.revoter())}>
+            Voter quelqu'un d'autre (Chasse du puma)
+          </button>
+        )}
+        <button className="bouton bouton-principal bouton-large" onClick={() => agir(passerALaSuite)}>
+          {libelleBouton}
         </button>
-      )}
-      <button className="bouton bouton-principal bouton-large" onClick={() => agir(passerALaSuite)}>
-        {libelleBouton}
-      </button>
+      </div>
     </section>
   );
 }
@@ -1084,13 +1139,15 @@ function DerniersResultats({ partie }: { partie: Partie }) {
   const origine = journal[debut];
   const titre = origine?.type === "action" ? origine.texte : "Nouvelles infos";
 
+  // Un <div> et pas une <section> : styles.css étire la <section> principale du panneau pour
+  // pousser ses boutons en bas ; cet encadré-ci ne doit pas s'étirer.
   return (
-    <section className="derniers-resultats">
+    <div className="derniers-resultats">
       <p className="aide">{titre}</p>
       {infosPrivees.map((entree, index) => (
         <p key={index} className="info-privee">{decrire(entree, partie)}</p>
       ))}
-    </section>
+    </div>
   );
 }
 

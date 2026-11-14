@@ -476,6 +476,8 @@ button.siege:hover { border-color: var(--accent); }
 .siege-carte .visuel { border-width: 1px; }
 .siege-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: .15rem; }
 .tag { display: inline-flex; gap: .2em; font-size: .62rem; padding: .05rem .3rem; border-radius: 3px; background: var(--surface-2); white-space: nowrap; }
+/* « +n » n'existe qu'au téléphone (une seule rangée d'icônes) ; ailleurs, tous les tags sont affichés. */
+.tag-plus { display: none; }
 .tag-mordu, .tag-empoisonne { background: #5a1f17; }
 .tag-protege { background: #1b4a42; }
 .tag-amoureux { background: #5a1f3e; }
@@ -611,14 +613,22 @@ button.siege:hover { border-color: var(--accent); }
        bas, ni ceux des coins (52 % de la largeur au plus) ; jamais moins de 110 px. */
     width: max(110px, min(calc(100cqw - 2 * var(--largeur-siege) - 16px), calc(100cqh - 190px), 52cqw));
   }
-  .page.partie .table-titre { font-size: 1rem; }
+  .page.partie .table-titre { font-size: .9rem; } /* « Résultat du vote » doit tenir dans un disque de ~160 px */
   .page.partie .table-centre-partie .table-tour { font-size: .78rem; }
   .page.partie .titre-fin-nom { font-size: 1.15rem; }
   .page.partie .pancarte { font-size: .78rem; padding: .45rem 1rem .35rem; letter-spacing: .08em; }
 
-  /* Le panneau du meneur : une feuille collée en bas de l'écran, sous le pouce. */
+  /* Le panneau du meneur : une feuille collée en bas de l'écran, sous le pouce.
+     POURQUOI une hauteur FIXE (et pas « la hauteur de son contenu, au plus 50 % ») : la table prend
+     tout ce que le panneau laisse. Si le panneau suit son contenu, chaque étape (un bouton Valider
+     qui apparaît, une carte avec plus d'options…) change la hauteur de la table, et tous les
+     sièges, placés en % de la table, s'écartent puis se resserrent. Mesuré avant ce choix : la
+     table variait de 376 à 566 px d'une étape à l'autre. Hauteur fixe : la table ne bouge plus, et
+     un contenu plus long défile DANS le panneau.
+     clamp(min, idéal, max) : 42 % de la page, jamais moins de 260 px (les boutons doivent tenir),
+     jamais plus de 380 px (sur une grande tablette, la table garde la place). */
   .partie .panneau {
-    flex: 0 0 auto; max-height: 50%; display: flex; flex-direction: column;
+    flex: 0 0 auto; height: clamp(260px, 42%, 380px); display: flex; flex-direction: column;
     margin: 0 -.3rem; border-radius: 14px 14px 0 0; border-bottom: 0;
     padding: .55rem .85rem calc(.7rem + env(safe-area-inset-bottom)); /* env(...) : la barre d'accueil de l'iPhone */
     box-shadow: 0 -10px 28px #000b, inset 0 0 0 3px #1a110b, inset 0 0 0 4px #4a321f55;
@@ -636,7 +646,23 @@ button.siege:hover { border-color: var(--accent); }
   }
   /* Seul le contenu défile, la barre reste visible. overscroll-behavior : arrivé en bout, le geste
      ne fait pas défiler (ni recharger) la page derrière. */
-  .panneau-corps { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+  /* Le contenu du panneau : une colonne qui défile.
+     FLUX du « pied » (.panneau-pied, les boutons) :
+       - contenu court : la section principale s'étire (flex: 1) et le pied est poussé tout en bas
+         (margin-top: auto) ; les boutons sont donc TOUJOURS au même endroit, sous le pouce ;
+       - contenu long : la section dépasse, le panneau défile, et le pied reste collé au bas de la
+         zone visible (position: sticky) ; c'est le texte qui passe dessous.
+     ATTENTION : flex: 1 0 auto et pas flex: 1. Le 0 interdit à la section de RÉTRÉCIR ; sinon elle
+     serait écrasée à la hauteur du panneau au lieu de déborder et de faire défiler. */
+  .panneau-corps { flex: 1; overflow-y: auto; overscroll-behavior: contain; min-height: 0; display: flex; flex-direction: column; }
+  .panneau-corps > section { flex: 1 0 auto; display: flex; flex-direction: column; }
+  .panneau-pied {
+    margin-top: auto; position: sticky; bottom: 0; z-index: 1; padding-top: .3rem;
+    /* Le fond du bas du panneau, et un fondu au-dessus : le texte qui défile s'efface sous les boutons. */
+    background: #22170f; box-shadow: 0 -14px 12px -6px #22170f;
+  }
+  /* Replié, le panneau redevient aussi bas que sa barre : là, c'est voulu, la table s'agrandit. */
+  .partie .panneau-replie { height: auto; }
   .panneau-replie .panneau-corps { display: none; }
   .journal-en-ligne { display: none; }
   .modale .journal ol { max-height: none; }
@@ -646,7 +672,8 @@ button.siege:hover { border-color: var(--accent); }
   .partie .decision-carte h2 { margin: 0; font-size: 1.05rem; }
   .partie .panneau h2 { font-size: 1.05rem; }
   .partie .panneau p { margin: .3rem 0; }
-  .partie .actions .bouton { min-height: 46px; flex: 1 1 auto; font-size: 1rem; }
+  .partie .actions { margin-top: .4rem; }
+  .partie .actions .bouton { min-height: 44px; flex: 1 1 auto; font-size: 1rem; padding: .4rem .7rem; }
   .partie .actions .bouton-petit { min-height: 42px; flex: 0 1 auto; font-size: .95rem; }
   .partie .bouton-large { min-height: 50px; font-size: 1.05rem; margin-top: .5rem; }
   .minuteur { margin: .2rem 0; }
@@ -655,30 +682,39 @@ button.siege:hover { border-color: var(--accent); }
   .grand-ecran-seulement { display: none; }
 
   /* --- Sièges : moins de choses, mais plus grandes --- */
-  /* Toutes les tables (Préparer, Partie, cas particuliers) : sièges plus étroits, et plus bas qu'à
-     l'ordinateur (pas d'avatar-initiale), donc un rayon vertical plus proche du bord. */
+  /* --- Sièges : TOUJOURS la même taille, quel que soit leur contenu ---
+     POURQUOI une hauteur fixe : un siège qui grandit quand un tag apparaît bouscule l'affichage, et
+     finit par chevaucher ses voisins. Ici : nom, carte, une rangée de tags (au plus 3 icônes, puis
+     « +n », voir ICONES_PAR_SIEGE dans PartieVue.tsx).
+     Les valeurs viennent d'une simulation de placesSurLeCarre (Table.tsx) : 64 px de haut et au
+     moins 58 px de large ne se chevauchent pas jusqu'à 15 joueurs sur un écran de 375 × 812.
+     --rayon-y : le centre d'un siège s'arrête à une demi-hauteur (32 px) du bord, plus 1 px. */
   .table {
-    --largeur-siege: clamp(64px, calc((100cqw + 100cqh) * .95 / var(--nb-sieges, 8)), 100px);
-    --rayon-y: calc(50% - 40px);
+    --hauteur-siege: 64px;
+    --largeur-siege: clamp(58px, calc((100cqw + 100cqh) * .95 / var(--nb-sieges, 8)), 100px);
+    --rayon-y: calc(50% - var(--hauteur-siege) / 2 - 1px);
   }
   /* Petite table : les sièges suivent un carré arrondi plutôt qu'un cercle, pour occuper aussi les
      coins de l'écran (voir placesSurLeCarre dans Table.tsx). */
   .siege {
     left: calc(50% + var(--rayon-x) * var(--x-carre));
     top: calc(50% + var(--rayon-y) * var(--y-carre));
+    height: var(--hauteur-siege); justify-content: center;
+    padding: .2rem .2rem; gap: .05rem;
   }
-  .siege { padding: .3rem .2rem; gap: .05rem; }
   /* ">" : seulement l'avatar, enfant DIRECT du siège ; pas l'image du rôle, rangée dans .siege-carte.
-     L'avatar sans photo n'est que l'initiale du nom écrit juste dessous : on le retire pour gagner
-     une ligne. Une vraie photo (une <img>) reste, en petit. */
+     L'avatar sans photo n'est que l'initiale du nom écrit juste dessous : on le retire. Une vraie
+     photo (une <img>) devient une pastille posée sur le coin du siège : elle n'ajoute aucune hauteur. */
   .siege > .visuel-texte:first-child { display: none; }
-  .siege > .visuel:first-child { width: 26px !important; height: 26px !important; }
+  .siege > .visuel:first-child { position: absolute; top: -9px; left: -9px; width: 24px !important; height: 24px !important; }
   .siege-nom { font-size: .95rem; line-height: 1.15; }
-  .siege-carte { font-size: .8rem; color: #e6cfa6; }
+  .siege-carte { font-size: .8rem; line-height: 1.2; color: #e6cfa6; }
   .siege-carte .visuel { width: 17px !important; height: 17px !important; font-size: 12px !important; }
-  /* Tags : l'icône seule, en grand. Le texte est dans la fiche du joueur et au survol (title). */
-  .tag { font-size: 1rem; line-height: 1.2; padding: 0 .1rem; }
-  .tag-texte { display: none; }
+  /* Tags : l'icône seule, sur UNE rangée (nowrap). Le texte est dans la fiche du joueur (title au survol). */
+  .siege-tags { flex-wrap: nowrap; gap: .1rem; }
+  .tag { font-size: .9rem; line-height: 1.15; padding: 0 .05rem; }
+  .tag-texte, .tag-en-trop { display: none; }
+  .tag-plus { display: inline-flex; font-size: .75rem; color: var(--texte-doux); background: none; align-self: center; }
   .siege-mort { opacity: .45; }
 
   /* Modales : presque tout l'écran, et la hauteur visible (dvh) pour ne rien cacher sous la barre d'adresse. */
@@ -696,7 +732,9 @@ button.siege:hover { border-color: var(--accent); }
 /* Téléphone couché : la hauteur manque. Table à gauche, panneau à droite, sur toute la hauteur. */
 @media screen and (max-height: 500px) and (orientation: landscape) {
   .page.partie { flex-direction: row; padding: .3rem 0 0 .3rem; }
-  .partie .panneau { width: 46%; max-width: 420px; max-height: 100%; margin: 0; border-radius: 14px 0 0 0; }
+  /* Ici c'est la LARGEUR du panneau qui est fixe (46 %) : la table, à côté, ne bouge pas non plus.
+     height: auto annule la hauteur fixe du mode debout ; la rangée flex l'étire sur toute la hauteur. */
+  .partie .panneau, .partie .panneau-replie { width: 46%; max-width: 420px; height: auto; margin: 0; border-radius: 14px 0 0 0; }
   .page.partie .table-plateau { width: max(90px, min(calc(100cqw - 2 * var(--largeur-siege) - 6px), calc(100cqh - 150px))); }
 }
 

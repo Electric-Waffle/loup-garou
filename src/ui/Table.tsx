@@ -22,7 +22,7 @@
  *  RÉUTILISABLE : tel quel, pour n'importe quel affichage d'éléments en cercle.
  * ===================================================================================== */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 
 /** Ce que le parent doit fournir pour chaque siège. */
 export interface Siege {
@@ -126,11 +126,19 @@ function placesSurLeCarre(nombre: number, proportions: number): Point[] {
  * appelle d'autres hooks. Il range un morceau de logique avec état (ici : observer une taille)
  * pour le réutiliser tel quel, comme un service qu'on injecte en Symfony.
  * FLUX :
- *   1. premier rendu : on renvoie 1 (carré), la table n'est pas encore à l'écran ;
- *   2. après le rendu, l'effet branche un ResizeObserver sur l'élément ;
- *   3. le navigateur l'appelle tout de suite avec la vraie taille, puis à chaque changement
- *      (rotation du téléphone, panneau qui se replie…) → setProportions → nouveau rendu ;
+ *   1. premier rendu : on renvoie 1 (carré), la table n'est pas encore dans la page ;
+ *   2. React l'insère dans la page, puis appelle l'effet AVANT que l'écran soit peint : on mesure
+ *      la table tout de suite (getBoundingClientRect) → setProportions → React refait le rendu,
+ *      toujours avant la peinture ; l'œil ne voit jamais la version « carrée » ;
+ *   3. l'effet branche aussi un ResizeObserver, que le navigateur appelle à chaque changement de
+ *      taille (rotation du téléphone, panneau qui se replie…) → setProportions → nouveau rendu ;
  *   4. quand la table disparaît, le nettoyage débranche l'observateur.
+ * CONCEPT : useLayoutEffect a le même contrat que useEffect, mais il s'exécute juste après la
+ * mise à jour du DOM et AVANT la peinture, au lieu d'après. À réserver aux mesures de mise en
+ * page : il retarde l'affichage du temps de son exécution.
+ * POURQUOI pas seulement le ResizeObserver : son premier appel peut arriver une image plus tard
+ * (bien plus dans un onglet en arrière-plan). Les sièges des coins sautaient alors à chaque
+ * ouverture de l'onglet Partie, le temps que la vraie forme arrive.
  * POURQUOI arrondir au centième : un changement de taille d'un demi-pixel ne vaut pas un rendu.
  * React ignore un setState avec la MÊME valeur ; l'arrondi rend ce cas fréquent.
  * RÉUTILISABLE : pour tout composant qui doit s'adapter à SA taille (et non à celle de l'écran).
@@ -138,13 +146,20 @@ function placesSurLeCarre(nombre: number, proportions: number): Point[] {
 function useProportions(element: RefObject<HTMLElement>): number {
   const [proportions, setProportions] = useState(1);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const cible = element.current;
     if (!cible) return;
+
+    const mesurer = (largeur: number, hauteur: number) => {
+      if (largeur > 0 && hauteur > 0) setProportions(Math.round((largeur / hauteur) * 100) / 100);
+    };
+
+    const taille = cible.getBoundingClientRect();
+    mesurer(taille.width, taille.height);
+
     // CONCEPT : ([entree]) déstructure le premier élément du tableau d'entrées observées.
     const observateur = new ResizeObserver(([entree]) => {
-      const { width, height } = entree.contentRect;
-      if (width > 0 && height > 0) setProportions(Math.round((width / height) * 100) / 100);
+      mesurer(entree.contentRect.width, entree.contentRect.height);
     });
     observateur.observe(cible);
     return () => observateur.disconnect();
