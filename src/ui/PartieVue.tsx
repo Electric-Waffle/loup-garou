@@ -2,20 +2,24 @@
  *  PartieVue.tsx — l'écran de jeu de l'oracle
  * =====================================================================================
  *
- *  À gauche : la table, avec chaque joueur, sa carte et ses tags.
- *  À droite : un panneau qui affiche, selon le moment :
+ *  La table, avec chaque joueur, sa carte et ses tags ; et le panneau du meneur, qui affiche :
+ *    - les infos privées à montrer tout de suite (ce que la Voyante vient de voir…) ;
  *    - la DÉCISION en cours (une carte appelée la nuit, ou une décision urgente comme le
  *      Chasseur), avec ses options et le choix des cibles ;
  *    - sinon, l'ÉTAPE DU JOUR correspondant à la phase (rapport, événement, débat, vote, fin) ;
- *    - toujours, le journal de l'oracle.
+ *    - le journal de l'oracle : sous le panneau sur grand écran, dans une modale au téléphone.
+ *
+ *  Mise en page (styles.css) : grand écran, table à gauche et panneau à droite. Téléphone, la
+ *  page tient dans l'écran : table en haut, panneau collé en bas sous le pouce, repliable.
  *
  *  Organisation du fichier :
- *    1. dictionnaires de libellés (TAGS, CAUSES, PHASES) ;
+ *    1. dictionnaires de libellés (CAUSES, PHASES) ;
  *    2. selectionApresClic() : la règle de sélection des cibles (fonction pure) ;
  *    3. <PartieVue>   : le composant principal ;
  *    4. <EtapeDeJour> : le panneau quand aucune décision n'est en cours ;
  *    5. <Minuteur>    : le compte à rebours du débat ;
- *    6. decrire() et <Journal> : l'affichage du journal.
+ *    6. decrire() et <Journal> : l'affichage du journal ;
+ *    7. <DerniersResultats> et <BlocJoueur> : les infos à montrer, la fiche d'un joueur.
  *
  *  FLUX d'un tour de carte (détaillé dans la note fonctionnement-du-code, parties 4 et 6) :
  *    1. à chaque rendu, on demande au moteur : partie.decisionCourante() ;
@@ -36,7 +40,8 @@ import type { Entree, Joueur, OptionChoix } from "../moteur/types";
 import { Table, type Siege } from "./Table";
 import { Cadran, finDuCadran, TitreDeFin, type FinCadran } from "./Cadran";
 import { FicheCarte } from "./FicheCarte";
-import { TAGS } from "./libelles";
+import { decouperTag } from "./libelles";
+import { Modale } from "./Modale";
 import { Visuel } from "./Visuel";
 
 /* =====================================================================================
@@ -160,7 +165,14 @@ export function PartieVue({
   const [option, setOption] = useState<OptionChoix | null>(null); // l'option cliquée (Dévorer, Protéger...)
   const [cibles, setCibles] = useState<string[]>([]);             // les ids des joueurs sélectionnés
   const [erreur, setErreur] = useState<string | null>(null);      // le message si le moteur refuse
-  const [ficheOuverte, setFicheOuverte] = useState<string | null>(null); // alias de la carte affichée en fiche
+  const [joueurOuvert, setJoueurOuvert] = useState<string | null>(null); // id du joueur dont la fiche est ouverte
+  // Vote et élection en DEUX temps : un appui désigne, un bouton du panneau confirme.
+  // POURQUOI : au téléphone, un pouce qui glisse sur la table éliminerait le mauvais joueur, sans
+  // retour possible (il n'y a pas de bouton « annuler »).
+  const [designe, setDesigne] = useState<string | null>(null);
+  // Téléphone : le panneau du meneur se replie pour laisser toute la place à la table.
+  const [panneauReplie, setPanneauReplie] = useState(false);
+  const [journalOuvert, setJournalOuvert] = useState(false);
 
   // PATTERN : réinitialisation par clé.
   // POURQUOI : quand une carte a fini de jouer, sa sélection ne doit pas déborder sur la
@@ -178,6 +190,9 @@ export function PartieVue({
     setOption(null);
     setCibles([]);
     setErreur(null);
+    setDesigne(null);
+    // Une nouvelle étape réclame l'attention du meneur : le panneau se rouvre de lui-même.
+    setPanneauReplie(false);
   }, [cle]);
 
   /**
@@ -220,6 +235,8 @@ export function PartieVue({
   // Combien de cibles l'option choisie demande (0 si aucune option).
   // option?.cible : si option est null, l'expression vaut undefined, et nbCibles(undefined) = 0.
   const attendu = nbCibles(option?.cible);
+  // "Bob + Chloé" : les cibles choisies, dans l'ordre des clics.
+  const nomsDesCibles = cibles.map(id => partie.joueur(id).nom).join(" + ");
 
   const enVote = partie.phase === "vote";
   const enElection = partie.phase === "election";
@@ -231,16 +248,12 @@ export function PartieVue({
 
   /**
    * Clic sur un joueur (un siège de la table, ou un bouton de la liste de cibles).
-   * Pendant le vote : élimine directement ce joueur.
+   * Pendant le vote ou l'élection : le désigne (re-cliquer le retire) ; le panneau confirme.
    * Sinon : l'ajoute à la sélection ou l'en retire.
    */
   function cliquerJoueur(idJoueur: string) {
-    if (enVote) {
-      agir(() => partie.voter(idJoueur));
-      return;
-    }
-    if (enElection) {
-      agir(() => partie.elire(idJoueur));
+    if (enVote || enElection) {
+      setDesigne(dejaDesigne => (dejaDesigne === idJoueur ? null : idJoueur));
       return;
     }
 
@@ -304,7 +317,7 @@ export function PartieVue({
     if (estCliquable) {
       classes.push("siege-cible");     // peut être choisi : bordure en pointillés
     }
-    if (cibles.includes(joueur.id)) {
+    if (cibles.includes(joueur.id) || designe === joueur.id) {
       classes.push("siege-selection"); // déjà choisi
     }
     return classes.join(" ");
@@ -336,7 +349,7 @@ export function PartieVue({
       // même celle d'un Skinwalker déguisé : c'est l'écran de l'oracle).
       // POURQUOI seulement dans ce cas : sinon un clic hors des cibles ouvrirait une fiche
       // au lieu d'être ignoré, et l'oracle croirait avoir choisi quelqu'un.
-      auClic = () => setFicheOuverte(joueur.role);
+      auClic = () => setJoueurOuvert(joueur.id);
     }
 
     const siege: Siege = {
@@ -355,10 +368,18 @@ export function PartieVue({
           {joueur.tags.length > 0 && (
             <span className="siege-tags">
               {/* key={tag.type} : un joueur ne porte jamais deux fois le même tag
-                  (r.accepter() retire le doublon), le type est donc une clé unique. */}
-              {joueur.tags.map(tag => (
-                <span key={tag.type} className={`tag tag-${tag.type}`}>{TAGS[tag.type] ?? tag.type}</span>
-              ))}
+                  (r.accepter() retire le doublon), le type est donc une clé unique.
+                  Sur téléphone, styles.css cache .tag-texte : il ne reste que l'icône. */}
+              {joueur.tags.map(tag => {
+                const { icone, texte } = decouperTag(tag.type);
+                return (
+                  <span key={tag.type} className={`tag tag-${tag.type}`} title={texte}>
+                    {icone && <span aria-hidden="true">{icone}</span>}
+                    {/* Sans icône (tag sans libellé), le texte reste visible partout. */}
+                    <span className={icone ? "tag-texte" : undefined}>{texte}</span>
+                  </span>
+                );
+              })}
             </span>
           )}
         </>
@@ -372,6 +393,9 @@ export function PartieVue({
   const enFin = !!finTest || partie.phase === "fin";
   const finCadran = finTest?.fin ?? finDuCadran(partie.vainqueur);
   const survivants = partie.vivants().length; // autant de villageois en fête sur le cadran
+  const ouvert = joueurOuvert ? partie.joueur(joueurOuvert) : undefined;
+  // Ce que montre la barre du panneau, même replié : la carte appelée, sinon l'étape du jour.
+  const titreDuPanneau = courante ? courante.titre : PHASES[partie.phase];
 
   return (
     <div className={classesPage}>
@@ -395,111 +419,143 @@ export function PartieVue({
         sieges={sieges}
       />
 
-      {/* RÉUTILISABLE : la même fiche que la page Explications, avec l'apparence de la partie. */}
-      {ficheOuverte && (
+      {/* RÉUTILISABLE : la même fiche que la page Explications, avec l'apparence de la partie,
+          précédée du joueur lui-même (ses tags en toutes lettres, illisibles sur le siège au téléphone). */}
+      {ouvert && (
         <FicheCarte
-          role={partie.role(ficheOuverte)}
-          titre={partie.titre(ficheOuverte)}
-          image={partie.image(ficheOuverte)}
-          fermer={() => setFicheOuverte(null)}
+          role={partie.role(ouvert.role)}
+          titre={partie.titre(ouvert.role)}
+          image={partie.image(ouvert.role)}
+          fermer={() => setJoueurOuvert(null)}
+          joueur={<BlocJoueur partie={partie} joueur={ouvert} />}
         />
       )}
 
-      <aside className="panneau">
-        {/* Une décision est en cours : on l'affiche. Sinon : l'étape du jour. */}
-        {courante ? (
-          <section className={courante.urgente ? "decision decision-urgente" : "decision"}>
-            <div className="decision-carte">
-              {/* POURQUOI courante.titre et pas partie.titre(alias) : un événement n'est pas un rôle. */}
-              <Visuel src={courante.image} nom={courante.titre} taille={72} />
-              <div>
-                <h2>{courante.titre}</h2>
-                {/* Les noms des joueurs qui portent cette carte (le maire, pour un événement). */}
-                <p className="aide">
-                  {courante.evenement ? "Le maire désigne : " : ""}
-                  {courante.porteurs.map(porteur => porteur.nom).join(", ")}
-                </p>
-              </div>
-            </div>
+      {journalOuvert && (
+        <Modale fermer={() => setJournalOuvert(false)}>
+          <Journal partie={partie} />
+        </Modale>
+      )}
 
-            {courante.decision.message && <p>{courante.decision.message}</p>}
+      {/* FLUX (téléphone) : la page fait exactement la hauteur de l'écran. La table prend l'espace
+          libre en haut, ce panneau se colle en bas, sous le pouce ; seul son contenu défile.
+          Sur grand écran, c'est la colonne de droite, comme avant (voir styles.css). */}
+      <aside className={panneauReplie ? "panneau panneau-replie" : "panneau"}>
+        <div className="panneau-barre">
+          {/* La poignée : un appui replie ou déplie le panneau. Replié, il ne reste que cette barre. */}
+          <button className="panneau-poignee" onClick={() => setPanneauReplie(etait => !etait)} aria-expanded={!panneauReplie}>
+            {/* Déplié, le titre ferait doublon avec celui de la décision juste en dessous. */}
+            <span className="panneau-titre">{panneauReplie ? titreDuPanneau : "Réduire"}</span>
+            <span aria-hidden="true">{panneauReplie ? "▲" : "▼"}</span>
+          </button>
+          <button className="bouton bouton-petit" onClick={() => setJournalOuvert(true)}>📜 Journal</button>
+        </div>
 
-            {/* Compte à rebours demandé par la carte (Réunion des amoureux).
-                POURQUOI key : une nouvelle réunion la nuit suivante doit repartir à zéro ; sans
-                key, React garderait le même Minuteur, avec son temps déjà écoulé. */}
-            {courante.decision.minuteur !== undefined && (
-              <Minuteur key={`${courante.alias}-${partie.tour}`} minutes={courante.decision.minuteur / 60} />
-            )}
+        <div className="panneau-corps">
+          <DerniersResultats partie={partie} />
 
-            {/* Les options proposées par role.decision(). */}
-            <div className="actions">
-              {courante.decision.choix.map(optionProposee => {
-                const estChoisie = option?.id === optionProposee.id;
-                return (
-                  <button
-                    key={optionProposee.id}
-                    className={estChoisie ? "bouton bouton-principal" : "bouton"}
-                    onClick={() => choisirOption(optionProposee)}
-                  >
-                    {optionProposee.label}
-                  </button>
-                );
-              })}
-
-              {/* POURQUOI pas de "Passer" pour une décision urgente : la partie ne peut pas
-                  avancer tant qu'elle n'est pas jouée. Le rôle doit donc proposer lui-même une
-                  option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
-              {!courante.urgente && (
-                <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
-                  {courante.evenement ? "Passer (Inti rayonne)" : "Passer"}
-                </button>
-              )}
-              {courante.evenement && (
-                <button className="bouton bouton-discret" onClick={() => agir(() => partie.autreEvenement())}>
-                  Un autre
-                </button>
-              )}
-            </div>
-
-            {/* Choix des cibles : seulement quand l'option choisie en demande. */}
-            {option && attendu > 0 && (
-              <>
-                <p className="aide">
-                  Choisis {attendu === 2 ? "deux joueurs" : "un joueur"} sur la table ou ici :
-                </p>
-                <div className="actions">
-                  {possibles.map(idJoueur => {
-                    const estSelectionne = cibles.includes(idJoueur);
-                    return (
-                      <button
-                        key={idJoueur}
-                        className={estSelectionne ? "bouton bouton-petit bouton-principal" : "bouton bouton-petit"}
-                        onClick={() => cliquerJoueur(idJoueur)}
-                      >
-                        {partie.joueur(idJoueur).nom}
-                      </button>
-                    );
-                  })}
+          {/* Une décision est en cours : on l'affiche. Sinon : l'étape du jour. */}
+          {courante ? (
+            <section className={courante.urgente ? "decision decision-urgente" : "decision"}>
+              <div className="decision-carte">
+                {/* POURQUOI courante.titre et pas partie.titre(alias) : un événement n'est pas un rôle. */}
+                <Visuel src={courante.image} nom={courante.titre} taille={72} />
+                <div>
+                  <h2>{courante.titre}</h2>
+                  {/* Les noms des joueurs qui portent cette carte (le maire, pour un événement). */}
+                  <p className="aide">
+                    {courante.evenement ? "Le maire désigne : " : ""}
+                    {courante.porteurs.map(porteur => porteur.nom).join(", ")}
+                  </p>
                 </div>
-                {/* Le moteur revérifie le nombre de cibles dans jouer(), mais on évite
-                    d'envoyer un choix incomplet. */}
-                <button
-                  className="bouton bouton-principal bouton-large"
-                  disabled={cibles.length !== attendu}
-                  onClick={valider}
-                >
-                  Valider
-                </button>
-              </>
-            )}
-          </section>
-        ) : (
-          <EtapeDeJour partie={partie} agir={agir} dureeDebat={dureeDebat} quitter={quitter} />
-        )}
+              </div>
 
-        {erreur && <p className="erreur">{erreur}</p>}
+              {courante.decision.message && <p>{courante.decision.message}</p>}
 
-        <Journal partie={partie} />
+              {/* Compte à rebours demandé par la carte (Réunion des amoureux).
+                  POURQUOI key : une nouvelle réunion la nuit suivante doit repartir à zéro ; sans
+                  key, React garderait le même Minuteur, avec son temps déjà écoulé. */}
+              {courante.decision.minuteur !== undefined && (
+                <Minuteur key={`${courante.alias}-${partie.tour}`} minutes={courante.decision.minuteur / 60} />
+              )}
+
+              {/* Les options proposées par role.decision(). */}
+              <div className="actions">
+                {courante.decision.choix.map(optionProposee => {
+                  const estChoisie = option?.id === optionProposee.id;
+                  return (
+                    <button
+                      key={optionProposee.id}
+                      className={estChoisie ? "bouton bouton-principal" : "bouton"}
+                      onClick={() => choisirOption(optionProposee)}
+                    >
+                      {optionProposee.label}
+                    </button>
+                  );
+                })}
+
+                {/* POURQUOI pas de "Passer" pour une décision urgente : la partie ne peut pas
+                    avancer tant qu'elle n'est pas jouée. Le rôle doit donc proposer lui-même une
+                    option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
+                {!courante.urgente && (
+                  <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
+                    {courante.evenement ? "Passer (Inti rayonne)" : "Passer"}
+                  </button>
+                )}
+                {courante.evenement && (
+                  <button className="bouton bouton-discret" onClick={() => agir(() => partie.autreEvenement())}>
+                    Un autre
+                  </button>
+                )}
+              </div>
+
+              {/* Choix des cibles : seulement quand l'option choisie en demande. */}
+              {option && attendu > 0 && (
+                <>
+                  <p className="aide">
+                    Touche {attendu === 2 ? "deux joueurs" : "un joueur"} sur la table
+                    <span className="grand-ecran-seulement"> ou ici</span>.
+                  </p>
+                  {/* Grand écran seulement : au téléphone, la table est juste au-dessus et cette liste
+                      doublait sa hauteur dans le panneau, au point d'écraser la table. */}
+                  <div className="actions grand-ecran-seulement">
+                    {possibles.map(idJoueur => {
+                      const estSelectionne = cibles.includes(idJoueur);
+                      return (
+                        <button
+                          key={idJoueur}
+                          className={estSelectionne ? "bouton bouton-petit bouton-principal" : "bouton bouton-petit"}
+                          onClick={() => cliquerJoueur(idJoueur)}
+                        >
+                          {partie.joueur(idJoueur).nom}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Le moteur revérifie le nombre de cibles dans jouer(), mais on évite
+                      d'envoyer un choix incomplet. */}
+                  <button
+                    className="bouton bouton-principal bouton-large"
+                    disabled={cibles.length !== attendu}
+                    onClick={valider}
+                  >
+                    {/* Le bouton redit qui est choisi : sans la liste ci-dessus, c'est le seul rappel au téléphone. */}
+                    Valider{nomsDesCibles ? ` : ${nomsDesCibles}` : ""}
+                  </button>
+                </>
+              )}
+            </section>
+          ) : (
+            <EtapeDeJour partie={partie} agir={agir} dureeDebat={dureeDebat} quitter={quitter} designe={designe} />
+          )}
+
+          {erreur && <p className="erreur">{erreur}</p>}
+        </div>
+
+        {/* Grand écran seulement : le journal sous le panneau. Au téléphone, il s'ouvre par le bouton 📜. */}
+        <div className="journal-en-ligne">
+          <Journal partie={partie} />
+        </div>
       </aside>
 
       {partie.phase === "fin" && <RecapJournal partie={partie} />}
@@ -525,13 +581,18 @@ function EtapeDeJour({
   partie,
   agir,
   dureeDebat,
-  quitter
+  quitter,
+  designe
 }: {
   partie: Partie;
   agir: (action: () => void) => void;
   dureeDebat: number;
   quitter: () => void;
+  /** Vote ou élection : le joueur touché sur la table, en attente de confirmation. */
+  designe: string | null;
 }) {
+  const nomDuDesigne = designe ? partie.joueur(designe).nom : undefined;
+
   // PATTERN : useRef pour une valeur qu'on lit sans qu'elle redessine l'écran.
   // POURQUOI : le Minuteur la met à jour chaque seconde ; avec useState, EtapeDeJour serait
   // redessinée à chaque seconde pour rien. On ne la lit qu'au clic « Passer au vote ».
@@ -605,12 +666,18 @@ function EtapeDeJour({
       );
     }
 
-    // L'élu se choisit en cliquant sur un siège (voir cliquerJoueur dans PartieVue).
+    // L'élu se désigne en touchant un siège (voir cliquerJoueur dans PartieVue), puis se confirme ici.
     case "election":
       return (
         <section>
           <h2>Élection du maire</h2>
-          <p>Clique sur le joueur élu maire par le village.</p>
+          {designe ? (
+            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.elire(designe))}>
+              Élire {nomDuDesigne}
+            </button>
+          ) : (
+            <p>Touche sur la table le joueur élu maire par le village.</p>
+          )}
         </section>
       );
 
@@ -644,7 +711,7 @@ function EtapeDeJour({
       );
     }
 
-    // Le vote se fait en cliquant sur un siège (voir cliquerJoueur dans PartieVue).
+    // L'éliminé se désigne en touchant un siège (voir cliquerJoueur dans PartieVue), puis se confirme ici.
     case "vote":
       return (
         <section>
@@ -653,8 +720,14 @@ function EtapeDeJour({
           {partie.rappelsDuVote().map((rappel, index) => (
             <p key={index} className="aide">⚠️ {rappel}</p>
           ))}
-          <p>Clique sur le joueur éliminé par le village.</p>
-          <button className="bouton bouton-discret" onClick={() => agir(() => partie.voter(null))}>
+          {designe ? (
+            <button className="bouton bouton-principal bouton-large" onClick={() => agir(() => partie.voter(designe))}>
+              Éliminer {nomDuDesigne}
+            </button>
+          ) : (
+            <p>Touche sur la table le joueur éliminé par le village.</p>
+          )}
+          <button className="bouton bouton-discret bouton-large" onClick={() => agir(() => partie.voter(null))}>
             Personne n'est éliminé
           </button>
         </section>
@@ -970,4 +1043,99 @@ function Journal({ partie }: { partie: Partie }) {
       </ol>
     </details>
   );
+}
+
+/* =====================================================================================
+ *  7. Ce que le meneur doit montrer maintenant
+ * ===================================================================================== */
+
+/** Types d'entrée qui ouvrent un nouveau « moment » : ce qui suit leur appartient. */
+const DEBUTS_DE_MOMENT = new Set(["action", "passe", "phase"]);
+
+/**
+ * Les infos PRIVÉES produites depuis la dernière action (ou le dernier changement de phase) :
+ * la carte vue par la Voyante, les rôles des amoureux pour Cupidon, la possession du Loup-démon…
+ *
+ * POURQUOI : ces infos n'étaient lisibles que dans le journal. Le journal étant replié au
+ * téléphone, le meneur les aurait perdues ; elles s'affichent donc en tête du panneau, le temps
+ * de les montrer au joueur, et disparaissent dès l'action suivante.
+ * FLUX : rien n'est stocké. Le composant relit le journal à chaque rendu (même principe que
+ * partie.morts() pour le rapport de l'aube) : c'est un état DÉRIVÉ, jamais désynchronisé.
+ * POURQUOI seulement les privées : les publiques (Hurleur, flammes de la salamandre…) sont lues
+ * à voix haute au rapport de l'aube ou au résultat du vote, déjà affichés.
+ */
+function DerniersResultats({ partie }: { partie: Partie }) {
+  const journal = partie.journal;
+
+  // L'index du dernier début de moment, en partant de la fin (-1 si aucun).
+  // POURQUOI une boucle et pas journal.findLastIndex(...) : cette méthode date d'ES2023, et le
+  // projet cible ES2022 (tsconfig). La boucle à rebours fait la même chose.
+  let debut = journal.length - 1;
+  while (debut >= 0 && !DEBUTS_DE_MOMENT.has(journal[debut].type)) debut--;
+
+  //   journal.slice(debut + 1)  → les entrées écrites APRÈS ce début (nouveau tableau, journal intact)
+  //   .filter(info privée)      → seulement celles qui ont un destinataire
+  const infosPrivees = journal
+    .slice(debut + 1)
+    .filter(entree => entree.type === "info" && entree.joueur !== undefined);
+  if (infosPrivees.length === 0) return null;
+
+  // Le titre : l'action qui a produit ces infos (« Voyante : sonder → Bob »), sinon un titre générique.
+  const origine = journal[debut];
+  const titre = origine?.type === "action" ? origine.texte : "Nouvelles infos";
+
+  return (
+    <section className="derniers-resultats">
+      <p className="aide">{titre}</p>
+      {infosPrivees.map((entree, index) => (
+        <p key={index} className="info-privee">{decrire(entree, partie)}</p>
+      ))}
+    </section>
+  );
+}
+
+/**
+ * Le joueur ouvert depuis la table : son nom, puis chacun de ses tags en toutes lettres.
+ * Affiché en tête de la fiche de sa carte (FicheCarte, prop `joueur`).
+ */
+function BlocJoueur({ partie, joueur }: { partie: Partie; joueur: Joueur }) {
+  return (
+    <div className="fiche-joueur">
+      <div className="fiche-joueur-entete">
+        <Visuel src={joueur.image} nom={joueur.nom} taille={48} />
+        <h2>{joueur.nom}{!joueur.vivant && " ⚰️"}</h2>
+      </div>
+      {joueur.tags.length === 0 ? (
+        <p className="aide">Aucun tag.</p>
+      ) : (
+        <ul className="fiche-joueur-tags">
+          {joueur.tags.map(tag => {
+            const { icone, texte } = decouperTag(tag.type);
+            return (
+              <li key={tag.type}>
+                <span aria-hidden="true">{icone ?? "•"}</span> {texte}
+                <span className="aide">{precisionDuTag(partie, joueur, tag.type)}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Un complément pour les tags qui désignent d'autres joueurs (« de Hugo »), sinon "".
+ * shortcut : seulement les liens (amoureux, Arlequin) ; à étendre si d'autres tags pointent vers quelqu'un.
+ */
+function precisionDuTag(partie: Partie, joueur: Joueur, type: string): string {
+  if (type === "amoureux") {
+    const noms = partie.partenairesDe(joueur).map(partenaire => partenaire.nom);
+    return noms.length ? ` — de ${noms.join(", ")}` : "";
+  }
+  if (type === "lie") {
+    const partenaire = partie.partenaireLie(joueur);
+    return partenaire ? ` — avec ${partenaire.nom}` : "";
+  }
+  return "";
 }

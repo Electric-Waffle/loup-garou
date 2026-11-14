@@ -9,6 +9,7 @@
  *  son image dans les options. L'appelant passe l'apparence choisie ; le rôle donne le reste.
  * ===================================================================================== */
 
+import type { ReactNode } from "react";
 import { ROLES } from "../moteur/roles";
 import type { Role } from "../moteur/types";
 import { LIBELLES_CAMPS, libelleTours } from "./libelles";
@@ -31,12 +32,18 @@ export function PastilleCarte({ role, titre, image, ouvrir }: {
   );
 }
 
-/** La fiche complète d'une carte, dans une modale. */
-export function FicheCarte({ role, titre, image, fermer }: {
+/**
+ * La fiche complète d'une carte, dans une modale.
+ * @param joueur facultatif : un bloc affiché tout en haut (en partie, le joueur cliqué et ses tags).
+ * PATTERN : composition par « slot ». La fiche ne sait rien d'un joueur ; PartieVue lui passe un
+ * morceau de JSX déjà prêt, comme Table reçoit le contenu de ses sièges.
+ */
+export function FicheCarte({ role, titre, image, fermer, joueur }: {
   role: Role;
   titre: string;
   image: string;
   fermer: () => void;
+  joueur?: ReactNode;
 }) {
   // Titres des cartes de groupe qu'elle rejoint (« Loup-Garou » pour un loup spécial).
   // CONCEPT : ?? [] donne un tableau vide si le rôle ne rejoint rien : map ne plante pas.
@@ -44,6 +51,7 @@ export function FicheCarte({ role, titre, image, fermer }: {
 
   return (
     <Modale fermer={fermer}>
+      {joueur}
       <div className="fiche-entete">
         <Visuel src={image} nom={titre} taille={112} />
         <div>

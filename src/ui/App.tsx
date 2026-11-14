@@ -177,8 +177,13 @@ export function App() {
   // Ici, les conditions sont des booléens ou un objet (partie), donc pas de souci.
   if (intro) return <Intro fin={() => setIntro(false)} />;
 
+  // POURQUOI une classe selon la page : au téléphone, la page de partie tient exactement dans
+  // l'écran (table en haut, panneau en bas, aucun défilement de la page). Les autres pages
+  // défilent normalement. Voir « Téléphone » dans styles.css.
+  const classeApp = page === "partie" ? "app app-partie" : "app";
+
   return (
-    <div className="app">
+    <div className={classeApp}>
       <header className="barre">
         <h1>
           {page === "partie" ? (
@@ -187,7 +192,8 @@ export function App() {
           ) : (
             <span className="logo" aria-hidden="true">☀️</span>
           )}{" "}
-          Paqari
+          {/* Le nom s'efface sur un petit écran pour laisser la place aux onglets ; le soleil reste. */}
+          <span className="barre-nom">Paqari</span>
         </h1>
         <nav>
           <button className={classeOnglet("options", page)} onClick={() => setPage("options")}>
@@ -199,7 +205,7 @@ export function App() {
           {/* L'onglet n'existe que pendant une partie. */}
           {partie && (
             <button className={classeOnglet("partie", page)} onClick={() => setPage("partie")}>
-              Partie en cours
+              Partie
             </button>
           )}
           {/* En dernier : tout à droite de la barre. Consultable à tout moment, même en partie. */}

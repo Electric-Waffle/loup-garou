@@ -126,3 +126,19 @@ export const TAGS: Record<string, string> = {
   apaisee: "🕊️ démasquée",
   mort: "⚰️ mort"
 };
+
+/**
+ * Un tag coupé en deux : l'icône (affichée seule sur téléphone) et le texte.
+ *   "mordu"   → { icone: "🩸", texte: "mordu" }
+ *   "inconnu" → { icone: undefined, texte: "inconnu" }  (pas de libellé : le nom brut, sans icône)
+ * POURQUOI : sur un siège de 90 px, « 🦠 peste (dernière aube) » ne tient pas en lisible ; l'icône
+ * seule, si. Le texte complet reste dans le title (appui long) et dans la fiche du joueur.
+ * ATTENTION : la règle « icône = tout ce qui précède la première espace » suppose que chaque
+ * libellé de TAGS commence par UNE icône suivie d'une espace. Respecter ce format en ajoutant un tag.
+ */
+export function decouperTag(type: string): { icone?: string; texte: string } {
+  const libelle = TAGS[type];
+  if (!libelle) return { texte: type };
+  const espace = libelle.indexOf(" ");
+  return { icone: libelle.slice(0, espace), texte: libelle.slice(espace + 1) };
+}
