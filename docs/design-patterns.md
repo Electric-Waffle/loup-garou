@@ -409,7 +409,7 @@ if (profondeur > PROFONDEUR_MAX) {
 }
 ```
 
-La profondeur sert aussi à l'affichage : le journal du meneur l'utilise pour indenter les réactions en chaîne.
+La profondeur sert aussi à l'affichage : le journal de l'oracle l'utilise pour indenter les réactions en chaîne.
 
 ### Les alternatives
 
@@ -490,7 +490,7 @@ Si les phases se multiplient (élection du maire, phases spéciales déclenchée
 ## 13. Files d'attente « tirées » par l'interface
 
 ### Le problème
-La nuit, les cartes jouent l'une après l'autre, et chacune attend un clic du meneur. Le Chasseur doit pouvoir **s'intercaler** à n'importe quel moment.
+La nuit, les cartes jouent l'une après l'autre, et chacune attend un clic de l'oracle. Le Chasseur doit pouvoir **s'intercaler** à n'importe quel moment.
 
 ### La solution retenue
 Deux files dans `Partie` :
@@ -510,7 +510,7 @@ const courante = partie.decisionCourante();   // attente d'abord, puis file
 // Hypothétique : le moteur pilote et attend les clics
 async function nuit() {
   for (const role of ordre) {
-    const choix = await demanderAuMeneur(role);   // attend un clic
+    const choix = await demanderALOracle(role);   // attend un clic
     appliquer(choix);
   }
 }
@@ -690,7 +690,7 @@ Ce code fait **deux** rendus au lieu d'un (un avec l'ancienne valeur, un avec la
 ## 19. Réinitialisation par clé
 
 ### Le problème
-Dans `PartieVue`, `option` et `cibles` mémorisent la sélection du meneur. Quand une carte a fini de jouer, cette sélection doit être vidée pour la carte suivante.
+Dans `PartieVue`, `option` et `cibles` mémorisent la sélection de l'oracle. Quand une carte a fini de jouer, cette sélection doit être vidée pour la carte suivante.
 
 ### La solution retenue
 Une « clé » qui change dès que le moteur avance, et un `useEffect` qui vide la sélection quand elle change :

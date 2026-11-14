@@ -4,7 +4,7 @@
  *
  *  Ce que App garde en mémoire (son état) :
  *    - donnees : les réglages (joueurs, cartes, table, distribution), lus et sauvés via stockage.ts ;
- *    - page    : l'onglet affiché ("options", "preparation" ou "partie") ;
+ *    - page    : l'onglet affiché ("options", "preparation", "partie" ou "explications") ;
  *    - partie  : l'objet Partie du moteur pendant une partie, null sinon.
  *
  *  Déroulé :
@@ -27,13 +27,16 @@
 
 import { useEffect, useReducer, useState } from "react";
 import { Partie, type Apparence, type JoueurInitial } from "../moteur/partie";
+import { Explications } from "./Explications";
+import { Intro } from "./Intro";
+import { FINS_CADRAN, type FinCadran } from "./Cadran";
 import { Options } from "./Options";
 import { PartieVue } from "./PartieVue";
 import { Preparation } from "./Preparation";
 import { cartesActives, charger, sauver, type CarteReglage, type Donnees } from "./stockage";
 
 /** Les onglets possibles. Une union de chaînes : TypeScript refuse toute autre valeur. */
-type Page = "options" | "preparation" | "partie";
+type Page = "options" | "preparation" | "partie" | "explications";
 
 /* -------------------------------------------------------------------------------------
  *  Fonctions de préparation du lancement (en dehors du composant)
@@ -109,6 +112,12 @@ export function App() {
   const [donnees, setDonnees] = useState<Donnees>(charger);
   const [page, setPage] = useState<Page>("preparation");
   const [partie, setPartie] = useState<Partie | null>(null);
+  // Cinématique à l'ouverture, sauf si le système demande de limiter les animations (accessibilité).
+  const [intro, setIntro] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  // Boutons de test des fins du cadran : ouverts d'un clic sur le soleil du titre, en partie.
+  // `n` augmente à chaque clic : rejouer la même fin relance son animation.
+  const [testsOuverts, setTestsOuverts] = useState(false);
+  const [finTest, setFinTest] = useState<{ fin: FinCadran; n: number } | null>(null);
 
   // PATTERN : rendu forcé.
   // POURQUOI : l'objet `partie` se modifie LUI-MÊME (this.file.shift(), joueur.tags.push()...).
@@ -158,6 +167,7 @@ export function App() {
   /** Appelée par PartieVue.tsx quand on clique sur "Nouvelle partie". */
   function quitter() {
     setPartie(null);       // la partie terminée est oubliée
+    setFinTest(null);
     setPage("preparation");
   }
 
@@ -165,10 +175,20 @@ export function App() {
   // composant si la condition est vraie, et rien sinon (false n'est pas affiché par React).
   // ATTENTION : avec un NOMBRE, ça ne marche pas pareil : `0 && <X />` affiche "0".
   // Ici, les conditions sont des booléens ou un objet (partie), donc pas de souci.
+  if (intro) return <Intro fin={() => setIntro(false)} />;
+
   return (
     <div className="app">
       <header className="barre">
-        <h1>🐺 Loup-Garou</h1>
+        <h1>
+          {page === "partie" ? (
+            <button className="logo logo-bouton" onClick={() => setTestsOuverts(!testsOuverts)}
+              aria-label="Tester les animations de fin" aria-expanded={testsOuverts}>☀️</button>
+          ) : (
+            <span className="logo" aria-hidden="true">☀️</span>
+          )}{" "}
+          Paqari
+        </h1>
         <nav>
           <button className={classeOnglet("options", page)} onClick={() => setPage("options")}>
             Options
@@ -182,8 +202,25 @@ export function App() {
               Partie en cours
             </button>
           )}
+          {/* En dernier : tout à droite de la barre. Consultable à tout moment, même en partie. */}
+          <button className={classeOnglet("explications", page)} onClick={() => setPage("explications")}>
+            Explications
+          </button>
         </nav>
       </header>
+
+      {/* Outil de test : rejoue une fin sur le cadran. Purement visuel, la partie n'est pas touchée. */}
+      {page === "partie" && testsOuverts && (
+        <div className="tests-fins">
+          <span>Tester une fin :</span>
+          {FINS_CADRAN.map(fin => (
+            <button key={fin} className="bouton" onClick={() => setFinTest({ fin, n: (finTest?.n ?? 0) + 1 })}>
+              {fin}
+            </button>
+          ))}
+          <button className="bouton" onClick={() => setFinTest(null)}>Revenir à la partie</button>
+        </div>
+      )}
 
       <main>
         {page === "options" && (
@@ -197,8 +234,10 @@ export function App() {
         {/* Les deux conditions sont nécessaires : TypeScript sait ainsi que `partie` n'est
             pas null quand on la passe à PartieVue. */}
         {page === "partie" && partie && (
-          <PartieVue partie={partie} rafraichir={rafraichir} dureeDebat={donnees.dureeDebat} quitter={quitter} />
+          <PartieVue partie={partie} rafraichir={rafraichir} dureeDebat={donnees.dureeDebat} ficheAuClic={donnees.ficheAuClic} quitter={quitter} finTest={finTest} />
         )}
+
+        {page === "explications" && <Explications donnees={donnees} />}
       </main>
     </div>
   );

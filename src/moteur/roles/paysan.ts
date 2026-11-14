@@ -19,7 +19,13 @@ const paysan: Role = {
   titre: "Paysan",
   image: "🪓",
   camp: "village",
-  description: "Voté, il assomme 2 joueurs qui dorment la nuit suivante. Dévoré, il blesse les loups : ils ne tuent personne la nuit suivante.",
+  description: "Un cultivateur des terrasses, solide comme la montagne. Voté, il assomme 2 joueurs qui dorment la nuit suivante. Dévoré, il blesse les loups : ils ne tuent personne la nuit suivante.",
+  explication: [
+    "Il ne meurt pas sans se défendre.",
+    "Éliminé par le vote du village, il assomme 2 joueurs : ils ne feront rien la nuit suivante, comme s'ils étaient enchantés par la Fée.",
+    "Dévoré par les loups, il les blesse tous : la nuit suivante, la meute ne mange personne.",
+    "Le Loup barbare, qui ne chasse pas avec la meute, n'est pas blessé."
+  ],
 
   reagir(tag, meta, partie, moi) {
     if (tag !== "mort") return;
@@ -30,6 +36,7 @@ const paysan: Role = {
     }
 
     if (meta.cause === "mordu" && meta.source === "loup") {
+      if (partie.estEmpeche(moi, "paysan")) return; // sans pouvoir, il ne blesse pas les loups
       // POURQUOI appliquerResultat : reagir ne renvoie rien, mais on garde le chemin commun (journal, recevoir).
       const blessures = partie.porteursDe("loup").map(loup => ({
         tag: "blesse",

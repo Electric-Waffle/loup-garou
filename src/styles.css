@@ -1,55 +1,105 @@
+/* =====================================================================================
+ *  Paqari — thème inca et maya
+ *  Terre cuite, or et jade sur fond d'obsidienne ; frises andines en zigzag ; croix andine à
+ *  degrés (chakana) devant les titres ; la table est une pierre du Soleil le jour, de lune la nuit.
+ *  POURQUOI tout en CSS (dégradés, clip-path) et aucune image ni police externe : l'application
+ *  doit marcher hors ligne (service worker), et rien à télécharger ne peut manquer.
+ * ===================================================================================== */
+
 :root {
-  --fond: #0e1020;
-  --surface: #181b33;
-  --surface-2: #22264a;
-  --bord: #2f3463;
-  --texte: #e9e7f5;
-  --texte-doux: #a3a2c2;
-  --accent: #e0b04f;
-  --accent-texte: #1b1405;
-  --danger: #e2675e;
-  --succes: #5fbf8f;
-  --rayon: 12px;
+  --fond: #17100b;        /* obsidienne */
+  --surface: #261a12;     /* adobe sombre */
+  --surface-2: #36251a;
+  --bord: #5e3f26;        /* argile cuite */
+  --texte: #f2e4c9;       /* parchemin */
+  --texte-doux: #bfa47e;  /* sable */
+  --accent: #e2a93b;      /* or inca */
+  --accent-sombre: #8a5a17;
+  --accent-texte: #2a1803;
+  --terre: #b5532f;       /* terre cuite */
+  --jade: #3fa38f;
+  --danger: #d9573b;
+  --succes: #4fae94;
+  --rayon: 6px;           /* pierre taillée : des angles à peine adoucis */
+  /* Marcellus : des capitales inspirées des inscriptions gravées dans la pierre, pour les titres.
+     Alegreya Sans : douce et chaleureuse, très lisible, pour le texte. Les deux sont dans le build. */
+  --police-titres: "Marcellus", "Palatino Linotype", Georgia, serif;
+  /* Croix andine à degrés (chakana), réutilisée comme ornement via clip-path. */
+  --chakana: polygon(33% 0, 67% 0, 67% 17%, 83% 17%, 83% 33%, 100% 33%, 100% 67%, 83% 67%, 83% 83%, 67% 83%, 67% 100%, 33% 100%, 33% 83%, 17% 83%, 17% 67%, 0 67%, 0 33%, 17% 33%, 17% 17%, 33% 17%);
+  /* Frise andine : deux rangées de triangles qui se croisent en zigzag. */
+  --frise:
+    linear-gradient(135deg, var(--accent) 25%, transparent 25%) -6px 0 / 12px 12px,
+    linear-gradient(225deg, var(--accent) 25%, transparent 25%) -6px 0 / 12px 12px,
+    var(--terre);
   color-scheme: dark;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Alegreya Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px; /* Alegreya Sans dessine petit : un pixel de plus garde la même lisibilité. */
+  -webkit-font-smoothing: antialiased;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--fond); color: var(--texte); }
-h1, h2, h3 { margin: 0 0 .5rem; font-weight: 650; }
-h2 { font-size: 1.15rem; }
-h3 { font-size: 1rem; }
-p { margin: .4rem 0; line-height: 1.45; }
+body {
+  margin: 0; color: var(--texte);
+  background-color: var(--fond);
+  /* Une lueur d'aube en haut de page, et une trame de tissage très discrète. */
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -10%, #5a321633, transparent 70%),
+    repeating-linear-gradient(45deg, #ffffff04 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, #ffffff04 0 2px, transparent 2px 14px);
+  min-height: 100vh;
+}
+h1, h2, h3 { margin: 0 0 .5rem; font-family: var(--police-titres); font-weight: 400; } /* Marcellus n'a qu'un poids */
+h2 { font-size: 1.2rem; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+h3 { font-size: 1.02rem; color: #f0cf8a; letter-spacing: .02em; }
+/* Une chakana devant chaque grand titre de section. */
+.page h2::before {
+  content: ""; display: inline-block; width: .8em; height: .8em; margin-right: .5em; vertical-align: -.05em;
+  background: var(--terre); clip-path: var(--chakana);
+}
+p { margin: .4rem 0; line-height: 1.5; }
 code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; font-size: .85em; }
 
 /* ---------- Barre ---------- */
 .barre {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-  padding: .75rem 1.25rem; border-bottom: 1px solid var(--bord); background: var(--surface);
+  padding: .75rem 1.25rem .95rem; background: linear-gradient(180deg, #2e1f14, #22170f);
   position: sticky; top: 0; z-index: 10;
 }
-.barre h1 { font-size: 1.2rem; margin: 0; }
-.barre nav { display: flex; gap: .25rem; }
+/* La frise sous la barre, comme la bordure d'un tissu andin. */
+.barre::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--frise); opacity: .9; }
+.barre h1 { font-size: 1.45rem; margin: 0; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; gap: .4rem; }
+.logo { filter: drop-shadow(0 0 6px #e2a93b88); }
+/* En partie, le soleil du titre est un bouton discret (il ouvre les tests des fins du cadran). */
+.logo-bouton { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.tests-fins { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .5rem 1rem; border-bottom: 1px dashed var(--accent-sombre); }
+.barre nav { display: flex; gap: .25rem; flex-wrap: wrap; }
 .onglet {
-  background: none; border: 0; color: var(--texte-doux); padding: .5rem .8rem; border-radius: 8px; cursor: pointer; font: inherit;
+  background: none; border: 0; border-bottom: 2px solid transparent; color: var(--texte-doux);
+  padding: .5rem .8rem; border-radius: 4px 4px 0 0; cursor: pointer; font: inherit; font-family: var(--police-titres); letter-spacing: .03em;
 }
 .onglet:hover { color: var(--texte); background: var(--surface-2); }
-.onglet-actif { color: var(--texte); background: var(--surface-2); }
+.onglet-actif { color: var(--accent); background: var(--surface-2); border-bottom-color: var(--accent); }
 
-.page { padding: 1.25rem; max-width: 1200px; margin: 0 auto; }
-.page section + section { margin-top: 2rem; }
+.page { padding: 1.5rem 1.25rem; max-width: 1200px; margin: 0 auto; }
+.page section + section { margin-top: 2.2rem; }
 .aide { color: var(--texte-doux); font-size: .9rem; }
 .erreur { color: var(--danger); font-size: .9rem; }
 
 /* ---------- Boutons & champs ---------- */
 .bouton {
-  font: inherit; font-size: .92rem; cursor: pointer; border-radius: 8px; padding: .5rem .9rem;
+  font: inherit; font-size: .92rem; cursor: pointer; border-radius: var(--rayon); padding: .5rem .9rem;
   background: var(--surface-2); color: var(--texte); border: 1px solid var(--bord);
   display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
 }
 .bouton:hover:not(:disabled) { border-color: var(--accent); }
 .bouton:disabled { opacity: .45; cursor: not-allowed; }
-.bouton-principal { background: var(--accent); color: var(--accent-texte); border-color: var(--accent); font-weight: 600; }
+/* Le bouton principal : une plaque d'or martelé. */
+.bouton-principal {
+  background: linear-gradient(180deg, #f2c463, #c98b2c); color: var(--accent-texte);
+  border-color: var(--accent-sombre); font-weight: 700; letter-spacing: .03em;
+  box-shadow: inset 0 1px 0 #fff5, 0 2px 0 var(--accent-sombre);
+}
+.bouton-principal:hover:not(:disabled) { border-color: #fff3; filter: brightness(1.06); }
 .bouton-discret { background: transparent; }
 .bouton-danger { background: transparent; color: var(--danger); }
 .bouton-petit { padding: .3rem .6rem; font-size: .85rem; }
@@ -57,77 +107,358 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
 .actions-colonne { display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem; }
 .champ {
-  font: inherit; background: var(--fond); color: var(--texte); border: 1px solid var(--bord);
-  border-radius: 8px; padding: .45rem .6rem; width: 100%; min-width: 0;
+  font: inherit; background: #120c08; color: var(--texte); border: 1px solid var(--bord);
+  border-radius: var(--rayon); padding: .45rem .6rem; width: 100%; min-width: 0;
 }
 .champ:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .champ-court { width: 4.5rem; }
 .champ-ligne { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--texte-doux); font-size: .9rem; }
+input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ---------- Visuels ---------- */
-.visuel { border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface-2); }
+/* Un médaillon d'or autour de chaque image ronde. */
+.visuel { border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--surface-2); border: 2px solid var(--accent-sombre); }
 .visuel-texte { display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-weight: 600; }
+
+/* ---------- Surfaces taillées dans la pierre ---------- */
+/* Un double cadre gravé (bord + liseré intérieur) donne l'effet de pierre taillée. */
+.carte, .panneau, .pastille, .ligne-cliquable, .cas, .liste-joueurs li {
+  background: linear-gradient(180deg, #2b1d14, #22170f);
+  border: 1px solid var(--bord); border-radius: var(--rayon);
+  box-shadow: inset 0 0 0 3px #1a110b, inset 0 0 0 4px #4a321f55;
+}
 
 /* ---------- Options : cartes ---------- */
 .grille-cartes { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .9rem; margin-top: 1rem; }
-.carte {
-  background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon);
-  padding: .9rem; display: flex; flex-direction: column; gap: .5rem; transition: opacity .2s;
-}
+.carte { padding: .9rem; display: flex; flex-direction: column; gap: .5rem; transition: opacity .2s; }
 .carte-inactive { opacity: .5; }
 .carte-entete { display: flex; justify-content: space-between; align-items: flex-start; }
 .carte-description { color: var(--texte-doux); font-size: .85rem; flex: 1; }
 .interrupteur { display: flex; align-items: center; gap: .35rem; font-size: .85rem; color: var(--texte-doux); cursor: pointer; }
 .badges { display: flex; flex-wrap: wrap; gap: .3rem; }
-.badge { font-size: .72rem; padding: .15rem .45rem; border-radius: 999px; background: var(--surface-2); color: var(--texte-doux); }
-.camp-loups { background: #4a1f2a; color: #f2a6a6; }
-.camp-village { background: #1f3a33; color: #9fe0c0; }
+.badge { font-size: .72rem; padding: .15rem .5rem; border-radius: 3px; background: var(--surface-2); color: var(--texte-doux); border: 1px solid #ffffff10; }
+.camp-loups { background: #4e1a14; color: #f4a28e; }      /* cinabre */
+.camp-village { background: #183a33; color: #8fe0c8; }    /* jade */
 .camp-solo { background: #3e3420; color: #f0d08c; }
-.camp-aberration { background: #33224a; color: #d4b8f5; }
-.camp-fou { background: #706a11; color: #ffef00; }
+.camp-aberration { background: #3a2346; color: #d9b8f0; }
+.camp-fou { background: #5a4c0f; color: #f6d84a; }        /* maïs */
+.camp-skinwalker { background: #3b342c; color: #e2d6c3; } /* os */
 
 /* ---------- Options : joueurs ---------- */
 .liste-joueurs { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: .5rem; max-width: 560px; }
-.liste-joueurs li { display: flex; align-items: center; gap: .6rem; background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon); padding: .5rem .7rem; }
+.liste-joueurs li { display: flex; align-items: center; gap: .6rem; padding: .5rem .7rem; }
 
 /* ---------- Préparation & partie : mise en page ---------- */
 .preparation, .partie { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 1.5rem; align-items: start; }
 .partie { grid-template-columns: 1fr minmax(280px, 380px); }
-.panneau { background: var(--surface); border: 1px solid var(--bord); border-radius: var(--rayon); padding: 1rem; }
+.panneau { padding: 1.1rem 1rem 1rem; position: relative; overflow: hidden; }
+/* Une frise en haut du panneau de jeu. */
+.panneau::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--frise); }
 .liste-cochable { list-style: none; padding: 0; margin: .5rem 0; display: grid; gap: .2rem; }
-.liste-cochable label { display: flex; align-items: center; gap: .5rem; padding: .3rem; border-radius: 6px; cursor: pointer; }
+.liste-cochable label { display: flex; align-items: center; gap: .5rem; padding: .3rem; border-radius: 4px; cursor: pointer; }
 .liste-cochable label:hover { background: var(--surface-2); }
-.divider { border: 0; border-top: 1px solid var(--bord); margin: 2rem 0; }
-/* ---------- Table ronde ---------- */
+/* Séparateur : une ligne d'or qui s'efface aux bords, avec un bloc de terre cuite au centre. */
+.divider {
+  border: 0; height: 14px; margin: 2rem 0;
+  background:
+    linear-gradient(var(--terre), var(--terre)) center / 14px 14px no-repeat,
+    linear-gradient(90deg, transparent, var(--accent-sombre) 20%, var(--accent-sombre) 80%, transparent) center / 100% 1px no-repeat;
+}
+
+/* ---------- Table ronde : la pierre du Soleil ---------- */
 .table { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin: 0 auto; }
 .table-plateau {
   position: absolute; inset: 22%; border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #3b2b1d, #22180f 70%);
-  border: 6px solid #4a3522; box-shadow: inset 0 0 40px #0008, 0 10px 40px #0006;
   display: flex; align-items: center; justify-content: center; text-align: center;
+  /* Disque central uni, puis des rayons gravés tout autour (repeating-conic-gradient). */
+  background:
+    radial-gradient(circle, var(--centre) 0 46%, var(--anneau) 46% 49%, transparent 49%),
+    repeating-conic-gradient(var(--rayon-a) 0 7.5deg, var(--rayon-b) 7.5deg 15deg);
+  border: 8px solid #3d2814;
+  box-shadow: 0 0 0 3px var(--accent-sombre), inset 0 0 0 4px var(--anneau), inset 0 0 50px #000a, 0 12px 40px #0009;
+  /* Par défaut (préparation, jour) : pierre du Soleil, or et terre. */
+  --centre: #b97a24; --anneau: #f2c463; --rayon-a: #d29a3a; --rayon-b: #9c6420;
 }
+/* La nuit : pierre de lune, bleutée et froide. */
+.theme-nuit .table-plateau { --centre: #2d3444; --anneau: #8a96b3; --rayon-a: #39415a; --rayon-b: #262c3c; }
 .table-centre { display: flex; flex-direction: column; gap: .2rem; }
-.table-titre { font-size: 1.15rem; font-weight: 650; color: #f3e3c3; }
-.table-tour { color: #cdb894; font-size: .9rem; }
+.table-titre { font-family: var(--police-titres); font-size: 1.2rem; font-weight: 400; color: #2a1803; letter-spacing: .04em; }
+.table-tour { color: #4a2d0e; font-size: .9rem; }
+.theme-nuit .table-titre { color: #e9eefc; }
+.theme-nuit .table-tour { color: #b8c2dc; }
+
+/* ---------- Cadran du jour (Cadran.tsx), façon horloge de Minecraft ---------- */
+/* La fenêtre : un demi-disque dont la base (l'horizon) passe pile au centre du plateau.
+   Largeur 66 % → hauteur 33 % (aspect 2/1) ; top 17 % → le bas tombe à 50 %. */
+.cadran {
+  position: absolute; left: 17%; top: 17%; width: 66%; aspect-ratio: 2 / 1;
+  border-radius: 999px 999px 0 0; overflow: hidden;
+  /* La même découpe, en clip-path : à l'impression, la découpe par border-radius + overflow peut
+     sauter, et la moitié cachée du disque (la nuit sous un ciel de jour) déborderait sous l'horizon. */
+  clip-path: inset(0 round 999px 999px 0 0);
+  border: 3px solid var(--anneau); border-bottom: 0;
+  box-shadow: inset 0 0 12px #000a;
+}
+/* Le disque qui tourne : aussi large que la fenêtre, son centre posé sur l'horizon.
+   Moitié haute : ciel de jour (le soleil). Moitié basse : ciel de nuit, étoiles (la lune). */
+.cadran-disque {
+  position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 1; border-radius: 50%;
+  transition: transform 1.6s cubic-bezier(.45, .05, .25, 1);
+  background:
+    radial-gradient(circle at 30% 72%, #fff 0 1px, transparent 1.6px),
+    radial-gradient(circle at 62% 80%, #fff 0 1px, transparent 1.6px),
+    radial-gradient(circle at 45% 90%, #fff 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 75% 66%, #fff 0 1px, transparent 1.6px),
+    radial-gradient(circle at 20% 60%, #fff 0 .8px, transparent 1.4px),
+    radial-gradient(circle at 82% 58%, #fff 0 .8px, transparent 1.4px),
+    linear-gradient(180deg, #7cc4ec 0%, #bfe0ef 30%, #f6d58a 45%, #e8894a 50%, #2a2f6a 50%, #141a40 62%, #070a1e 100%);
+}
+.cadran-soleil, .cadran-lune { position: absolute; left: 50%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
+.cadran-soleil {
+  top: 13%; width: 17%;
+  background: radial-gradient(circle, #fff6c8 0 30%, #ffd34d 55%, #f5a623 100%);
+  box-shadow: 0 0 14px 6px #ffcf5a99;
+}
+.cadran-lune {
+  top: 87%; width: 13%;
+  background: #eef0ff;
+  box-shadow: inset -5px 2px 0 0 #b9c0dc, 0 0 12px 3px #c9d4ff66; /* l'ombre intérieure dessine un croissant */
+}
+/* Rayons (victoire du village) et œil (victoire du fou) : cachés, ils attendent leur fin. */
+.cadran-rayons, .cadran-oeil { position: absolute; left: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 1s 1.2s; }
+.cadran-rayons {
+  top: 13%; width: 52%; aspect-ratio: 1; border-radius: 50%;
+  background: repeating-conic-gradient(#ffe08acc 0 9deg, transparent 9deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 25%, transparent 70%);
+  mask: radial-gradient(circle, #000 25%, transparent 70%);
+}
+.cadran-oeil {
+  top: 87%; width: 24%; aspect-ratio: 2 / 1; border-radius: 50%;
+  background: radial-gradient(circle closest-side, #000 0 30%, #b3121b 33% 62%, #f3ead8 66%);
+  box-shadow: 0 0 14px 5px #ff2a2a88;
+}
+/* Un voile sur le ciel, qui teinte les fins : rouge sang, ou nuit violette de l'éclipse. */
+.cadran-voile { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 1.4s 1s, background 1s; }
+
+/* Le paysage fixe, en SVG (dessin de 200 × 100, base = l'horizon) : montagnes et temple. */
+.cadran-paysage { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cadran-paysage * { transform-box: fill-box; }
+.montagnes { fill: #3d2814; }
+.temple-pierre { fill: #8a7860; stroke: #3d2814; stroke-width: .6; transition: fill 1.5s 1.2s; }
+.temple-escalier { fill: #6f604c; transition: fill 1.5s 1.2s; }
+.temple-porte { fill: #1a0f08; }
+/* Ce qui n'apparaît qu'en fin de partie. */
+.temple-ruines, .temple-sang, .flammes, .fetards, .dechirures { opacity: 0; }
+
+/* --- Victoire des loups : lune de sang, ciel rougi, le temple tremble et s'écroule. --- */
+.cadran-fin-loups .cadran-lune, .cadran-fin-fou .cadran-lune {
+  background: #b3121b; box-shadow: inset -5px 2px 0 0 #6d0a10, 0 0 18px 7px #ff2a2a99;
+  transition: background 1s 1s, box-shadow 1s 1s;
+}
+.cadran-fin-loups .cadran-voile, .cadran-fin-fou .cadran-voile { background: #6d000a; opacity: .35; }
+.cadran-fin-loups .temple-intact, .cadran-fin-fou .temple-intact { animation: ecrouler 1.6s 1.6s ease-in forwards; transform-origin: 50% 100%; }
+.cadran-fin-loups .temple-ruines, .cadran-fin-fou .temple-ruines { animation: apparaitre .6s 2.8s forwards; }
+@keyframes ecrouler {
+  0%, 100% { transform: none; }
+  10% { transform: translate(-1.5px, 0) rotate(-1deg); }
+  20% { transform: translate(1.5px, .5px) rotate(1deg); }
+  30% { transform: translate(-1px, 1px); opacity: 1; }
+  100% { transform: translateY(10px) scaleY(.4); opacity: 0; }
+}
+@keyframes apparaitre { to { opacity: 1; } }
+
+/* --- Victoire du fou : d'abord exactement la fin des loups (lune de sang, temple en ruines à 3,4 s).
+   On laisse croire à leur victoire… puis, vers 6 s, la lune se change en œil et les ruines saignent. --- */
+.cadran-fin-fou .cadran-lune { opacity: 0; transition: background 1s 1s, box-shadow 1s 1s, opacity .8s 6s; }
+.cadran-fin-fou .cadran-oeil { opacity: 1; transition: opacity 1s 6.2s; animation: cligner 3.5s 7.5s infinite; }
+@keyframes cligner {
+  0%, 90%, 100% { transform: translate(-50%, -50%) scaleY(1); }
+  95% { transform: translate(-50%, -50%) scaleY(.08); }
+}
+.cadran-fin-fou .temple-sang { fill: #9b0a14; animation: apparaitre 1.2s 6.8s forwards; }
+.cadran-fin-fou .goutte { transform-origin: 50% 0; transform: scaleY(0); animation: couler 2.5s 7.2s ease-in forwards; }
+@keyframes couler { to { transform: scaleY(1); } }
+
+/* --- Victoire du village : soleil aux rayons tournants, temple doré, villageois qui sautent. --- */
+.cadran-fin-village .cadran-rayons, .cadran-fin-skinwalker .cadran-rayons { opacity: 1; animation: tourner 10s linear infinite; }
+@keyframes tourner {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.cadran-fin-village .temple-pierre, .cadran-fin-skinwalker .temple-pierre { fill: #f2c463; }
+.cadran-fin-village .temple-escalier, .cadran-fin-skinwalker .temple-escalier { fill: #d29a3a; }
+.cadran-fin-village .temple-intact { animation: luire 2s 2.4s ease-in-out infinite alternate; }
+@keyframes luire { from { filter: drop-shadow(0 0 1px #ffd34d); } to { filter: drop-shadow(0 0 4px #ffd34d); } }
+.cadran-fin-village .fetards, .cadran-fin-skinwalker .fetards { opacity: 1; transition: opacity .5s 2s; }
+/* Les montagnes s'éclairent au soleil : sans ça, les villageois (points noirs) seraient invisibles devant. */
+.montagnes { transition: fill 1.5s 1.2s; }
+.cadran-fin-village .montagnes, .cadran-fin-skinwalker .montagnes { fill: #c09159; }
+.fetard { fill: #120a05; }
+/* Chaque villageois saute un peu après son voisin (--i = sa place, donnée par Cadran.tsx). */
+.cadran-fin-village .fetard, .cadran-fin-skinwalker .fetard {
+  animation: sauter .45s calc(var(--i) * .07s) ease-out infinite alternate;
+}
+@keyframes sauter { to { transform: translateY(-7px); } }
+
+/* --- Victoire du skinwalker : d'abord exactement la fête du village (on croit qu'il a gagné)…
+   puis, à 5,6 s, le point le plus à gauche (l'intrus) arrête de sauter et marche vers la droite.
+   Chaque villageois qu'il croise s'arrête et disparaît ; le temple prend feu à son passage ;
+   au bout, l'intrus s'arrête, devient blanc et sort du cadran.
+   Les instants viennent de Cadran.tsx : --sauts (combien de demi-sauts avant de s'arrêter),
+   --passage (quand l'intrus le croise), --feu (quand il atteint le temple). --- */
+.cadran-fin-skinwalker .fetard {
+  animation:
+    sauter .45s calc(var(--i) * .07s) ease-out var(--sauts) alternate,
+    disparaitre .35s calc(var(--passage) + .15s) forwards;
+}
+@keyframes disparaitre { to { opacity: 0; transform: scale(.3); } }
+.cadran-fin-skinwalker .fetard-intrus {
+  transform-origin: 50% 50%;
+  animation:
+    sauter .45s 0s ease-out var(--sauts) alternate,
+    traverser 7.8s 5.6s forwards,
+    blanchir .6s 11.85s forwards;
+}
+/* 5,6 s → 11,76 s : marche de x = 26 à x = 180 à 25 unités/s (154 unités) : 79 % de 7,8 s.
+   Pause jusqu'à 12,6 s (89,7 %), le temps de blanchir, puis sortie par la droite. */
+@keyframes traverser {
+  0% { transform: translateX(0); animation-timing-function: linear; }
+  79% { transform: translateX(154px); }
+  89.7% { transform: translateX(154px); animation-timing-function: ease-in; }
+  100% { transform: translateX(206px); }
+}
+@keyframes blanchir { to { fill: #f4efe6; filter: drop-shadow(0 0 2px #fff); } }
+.cadran-fin-skinwalker .flammes { animation: apparaitre .8s var(--feu) forwards; }
+.flamme-dehors { fill: #ff6a1f; }
+.flamme-dedans { fill: #ffd36b; }
+.cadran-fin-skinwalker .flamme { transform-origin: 50% 100%; animation: vaciller .35s calc(var(--i) * .1s) ease-in-out infinite alternate; }
+@keyframes vaciller { from { transform: scaleY(.8) scaleX(1.05); } to { transform: scaleY(1.15) scaleX(.95); } }
+/* Le temple devient doré comme pour le village, puis noircit sous les flammes.
+   POURQUOI une animation (et pas une transition) : elle enchaîne plusieurs couleurs, à des instants choisis. */
+/* Sur 10 s : doré à 1,6 s (16 %), le reste jusqu'au feu vers 7,3 s (72 %), carbonisé à 10 s. */
+.cadran-fin-skinwalker .temple-pierre, .cadran-fin-skinwalker .temple-escalier { animation: dorer-puis-bruler 10s forwards; }
+@keyframes dorer-puis-bruler {
+  0% { fill: #8a7860; }
+  16%, 72% { fill: #f2c463; }
+  100% { fill: #2e2116; }
+}
+
+/* --- Victoire de l'aberration : éclipse, ciel déchiré de violet, le temple flotte puis disparaît. --- */
+.cadran-fin-aberration .cadran-soleil {
+  background: #050208; box-shadow: 0 0 0 2px #efe4ff, 0 0 20px 9px #b86bffbb;
+  transition: background 1.2s 1.2s, box-shadow 1.2s 1.2s;
+}
+.cadran-fin-aberration .cadran-voile {
+  background: radial-gradient(circle at 50% 26%, transparent 0 13%, #12002add 24%);
+  opacity: 1;
+}
+/* FLUX de la réalité qui se brise (secondes après le clic) :
+     2,2 s  vague 1 : trois fissures se dessinent, puis palpitent en s'élargissant ;
+     4,4 s  vague 2 : cinq autres, qui prolongent et ramifient les premières ;
+     6,7 s  vague 3 : le temple s'efface, trois fissures partent de sa place et un trou s'y ouvre ;
+     7,2 s  le temps s'arrête : couleurs en négatif, plus rien ne bouge.
+   POURQUOI les palpitations ont un nombre de répétitions précis (et pas « infinite ») : elles
+   doivent s'arrêter pile à 7,2 s. Ex. vague 1 : départ 3,6 s + 3 × 1,2 s = 7,2 s. Avec un nombre
+   impair et « alternate », la dernière se termine sur « to » : les fissures restent figées larges. */
+.dechirures path { fill: none; stroke: #c98bff; stroke-width: 2; stroke-linejoin: bevel; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 3px #b86bff); }
+.cadran-fin-aberration .dechirures { opacity: 1; }
+.cadran-fin-aberration .vague-1 { animation: dechirer 1.4s 2.2s ease-out forwards, elargir 1.2s 3.6s ease-in-out 3 alternate forwards; }
+.cadran-fin-aberration .vague-2 { animation: dechirer 1s 4.4s ease-out forwards, elargir .8s 5.6s ease-in-out 2 alternate forwards; }
+.cadran-fin-aberration .vague-3 { stroke-width: 3; animation: dechirer .5s 6.7s ease-in forwards; }
+@keyframes dechirer { to { stroke-dashoffset: 0; } }
+@keyframes elargir { from { stroke-width: 1.6; opacity: .75; } to { stroke-width: 3.4; opacity: 1; } }
+/* Le trou : un éclat de vide bordé de lumière, qui s'ouvre d'un coup à la place du temple. */
+.trou { fill: #07000f; stroke: #f0dcff; stroke-width: 1; opacity: 0; transform-origin: 50% 50%; filter: drop-shadow(0 0 4px #b86bff); }
+.cadran-fin-aberration .trou { transform: scale(0); animation: beance .5s 6.8s ease-out forwards; }
+@keyframes beance { to { transform: scale(1); opacity: 1; } }
+/* Le temps s'arrête : un calque inverse les couleurs de tout ce qu'il recouvre (backdrop-filter),
+   presque d'un coup (0,12 s). */
+.cadran-negatif { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  -webkit-backdrop-filter: invert(1) hue-rotate(180deg); backdrop-filter: invert(1) hue-rotate(180deg); }
+.cadran-fin-aberration .cadran-negatif { animation: figer .12s 7.2s linear forwards; }
+@keyframes figer { from { opacity: 0; } to { opacity: 1; } }
+.cadran-fin-aberration .temple-intact { animation: flotter 4.5s 2.6s ease-in-out forwards; transform-origin: 50% 50%; }
+@keyframes flotter {
+  0% { transform: none; }
+  30% { transform: translateY(-8px) rotate(-3deg); }
+  60% { transform: translateY(-16px) rotate(3deg); opacity: 1; }
+  100% { transform: translateY(-30px) rotate(-2deg) scale(.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cadran-disque { transition: none; }
+  .cadran * { animation-duration: .01s !important; animation-iteration-count: 1 !important; }
+}
+/* Sous l'horizon : le numéro du tour, puis le nom de la phase. */
+.table-centre-partie { position: absolute; top: 53%; left: 0; right: 0; align-items: center; }
+.table-centre-partie .table-tour { font-family: var(--police-titres); font-size: 1.05rem; letter-spacing: .1em; text-transform: uppercase; }
+
+/* ---------- Fin de partie : titre de la fin et pancarte du camp (TitreDeFin, Cadran.tsx) ---------- */
+.titre-fin { gap: .35rem; }
+.titre-fin-nom {
+  font-size: 1.55rem; letter-spacing: .06em; text-shadow: 0 1px 0 #0006;
+  opacity: 0; animation: apparaitre .8s 1.2s forwards;
+}
+/* La pancarte : une planche de terre cuite aux coins en gradins (motif chakana), bordée d'or,
+   avec la frise du site en haut. Elle déborde sur l'anneau gravé de la table : le texte reste
+   lisible grâce à son fond uni.
+   PATTERN : une bordure qui suit une forme découpée (clip-path), en deux couches.
+   POURQUOI : border et box-shadow suivent le RECTANGLE de la boîte ; le clip-path les coupe net
+   aux gradins. On peint donc la pancarte entière en or (la bordure), puis on pose par-dessus un
+   calque de terre cuite (::after), découpé avec la MÊME forme mais rentré de 2px de chaque côté.
+   ATTENTION : les gradins sont en px (pas en %), sinon la forme intérieure, plus petite, n'aurait
+   pas des marches de la même taille et la bordure serait irrégulière. */
+.pancarte {
+  --marche: 9px;
+  --gradins: polygon(0 var(--marche), var(--marche) var(--marche), var(--marche) 0,
+    calc(100% - var(--marche)) 0, calc(100% - var(--marche)) var(--marche), 100% var(--marche),
+    100% calc(100% - var(--marche)), calc(100% - var(--marche)) calc(100% - var(--marche)),
+    calc(100% - var(--marche)) 100%, var(--marche) 100%, var(--marche) calc(100% - var(--marche)),
+    0 calc(100% - var(--marche)));
+  position: relative; isolation: isolate; /* les calques à z-index -1 restent DANS la pancarte */
+  display: grid; min-width: 82%; padding: .55rem 1.6rem .45rem;
+  font-family: var(--police-titres); font-size: 1.05rem; letter-spacing: .14em; text-transform: uppercase;
+  color: #ffe2a0; text-shadow: 0 1px 2px #000;
+  background: #e2a93b;
+  clip-path: var(--gradins);
+  opacity: 0; transform: translateY(-10px);
+  animation: poser-pancarte .6s 2s ease-out forwards;
+}
+.pancarte::after {
+  content: ""; position: absolute; inset: 2px; z-index: -1;
+  background: linear-gradient(180deg, #8a3a1a, #5a2210);
+  clip-path: var(--gradins);
+}
+.pancarte::before { content: ""; position: absolute; left: calc(var(--marche) + 2px); right: calc(var(--marche) + 2px); top: 4px; height: 4px; background: var(--frise); opacity: .7; }
+@keyframes poser-pancarte { to { opacity: 1; transform: none; } }
+/* La bascule fausse → vraie victoire (fou, skinwalker) : deux textes superposés dans la même
+   case de grille ; à --revele, le faux s'efface et le vrai apparaît. */
+.titre-fin-nom, .pancarte { display: grid; }
+.titre-fin .faux, .titre-fin .vrai { grid-area: 1 / 1; }
+.avec-bascule .faux { animation: effacer .5s var(--revele) forwards; }
+@keyframes effacer { to { opacity: 0; } }
+.avec-bascule .vrai { opacity: 0; animation: apparaitre .6s calc(var(--revele) + .4s) forwards; }
 .siege {
   position: absolute; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: .15rem;
   width: 112px; padding: .45rem .3rem; border-radius: var(--rayon);
-  background: var(--surface); border: 2px solid var(--bord); color: var(--texte); font: inherit; text-align: center;
+  background: linear-gradient(180deg, #2e2016, #21160e); border: 2px solid var(--bord);
+  color: var(--texte); font: inherit; text-align: center;
   transition: border-color .15s, box-shadow .15s, opacity .2s;
 }
 button.siege { cursor: pointer; }
 button.siege:hover { border-color: var(--accent); }
 .siege-nom { font-weight: 600; font-size: .9rem; }
 .siege-carte { font-size: .72rem; color: var(--texte-doux); display: inline-flex; align-items: center; gap: .2rem; }
+.siege-carte .visuel { border-width: 1px; }
 .siege-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: .15rem; }
-.tag { font-size: .62rem; padding: .05rem .3rem; border-radius: 999px; background: var(--surface-2); white-space: nowrap; }
-.tag-mordu, .tag-empoisonne { background: #5a1f22; }
-.tag-protege { background: #1f3f5a; }
-.tag-amoureux { background: #5a1f4a; }
-.siege-actif { border-color: var(--accent); box-shadow: 0 0 0 4px #e0b04f33; }
-.siege-cible { border-style: dashed; border-color: #8a86c9; }
-.siege-selection { border-color: var(--accent); border-style: solid; background: #3a3220; }
+.tag { font-size: .62rem; padding: .05rem .3rem; border-radius: 3px; background: var(--surface-2); white-space: nowrap; }
+.tag-mordu, .tag-empoisonne { background: #5a1f17; }
+.tag-protege { background: #1b4a42; }
+.tag-amoureux { background: #5a1f3e; }
+.siege-actif { border-color: var(--accent); box-shadow: 0 0 0 4px #e2a93b33, 0 0 18px #e2a93b55; }
+.siege-cible { border-style: dashed; border-color: var(--jade); }
+.siege-selection { border-color: var(--accent); border-style: solid; background: #4a3214; }
 .siege-mort { opacity: .38; filter: grayscale(1); }
 
 /* ---------- Partie ---------- */
@@ -135,12 +466,12 @@ button.siege:hover { border-color: var(--accent); }
 .decision-urgente { border-left: 3px solid var(--danger); padding-left: .75rem; }
 .rapport { padding-left: 1.1rem; margin: .4rem 0; }
 .rapport li { margin: .25rem 0; }
-.info-publique { background: var(--surface-2); border-radius: 8px; padding: .5rem .7rem; }
+.info-publique { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .5rem .7rem; }
 .minuteur { text-align: center; margin: .5rem 0; }
-.minuteur-temps { font-size: 2.6rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+.minuteur-temps { font-family: var(--police-titres); font-size: 2.8rem; font-variant-numeric: tabular-nums; font-weight: 400; color: var(--accent); }
 .minuteur .actions { justify-content: center; }
 .minuteur-fini .minuteur-temps { color: var(--danger); }
-.fin h2 { font-size: 1.4rem; }
+.fin h2 { font-size: 1.5rem; }
 
 .journal { margin-top: 1.2rem; border-top: 1px solid var(--bord); padding-top: .8rem; font-size: .82rem; }
 .journal summary { cursor: pointer; color: var(--texte-doux); }
@@ -148,22 +479,115 @@ button.siege:hover { border-color: var(--accent); }
 .entree { color: var(--texte-doux); }
 .entree-phase { color: var(--accent); margin-top: .3rem; }
 .entree-recu { color: var(--texte); }
-.entree-bloque, .entree-consomme { color: #8fc9e8; }
-.entree-transforme, .entree-redirige { color: #d7a8f0; }
-.entree-info { color: #f0d08c; }
+.entree-bloque, .entree-consomme { color: #7fd1bf; }
+.entree-transforme, .entree-redirige { color: #e0a8d0; }
+.entree-info { color: #f0cf8a; }
 
-.theme-jour .table-plateau { background: radial-gradient(circle at 40% 35%, #7a5a35, #4c3720 70%); }
+/* ---------- Modale ---------- */
+/* padding 0 sur le <dialog> : le contenu remplit toute la boîte, donc un clic sur le dialog lui-même
+   ne peut venir que du fond (voir Modale.tsx). */
+.modale {
+  padding: 0; border: 2px solid var(--accent-sombre); border-radius: var(--rayon);
+  background: linear-gradient(180deg, #2b1d14, #1f150e); color: var(--texte);
+  width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+  box-shadow: inset 0 0 0 4px #1a110b, inset 0 0 0 5px #8a5a1766, 0 20px 60px #000c;
+}
+.modale::backdrop { background: #0b0704cc; }
+.modale-contenu { position: relative; padding: 1.6rem 1.25rem 1.25rem; }
+/* La frise en haut de la modale. */
+.modale-contenu::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--frise); }
+.modale-fermer {
+  position: absolute; top: .9rem; right: .6rem; background: none; border: 0; color: var(--texte-doux);
+  font-size: 1.6rem; line-height: 1; cursor: pointer; padding: .2rem .45rem; border-radius: 4px;
+}
+.modale-fermer:hover { color: var(--texte); background: var(--surface-2); }
+.modale h2 { text-transform: none; letter-spacing: .02em; font-size: 1.35rem; }
+.fiche-entete { display: flex; gap: 1rem; align-items: center; margin-bottom: .6rem; padding-right: 2rem; }
+.fiche-entete .visuel { border-width: 3px; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-sombre), 0 0 24px #e2a93b44; }
+.fiche-resume { color: var(--texte-doux); font-style: italic; }
+
+/* ---------- Explications ---------- */
+.titre-section { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.titre-section h2 { margin: 0 0 0 .5rem; }
+.filtre { width: auto; max-width: 220px; }
+.regles { max-width: 760px; }
+.regles ul, .regles ol { padding-left: 1.2rem; line-height: 1.55; }
+.regles em { color: var(--accent); font-style: normal; font-family: var(--police-titres); }
+.grille-pastilles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .6rem; margin: .5rem 0 1.2rem; }
+.pastille {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .7rem .4rem;
+  color: var(--texte); font: inherit; cursor: pointer; text-align: center;
+}
+.pastille:hover, .ligne-cliquable:hover, .cas:hover { border-color: var(--accent); }
+.pastille-nom { font-weight: 600; font-size: .88rem; }
+.liste-evenements { display: grid; gap: .4rem; margin-top: .6rem; }
+.ligne-cliquable {
+  display: flex; align-items: center; gap: .7rem; padding: .5rem .7rem; text-align: left;
+  color: var(--texte); font: inherit; cursor: pointer;
+}
+.grille-cas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .7rem; margin-top: .6rem; }
+.cas {
+  display: flex; flex-direction: column; gap: .3rem; align-items: flex-start; padding: .8rem; text-align: left;
+  color: var(--texte); font: inherit; cursor: pointer;
+}
+.cas h3 { margin: 0; }
+/* La table du cas : plus petite que celle de la partie, et des sièges plus étroits. */
+.table-cas { max-width: 440px; margin: .5rem auto 1rem; }
+.table-cas .siege { width: 96px; padding: .3rem .2rem; }
+.etapes { padding-left: 1.2rem; }
+.etapes li { margin-bottom: .6rem; }
+.etapes li::marker { color: var(--accent); font-family: var(--police-titres); font-weight: 400; }
+.etapes p { margin: .15rem 0; }
 
 /* ---------- Mobile ---------- */
-@media (max-width: 820px) {
+/* « screen » : une page A4 imprimée ne fait que ~718px de large. Sans ce mot, l'impression du récap
+   prenait la mise en page mobile (et cachait le nom des rôles). */
+@media screen and (max-width: 820px) {
   .preparation, .partie { grid-template-columns: 1fr; }
   .partie .panneau { order: -1; }
   .page { padding: 1rem; }
+  .barre h1 { font-size: 1.2rem; }
   .siege { width: 84px; padding: .3rem .15rem; }
   /* ">" : seulement l'avatar, enfant DIRECT du siège ; pas l'image du rôle, rangée dans .siege-carte. */
   .siege > .visuel:first-child { width: 32px !important; height: 32px !important; }
   .siege-nom { font-size: .78rem; }
   /* POURQUOI cacher seulement le titre : 84px ne suffisent pas pour « Loup salamandre »,
-     mais l'image du rôle tient, et le meneur doit savoir qui est qui. */
+     mais l'image du rôle tient, et l'oracle doit savoir qui est qui. */
   .siege-carte-titre { display: none; }
+}
+
+/* ---------- Cinématique d'ouverture (Intro.tsx) ---------- */
+.intro { position: fixed; inset: 0; z-index: 100; background: #000; cursor: pointer; }
+.intro canvas { display: block; width: 100%; height: 100%; }
+.intro-voile { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.intro-passer { position: absolute; right: 16px; bottom: 16px; opacity: 0.8; }
+
+/* ---------- Récap imprimable (bouton « Télécharger le récap (PDF) », PartieVue.tsx) ---------- */
+/* À l'écran, l'en-tête et le journal complet du récap sont cachés : ils n'existent que sur papier. */
+.imprimer-seulement { display: none; }
+@media print {
+  @page { size: A4; margin: 10mm; }
+  /* POURQUOI : par défaut, le navigateur n'imprime pas les fonds (pour économiser l'encre). Le récap
+     doit garder la pierre, le cadran et le fond sombre du jeu : on force les couleurs exactes. */
+  html, body { background: var(--fond) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Seuls restent : l'en-tête du récap, la table finale, le journal complet. */
+  .barre, .tests-fins, .partie > .panneau, .intro { display: none !important; }
+  .imprimer-seulement { display: block; }
+  .page.partie { display: block; padding: 0; max-width: none; }
+  /* Les animations de fin peuvent ne pas être finies au moment du clic : sur papier, on montre leur
+     état final (une transition supprimée saute à sa valeur d'arrivée ; un délai négatif énorme
+     fait « déjà finir » une animation). */
+  .cadran *, .titre-fin, .titre-fin * { transition: none !important; animation-delay: -60s !important; }
+
+  .recap-entete { text-align: center; margin-bottom: 4mm; }
+  .recap-entete h1 { font-size: 2.4rem; margin: 0; }
+  .recap-entete p { margin: .2rem 0 0; color: var(--texte-doux); }
+  .page.partie .table { max-width: 165mm; break-inside: avoid; }
+
+  .recap-journal { break-before: page; }
+  .recap-journal h2 { text-align: center; }
+  .recap-tour { margin-top: 5mm; padding: 3mm 5mm; border: 1px solid var(--bord); border-radius: var(--rayon); background: var(--surface); }
+  .recap-tour h3 { margin: 0 0 2mm; font-family: var(--police-titres); font-weight: 400; color: var(--accent); }
+  .recap-tour ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .5mm; font-size: .85rem; }
+  .recap-tour li { break-inside: avoid; }
 }

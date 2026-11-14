@@ -518,54 +518,55 @@ test("Loup vampire : distribué comme loup spécial", () => {
 
 /* ---------- Prêtre pur ou impur ---------- */
 
-test("Prêtre : la nuit 1 seulement, il choisit pur ou impur et reçoit le tag", () => {
+test("Prêtre : la nuit 1 seulement ; impur, il devient un Prêtre impur, du camp des loups", () => {
   const p = partieAvec(["loup", "pretre", "villageois", "villageois"]);
   assert.deepEqual(p.file, ["conciliabule", "reunion-amoureux", "pretre", "loup"]);
   assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["pur", "impur"]);
 
   p.jouer({ id: "impur", cibles: [] });
-  assert.ok(p.aTag(p.joueur("j1"), "impur"));
-  assert.ok(!p.aTag(p.joueur("j1"), "pur"));
+  assert.equal(p.joueur("j1").role, "pretre-impur");
+  assert.equal(p.roleDe(p.joueur("j1")).camp, "loups");
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["j0"]); // la meute ne le connaît pas
   assert.deepEqual([1, 2, 3].filter(tour => peutAgir(ROLES.pretre, tour)), [1]);
 });
 
-test("Prêtre impur : il compte comme un villageois, les loups ne gagnent pas à 1 contre 2", () => {
-  const p = partieAvec(["loup", "pretre", "villageois"]);
-  p.jouer({ id: "impur", cibles: [] });
-  assert.equal(verifierVictoire(p), undefined);
-});
+test("Prêtre impur : il compte comme un loup, et le village doit l'éliminer aussi", () => {
+  const majorite = partieAvec(["loup", "pretre", "villageois"]);
+  majorite.jouer({ id: "impur", cibles: [] });
+  assert.equal(verifierVictoire(majorite), "Les loups-garous"); // 2 « loups » contre 1
 
-test("Prêtre impur : il gagne avec les loups, même mort, et perd avec le village", () => {
-  const loups = partieAvec(["loup", "pretre", "villageois", "villageois"]);
-  loups.jouer({ id: "impur", cibles: [] });
-  donnerTag(loups, loups.joueur("j1"), "mort", { cause: "vote" });  // le prêtre meurt
-  donnerTag(loups, loups.joueur("j2"), "mort", { cause: "vote" });  // 1 loup contre 1 villageois
-  assert.equal(verifierVictoire(loups), "Les loups-garous et le prêtre impur");
-
-  const village = partieAvec(["loup", "pretre", "villageois"]);
+  const village = partieAvec(["loup", "pretre", "villageois", "villageois", "villageois"]);
   village.jouer({ id: "impur", cibles: [] });
   donnerTag(village, village.joueur("j0"), "mort", { cause: "vote" });
-  assert.equal(verifierVictoire(village), "Le village, sans le prêtre impur");
+  assert.equal(verifierVictoire(village), undefined);           // le prêtre impur vit encore
+  donnerTag(village, village.joueur("j1"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(village), "Le village");
 });
 
-test("Prêtre pur (ou sans choix) : victoires inchangées", () => {
+test("Prêtre pur (ou sans choix) : il reste un Prêtre du village", () => {
   const pur = partieAvec(["loup", "pretre", "villageois"]);
   pur.jouer({ id: "pur", cibles: [] });
+  assert.equal(pur.joueur("j1").role, "pretre");
   donnerTag(pur, pur.joueur("j0"), "mort", { cause: "vote" });
   assert.equal(verifierVictoire(pur), "Le village");
 
   const sansChoix = partieAvec(["loup", "pretre", "villageois"]);
   sansChoix.passer();
-  donnerTag(sansChoix, sansChoix.joueur("j2"), "mort", { cause: "vote" });
-  assert.equal(verifierVictoire(sansChoix), "Les loups-garous");
+  assert.equal(sansChoix.joueur("j1").role, "pretre");
 });
 
 test("Prêtre impur et Fou vivant : le Fou gagne seul", () => {
   const p = partieAvec(["loup", "fou", "pretre", "villageois"]);
   p.jouer({ id: "impur", cibles: [] });
-  donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
   donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
   assert.equal(verifierVictoire(p), "Le fou");
+});
+
+test("Prêtre impur, Faux Parleur, Rat-garou : distribuables seuls, sans leur carte du village", () => {
+  const p = partieAvec(["pretre-impur", "faux-parleur", "rat-garou", "villageois", "villageois", "villageois"]);
+  assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["j1", "j2"]); // le prêtre impur ne se réveille pas
+  donnerTag(p, p.joueur("j1"), "mort", { cause: "mordu" });            // le Faux Parleur a deux vies
+  assert.equal(p.joueur("j1").vivant, true);
 });
 
 /* ---------- Loup amoureux, Loup succube, victoire des amoureux ---------- */
@@ -715,7 +716,7 @@ test("Loup hypnotiseur : le tag dure tout le vote du jour, puis disparaît à l'
   p.passer(); // loups
   p.leverLeJour();
 
-  // Au vote : le meneur est prévenu, pas avant (le débat n'affiche rien).
+  // Au vote : l'oracle est prévenu, pas avant (le débat n'affiche rien).
   assert.deepEqual(p.rappelsDuVote(), ["Faire pointer J2 vers le même joueur que J0 : il est dirigé."]);
 
   p.tour = 2;
@@ -881,6 +882,171 @@ test("Fêtard : rien si l'éliminé n'est pas un loup, ou s'il n'a pas voté con
   assert.ok(!p.aTag(p.joueur("j2"), "fete"));
 });
 
+/* ---------- Stratège ---------- */
+
+test("Stratège : rappel au vote, question après le vote, réponse la nuit suivante", () => {
+  const p = partieAvec(["loup", "stratege", "villageois", "villageois", "villageois"]);
+  assert.ok(p.rappelsDuVote().some(r => r.includes("J1 (stratège)")));
+
+  p.voter("j3");
+  const question = p.decisionCourante();
+  assert.equal(question?.alias, "stratege");
+  assert.equal(question?.urgente, true);
+  p.jouer({ id: "oui", cibles: [] });
+
+  p.nuitSuivante(); // nuit 2 : le Stratège (85) joue avant les loups (120)
+  const nuit = p.decisionCourante();
+  assert.equal(nuit?.alias, "stratege");
+  assert.match(nuit?.decision.message ?? "", /OUI/);
+});
+
+test("Stratège : questionné même si personne n'est éliminé ; pas appelé la nuit 1", () => {
+  const p = partieAvec(["loup", "loup", "stratege", "villageois", "villageois"]);
+  assert.ok(!p.file.includes("stratege"));
+  p.voter(null);
+  assert.equal(p.decisionCourante()?.alias, "stratege");
+  p.jouer({ id: "non", cibles: [] });
+  assert.equal(p.joueur("j2").memoire.loupAvecLui, false);
+});
+
+/* ---------- Skinwalker ---------- */
+
+/** Joue la nuit en cours jusqu'à la carte demandée, en passant les autres. */
+function jouerJusqua(p: Partie, alias: string) {
+  while (p.decisionCourante() && p.decisionCourante()?.alias !== alias) p.passer();
+}
+
+test("Skinwalker : nuit 3, il tue, prend la carte, la joue, et la Voyante la voit", () => {
+  const p = partieAvec(["loup", "skinwalker", "sorciere", "voyante", "villageois", "villageois", "villageois"]);
+  assert.ok(!p.file.includes("skinwalker"));
+
+  allerALaNuit(p, 3);
+  jouerJusqua(p, "skinwalker");
+  p.jouer({ id: "tuer", cibles: ["j2"] });
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.equal(p.carteImitee(p.joueur("j1")), "sorciere");
+  // La Sorcière (130) joue après lui : c'est lui qui la joue, potions neuves.
+  assert.equal(p.decisionCourante()?.porteurs[0].id, "j1");
+  assert.equal(p.joueur("j1").memoire.potionMort, true);
+
+  allerALaNuit(p, 4);
+  jouerJusqua(p, "voyante");
+  p.jouer({ id: "sonder", cibles: ["j1"] });
+  assert.ok(p.infos.some(i => i.texte === "J1 est Sorcière."));
+});
+
+test("Skinwalker : victime protégée par le Salvateur, rien cette nuit ni la suivante", () => {
+  const p = partieAvec(["loup", "skinwalker", "salvateur", "villageois", "villageois", "villageois"]);
+  allerALaNuit(p, 3);
+  jouerJusqua(p, "salvateur");
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  jouerJusqua(p, "skinwalker");
+  p.jouer({ id: "tuer", cibles: ["j3"] });
+  assert.equal(p.joueur("j3").vivant, true);
+
+  allerALaNuit(p, 4);
+  jouerJusqua(p, "skinwalker");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []);
+});
+
+test("Skinwalker : vivant, il vole la victoire du village", () => {
+  const p = partieAvec(["loup", "skinwalker", "villageois"]);
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le skinwalker (il vole la victoire du village)");
+  donnerTag(p, p.joueur("j1"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le village");
+});
+
+test("Skinwalker : il vole aussi la victoire du Bâtisseur, raison affichée, même Bâtisseur mort", () => {
+  // La partie d'essai : un Stratège à la maison renforcée, un loup et le Skinwalker survivent.
+  const p = partieAvec(["stratege", "loup", "skinwalker", "batisseur"]);
+  donnerTag(p, p.joueur("j0"), "renforce");
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
+  assert.equal(verifierVictoire(p), "Le skinwalker (il vole la victoire du village : toutes les maisons sont renforcées)");
+});
+
+/* ---------- Conquistador ---------- */
+
+test("Conquistador : une seule balle, qui tue même un joueur protégé", () => {
+  const p = partieAvec(["loup", "conquistador", "salvateur", "villageois", "villageois", "villageois"]);
+  jouerJusqua(p, "salvateur");
+  p.jouer({ id: "proteger", cibles: ["j3"] });
+  jouerJusqua(p, "conquistador");
+  p.jouer({ id: "tirer", cibles: ["j3"] });
+  assert.equal(p.joueur("j3").vivant, false); // une balle n'est pas une morsure
+
+  allerALaNuit(p, 2);
+  jouerJusqua(p, "conquistador");
+  assert.deepEqual(p.decisionCourante()?.decision.choix, []); // plus de balle
+});
+
+test("Conquistador : la victime avait de l'or, il récupère sa balle et l'or", () => {
+  const p = partieAvec(["loup", "conquistador", "marchand", "villageois", "villageois", "villageois"]);
+  jouerJusqua(p, "conquistador");
+  p.jouer({ id: "tirer", cibles: ["j2"] });
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.ok(p.aTag(p.joueur("j1"), "or"));
+
+  allerALaNuit(p, 2);
+  jouerJusqua(p, "conquistador");
+  assert.equal(p.decisionCourante()?.decision.choix[0]?.id, "tirer");
+});
+
+/* ---------- Sourcier ---------- */
+
+/** Message du Sourcier la nuit n (nuit paire : celle du résultat). */
+function resultatDuSourcier(p: Partie, n: number): string {
+  allerALaNuit(p, n);
+  jouerJusqua(p, "sourcier");
+  const courante = p.decisionCourante();
+  assert.deepEqual(courante?.decision.choix, []); // nuit paire : aucun test, seulement le résultat
+  return courante?.decision.message ?? "";
+}
+
+/** Teste un joueur la nuit n (nuit impaire). */
+function testerAvecLeSourcier(p: Partie, n: number, id: string) {
+  allerALaNuit(p, n);
+  jouerJusqua(p, "sourcier");
+  p.jouer({ id: "tester", cibles: [id] });
+}
+
+test("Sourcier : résultat la nuit suivante, sur la table des vivants, par le plus court côté", () => {
+  // Sièges : j0 sourcier, j4 loup, j7 skinwalker. De j1 : loup à 3, skinwalker à 2 en passant par j0.
+  const p = partieAvec(["sourcier", "villageois", "villageois", "villageois", "loup", "villageois", "villageois", "skinwalker"]);
+  p.jouer({ id: "tester", cibles: ["j1"] }); // nuit 1
+  assert.ok(!p.infos.some(i => i.pour === "j0")); // rien cette nuit
+
+  // J2 et J3 meurent : leurs sièges ne comptent plus, le loup devient voisin de J1.
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "vote" });
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "vote" });
+  assert.match(resultatDuSourcier(p, 2), /J1 est à 1 place du non-villageois/);
+});
+
+test("Sourcier : 0 si le testé est le dernier non-villageois ; rien s'il est mort entre-temps", () => {
+  const p = partieAvec(["sourcier", "villageois", "villageois", "villageois", "loup", "villageois", "villageois", "skinwalker"]);
+  testerAvecLeSourcier(p, 3, "j4"); // le loup : il ne compte pas pour lui-même
+  donnerTag(p, p.joueur("j7"), "mort", { cause: "vote" });
+  assert.match(resultatDuSourcier(p, 4), /J4 est à 0 place du non-villageois/);
+
+  testerAvecLeSourcier(p, 5, "j5");
+  donnerTag(p, p.joueur("j5"), "mort", { cause: "vote" });
+  assert.match(resultatDuSourcier(p, 6), /J5 est mort : le sourcier n'apprend rien/);
+});
+
+/* ---------- Hurleur ---------- */
+
+test("Hurleur : chaque carte qui le vise la nuit est annoncée à l'aube, regard compris", () => {
+  const p = partieAvec(["loup", "hurleur", "voyante", "salvateur", "villageois", "villageois"]);
+  jouerJusqua(p, "voyante");
+  p.jouer({ id: "sonder", cibles: ["j1"] });
+  p.jouer({ id: "proteger", cibles: ["j1"] });
+  p.jouer({ id: "devorer", cibles: ["j4"] }); // pas lui : pas de hurlement
+  const hurlements = p.infosPubliques(["nuit"]);
+  assert.equal(hurlements.length, 2);
+  assert.equal(hurlements[0], "Un hurlement dans la nuit : le Hurleur a été visé par Voyante (« Sonder »).");
+  assert.equal(hurlements[1], "Un hurlement dans la nuit : le Hurleur a été visé par Salvateur (« Protéger »).");
+});
+
 /* ---------- Événements : tirage, remplacement, validation, minuteur ---------- */
 
 /** Une partie au jour 1, maire élu (j1), prête pour l'événement. */
@@ -917,14 +1083,6 @@ test("Événement : « Passer » force Soleil, et le débat attend la validation
   assert.equal(p.phase, "debat");
 });
 
-test("Événement : la Rumeur n'est révélée qu'à la validation", () => {
-  const p = jourAvecMaire();
-  p.ouvrirEvenement("rumeur");
-  assert.deepEqual(p.infosPubliques(["evenement"]), []);
-  p.appliquerEvenement();
-  assert.equal(p.infosPubliques(["evenement"]).length, 1);
-});
-
 test("Sablier : 8 min, le temps restant devient le débat du lendemain, sans autre événement", () => {
   const p = jourAvecMaire();
   p.ouvrirEvenement("sablier");
@@ -957,10 +1115,10 @@ test("Sablier : le second débat d'une plaidoirie ne change pas le report", () =
   assert.equal(p.reportDuSablier, 300);
 });
 
-test("Soleil : le débat garde la durée réglée par le meneur", () => {
+test("Soleil : le débat garde la durée réglée par l'oracle", () => {
   const p = jourAvecMaire();
   p.passerEvenement();
-  assert.equal(p.dureeDuDebat(5), 5); // Soleil : le réglage du meneur
+  assert.equal(p.dureeDuDebat(5), 5); // Soleil : le réglage de l'oracle
 });
 
 /* ---------- Les événements un par un ---------- */
@@ -990,7 +1148,7 @@ test("Événement avec choix : le maire désigne, mais jamais lui-même", () => 
 
   const courante = p.decisionCourante();
   assert.equal(courante?.evenement, true);
-  assert.equal(courante?.titre, "Sauf-conduit");
+  assert.equal(courante?.titre, "Asile du temple");
   assert.equal(courante?.moi?.id, "j1");
   const cibles = p.ciblesPossibles("un_autre", courante?.moi, courante?.porteurs).map(j => j.id);
   assert.ok(!cibles.includes("j1"));
@@ -1004,9 +1162,9 @@ test("Sauf-conduit : refusé au vote, même pour le second vote d'une plaidoirie
   const p = jourAvecEvenement(SIMPLE, "sauf-conduit", "j2");
   p.ouvrirDebat();
   p.ouvrirVote();
-  assert.ok(p.rappelsDuVote().some(r => r.includes("J2 a un sauf-conduit")));
-  assert.throws(() => p.voter("j2"), /sauf-conduit/);
-  assert.equal(p.phase, "vote"); // rien n'a changé, le meneur peut recliquer
+  assert.ok(p.rappelsDuVote().some(r => r.includes("J2 a trouvé asile au temple")));
+  assert.throws(() => p.voter("j2"), /asile au temple/);
+  assert.equal(p.phase, "vote"); // rien n'a changé, l'oracle peut recliquer
   p.voter("j3");
   assert.equal(p.joueur("j3").vivant, false);
 });
@@ -1077,6 +1235,21 @@ test("Clair de lune : la Voyante et le Loup voyante ne voient que le joueur écl
   assert.ok(p.infos.some(i => i.pour === "j0" && i.texte === "J3 est Villageois."));
 });
 
+test("Clair de lune : le Hurleur éclairé hurle quand la Voyante le sonde", () => {
+  const p = jourAvecEvenement(["loup", "villageois", "voyante", "hurleur", "villageois"], "clair-de-lune", "j3");
+  p.joueur("j3").nom = "Sonde"; // le bouton dira « Sonder Sonde » : seul le dernier « Sonde » doit partir
+  p.ouvrirDebat();
+  p.ouvrirVote();
+  p.voter(null);
+  p.nuitSuivante();
+
+  while (p.decisionCourante()?.alias !== "voyante") p.passer();
+  p.jouer({ id: "sonder-eclaire", cibles: [] });
+  assert.ok(p.infos.some(i => i.pour === "j2" && i.texte === "Sonde est Hurleur."));
+  // Jamais de nom, même si le Clair de lune permet de deviner qui est le Hurleur.
+  assert.deepEqual(p.infosPubliques(["nuit"]), ["Un hurlement dans la nuit : le Hurleur a été visé par Voyante (« Sonder »)."]);
+});
+
 test("Marché noir : la Sorcière retrouve ses potions, le tag ne traîne chez personne", () => {
   const p = partieAvec(["loup", "villageois", "sorciere", "villageois", "villageois"]);
   p.joueur("j2").memoire.potionVie = false;
@@ -1108,11 +1281,12 @@ test("Animations : aucun effet, la validation suffit", () => {
 
 /* ---------- Ancien éliminé par le village ---------- */
 
-test("Ancien voté : seuls les loups gardent leurs pouvoirs, jusqu'à la fin de la partie", () => {
+test("Ancien voté : les villageois perdent leurs pouvoirs jusqu'à la fin de la partie, pas le Fou", () => {
   const p = partieAvec(["loup", "ancien", "voyante", "chasseur", "villageois", "fou"]);
   p.voter("j1");
-  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4", "j5"]);
+  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4"]);
   assert.ok(!p.aTag(p.joueur("j0"), "impuissant"));
+  assert.ok(!p.aTag(p.joueur("j5"), "impuissant"), "le Fou n'est pas villageois");
 
   // Le Chasseur, éliminé ensuite, ne tire pas.
   p.voter("j3");
@@ -1129,6 +1303,60 @@ test("Ancien voté : seuls les loups gardent leurs pouvoirs, jusqu'à la fin de 
   p.passer();
   p.leverLeJour();
   assert.ok(p.aTag(p.joueur("j2"), "impuissant"));
+});
+
+test("Ancien voté : les hybrides perdent leurs pouvoirs même côté loups ; Aberration et Skinwalker les gardent", () => {
+  const p = partieAvec(["loup", "ancien", "faux-parleur", "pretre-impur", "rat-garou", "aberration", "skinwalker", "villageois"]);
+  p.voter("j1");
+  assert.deepEqual(p.joueursAvecTag("impuissant").map(j => j.id), ["j2", "j3", "j4", "j7"]);
+});
+
+test("Ancien voté : le Faux Parleur perd sa seconde vie", () => {
+  const p = partieAvec(["loup", "ancien", "faux-parleur", "villageois", "villageois", "villageois"]);
+  p.voter("j1");
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "mordu" });
+  assert.equal(p.joueur("j2").vivant, false);
+});
+
+test("Ancien voté : un Prêtre déjà mort ne peut plus chuchoter (il reçoit aussi « sans pouvoir »)", () => {
+  const p = partieAvec(["loup", "ancien", "pretre", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "poison" });
+  p.voter("j1");
+  assert.ok(p.aTag(p.joueur("j2"), "impuissant"));
+});
+
+/* Sans pouvoir, les pouvoirs qui agissent tout de suite (sans file d'attente) sont bloqués aussi. */
+
+test("Sans pouvoir : le Rat éliminé par le village ne donne pas la peste au maire", () => {
+  const p = partieAvec(["loup", "rat", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "maire");
+  donnerTag(p, p.joueur("j1"), "impuissant");
+  p.voter("j1");
+  assert.equal(p.joueur("j1").vivant, false);
+  assert.ok(!p.aTag(p.joueur("j2"), "peste"));
+});
+
+test("Sans pouvoir : le Hurleur ne hurle plus", () => {
+  const p = partieAvec(["loup", "hurleur", "voyante", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "impuissant");
+  jouerJusqua(p, "voyante");
+  p.jouer({ id: "sonder", cibles: ["j1"] });
+  assert.deepEqual(p.infosPubliques(["nuit"]), []);
+});
+
+test("Sans pouvoir : le Paysan dévoré ne blesse pas les loups", () => {
+  const p = partieAvec(["loup", "loup", "paysan", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j2"), "impuissant");
+  p.jouer({ id: "devorer", cibles: ["j2"] });
+  p.leverLeJour();
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.deepEqual(p.joueursAvecTag("blesse"), []);
+});
+
+test("Sans pouvoir : plus de rappel du Stratège au vote", () => {
+  const p = partieAvec(["loup", "stratege", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j1"), "impuissant");
+  assert.ok(!p.rappelsDuVote().some(r => r.includes("stratège")));
 });
 
 test("Ancien tué autrement que par le vote : personne ne perd ses pouvoirs", () => {
@@ -1150,7 +1378,7 @@ function voteAvecEvenement(alias: string): Partie {
 
 test("Ultimatum : un villageois éliminé, le maire meurt ; un loup éliminé, il vit", () => {
   const p = voteAvecEvenement("ultimatum");
-  assert.ok(p.rappelsDuVote()[0].startsWith("Ultimatum"));
+  assert.ok(p.rappelsDuVote()[0].startsWith("Jugement d'Inti"));
   p.voter("j3");
   assert.deepEqual(p.morts().map(m => [m.joueur.id, m.cause]), [["j3", "vote"], ["j1", "ultimatum"]]);
   assert.ok(p.infosPubliques(["resultat_vote"])[0].includes("J1, le maire"));
@@ -1379,4 +1607,60 @@ test("Loup salamandre : un vote bloqué compte comme « personne n'est éliminé
   p.voter("j2");
   assert.equal(p.joueur("j2").vivant, true);
   assert.equal(p.joueur("j1").vivant, false); // le maire paie l'ultimatum
+});
+
+/* ---------- Beau Parleur ---------- */
+
+test("Beau Parleur : devenir Faux Parleur change sa carte, et il se réveille avec la meute dès la nuit 1", () => {
+  const p = partieAvec(["beau-parleur", "loup", "villageois", "villageois"]);
+  assert.equal(p.decisionCourante()?.alias, "beau-parleur");
+  p.jouer({ id: "devenir", cibles: [] });
+  assert.equal(p.joueur("j0").role, "faux-parleur");
+  assert.equal(p.roleDe(p.joueur("j0")).camp, "loups");
+  assert.equal(p.decisionCourante()?.alias, "loup");
+  assert.deepEqual(p.decisionCourante()?.porteurs.map(j => j.id), ["j0", "j1"]);
+});
+
+test("Beau Parleur : deux vies face aux loups, une seule face au poison", () => {
+  const p = partieAvec(["beau-parleur", "loup", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "mordu" });
+  assert.equal(p.joueur("j0").vivant, true);
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "mordu" });
+  assert.equal(p.joueur("j0").vivant, false);
+
+  const q = partieAvec(["beau-parleur", "loup", "villageois", "villageois"]);
+  donnerTag(q, q.joueur("j0"), "mort", { cause: "poison" });
+  assert.equal(q.joueur("j0").vivant, false);
+});
+
+test("Beau Parleur maire : il voit la carte de l'accusé, et relance le vote une seule fois", () => {
+  const p = partieAvec(["beau-parleur", "loup", "voyante", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j0"), "maire");
+
+  p.voter("j2");                                   // suspendu : la voyante est encore en vie
+  assert.equal(p.joueur("j2").vivant, true);
+  const regard = p.decisionCourante();
+  assert.ok(regard?.urgente && regard.decision.message?.includes("Voyante"));
+  p.jouer({ id: "relancer", cibles: [] });
+  assert.equal(p.phase, "vote");
+  assert.equal(p.joueur("j2").vivant, true);
+
+  p.voter("j2");                                   // second vote : il regarde, mais ne peut plus relancer
+  assert.deepEqual(p.decisionCourante()?.decision.choix.map(c => c.id), ["executer"]);
+  p.jouer({ id: "executer", cibles: [] });
+  assert.equal(p.joueur("j2").vivant, false);
+  assert.equal(p.phase, "resultat_vote");
+});
+
+test("Beau Parleur : pas maire, ou privé de pouvoir, le vote tue tout de suite", () => {
+  const p = partieAvec(["beau-parleur", "loup", "villageois", "villageois", "villageois"]);
+  p.voter("j2");
+  assert.equal(p.joueur("j2").vivant, false);
+
+  const q = partieAvec(["beau-parleur", "loup", "villageois", "villageois", "villageois"]);
+  donnerTag(q, q.joueur("j0"), "maire");
+  donnerTag(q, q.joueur("j0"), "impuissant");
+  q.voter("j2");
+  assert.equal(q.joueur("j2").vivant, false);
+  assert.equal(q.decisionCourante(), undefined);
 });

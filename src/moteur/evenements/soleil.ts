@@ -7,9 +7,13 @@ import type { Evenement } from "../types";
  */
 const soleil: Evenement = {
   alias: "soleil",
-  titre: "Soleil",
+  titre: "Inti rayonne",
   image: "☀️",
-  description: "Une belle journée : rien de particulier ne se passe."
+  description: "Inti, le Soleil, veille sur le village : rien de particulier ne se passe.",
+  explication: [
+    "Inti est de bonne humeur : le débat et le vote se déroulent normalement.",
+    "C'est aussi l'événement imposé quand l'oracle choisit « Passer »."
+  ]
 };
 
 export default soleil;

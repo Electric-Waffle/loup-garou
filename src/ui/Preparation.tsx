@@ -301,6 +301,16 @@ export function Preparation({
             />
             Cartes fantômes
           </label>
+
+          {/* En partie, quand il n'y a personne à désigner, un clic sur un joueur ouvre la fiche de sa carte. */}
+          <label className="champ-ligne">
+            <input
+              type="checkbox"
+              checked={donnees.ficheAuClic}
+              onChange={evenement => modifier({ ...donnees, ficheAuClic: evenement.target.checked })}
+            />
+            Fiche de la carte au clic sur un joueur
+          </label>
         </div>
 
         {erreur && <p className="erreur">{erreur}</p>}

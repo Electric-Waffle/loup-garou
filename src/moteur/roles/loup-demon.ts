@@ -8,7 +8,7 @@ import type { Role } from "../types";
  *   1. Chaque nuit : il se réveille avec les loups et vote avec eux (rejoint: ["loup"]).
  *   2. reagir() : sa mort par VOTE est acceptée (chagrin, or, Fêtard… s'appliquent), puis il DONNE
  *      à un joueur vivant du camp du village, tiré au hasard :
- *        - "possede" : la marque, visible du meneur sur la table ;
+ *        - "possede" : la marque, visible de l'oracle sur la table ;
  *        - "devient" (role: "loup") : la règle générale de recevoir.ts change sa carte en Loup-Garou.
  *   3. Toute autre mort (morsure, poison, chagrin…) : rien de spécial, il meurt.
  *
@@ -21,7 +21,13 @@ const loupDemon: Role = {
   titre: "Loup-démon",
   image: "😈",
   camp: "loups",
-  description: "Un loup qui, s'il est éliminé par le vote du village, possède un villageois au hasard : celui-ci devient Loup-Garou. Tué autrement, il meurt simplement.",
+  description: "Un loup possédé par Supay, le seigneur du monde d'en bas. S'il est éliminé par le vote du village, il possède un villageois au hasard : celui-ci devient Loup-Garou. Tué autrement, il meurt simplement.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "S'il est éliminé par le vote du village, il possède un joueur du camp du village tiré au hasard : celui-ci devient Loup-Garou.",
+    "Le possédé garde ses liens (amoureux, or…) mais chasse désormais avec la meute. L'oracle le prévient discrètement.",
+    "Tué autrement (morsure, poison, chagrin…), il meurt simplement, sans possession."
+  ],
   rejoint: ["loup"],
 
   reagir(tag, meta, partie, moi) {

@@ -2,12 +2,9 @@ import type { Partie } from "./partie";
 
 /**
  * Renvoie le camp vainqueur, ou undefined si la partie continue.
- *
- * Deux questions différentes, à ne pas confondre :
- *   1. QUI A GAGNÉ ? On compte les vivants par camp (Role.camp). Un prêtre impur compte comme
- *      un villageois : son camp reste "village".
- *   2. QUI EST DANS L'ÉQUIPE GAGNANTE ? Un prêtre impur (tag "impur") gagne avec les loups et
- *      perd avec le village. victoireDuVillage() et victoireDesLoups() complètent le texte.
+ * On compte les vivants par camp (Role.camp). Les cartes hybrides n'ont pas de cas particulier :
+ * un Prêtre pur devenu Prêtre impur, ou un Beau Parleur devenu Faux Parleur, a changé de
+ * CARTE (tag "devient"), donc de camp.
  */
 export function verifierVictoire(partie: Partie): string | undefined {
   const vivants = partie.vivants();
@@ -24,6 +21,15 @@ export function verifierVictoire(partie: Partie): string | undefined {
 
   const nbLoups = vivants.filter(j => partie.roleDe(j).camp === "loups").length;
 
+  // Skinwalker vivant : la victoire du village lui revient, à lui seul (comme le Fou pour les loups).
+  // POURQUOI garder la raison : sans elle, « Le skinwalker » avec un loup encore vivant ressemble à
+  // un bug, alors que c'est le chantier du Bâtisseur qui a donné la victoire au village.
+  const skinwalkerVivant = vivants.some(j => partie.roleDe(j).camp === "skinwalker");
+  const village = (raison?: string) => {
+    if (skinwalkerVivant) return `Le skinwalker (il vole la victoire du village${raison ? ` : ${raison}` : ""})`;
+    return raison ? `Le village (${raison})` : "Le village";
+  };
+
   // Amoureux en majorité STRICTE parmi les vivants, liés entre eux ou pas, quel que soit leur camp.
   // Couvre l'ancien cas « 2 vivants amoureux » (2 contre 0). POURQUOI strict : avec ">=", Cupidon
   // dans une partie à 4 (2 contre 2) gagnerait dès la première aube.
@@ -35,9 +41,9 @@ export function verifierVictoire(partie: Partie): string | undefined {
   // avant que son crochet aube() ne le tue (la victoire est vérifiée avant la nuit suivante).
   const resteUnRatGarou = vivants.some(j => j.role === "rat-garou");
   const resteUnNonLoup = vivants.some(j => partie.roleDe(j).camp !== "loups");
-  if (vivants.length === 2 && resteUnRatGarou && resteUnNonLoup) return victoireDuVillage(partie, "Le village");
+  if (vivants.length === 2 && resteUnRatGarou && resteUnNonLoup) return village();
 
-  if (nbLoups === 0) return victoireDuVillage(partie, "Le village");
+  if (nbLoups === 0) return village();
 
   // Bâtisseur : toutes les maisons des villageois VIVANTS sont renforcées.
   // POURQUOI avant les loups : si les deux arrivent en même temps, le chantier de plusieurs nuits l'emporte.
@@ -45,35 +51,15 @@ export function verifierVictoire(partie: Partie): string | undefined {
   const villageoisVivants = vivants.filter(j => partie.roleDe(j).camp === "village");
   const toutesRenforcees = villageoisVivants.every(j => partie.aTag(j, "renforce"));
   if (villageoisVivants.length > 0 && toutesRenforcees) {
-    return victoireDuVillage(partie, "Le village (toutes les maisons sont renforcées)");
+    return village("toutes les maisons sont renforcées");
   }
 
   if (nbLoups >= vivants.length - nbLoups) {
     // Le Fou voulait cette victoire des loups : s'il est encore en vie, elle lui revient,
-    // à lui seul (le prêtre impur, qui servait les loups, perd aussi).
+    // à lui seul (les loups perdent, Prêtre impur compris).
     const fouVivant = vivants.some(j => partie.roleDe(j).camp === "fou");
-    return fouVivant ? "Le fou" : victoireDesLoups(partie);
+    return fouVivant ? "Le fou" : "Les loups-garous";
   }
   return undefined;
 }
 
-/**
- * Y a-t-il un prêtre impur dans la partie, vivant OU mort ?
- * POURQUOI partie.joueurs et pas joueursAvecTag : joueursAvecTag ne renvoie que les vivants.
- * Or le prêtre gagne ou perd avec son équipe même mort, comme un loup mort gagne avec la meute.
- */
-function aUnPretreImpur(partie: Partie): boolean {
-  return partie.joueurs.some(joueur => partie.aTag(joueur, "impur"));
-}
-
-/** Victoire du village : le prêtre impur fait partie des perdants, on le précise au meneur. */
-function victoireDuVillage(partie: Partie, texte: string): string {
-  if (aUnPretreImpur(partie)) return `${texte}, sans le prêtre impur`;
-  return texte;
-}
-
-/** Victoire des loups : le prêtre impur gagne avec eux. */
-function victoireDesLoups(partie: Partie): string {
-  if (aUnPretreImpur(partie)) return "Les loups-garous et le prêtre impur";
-  return "Les loups-garous";
-}

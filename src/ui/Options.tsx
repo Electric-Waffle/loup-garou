@@ -9,10 +9,10 @@
  *  src/moteur/roles/<alias>.ts).
  *
  *  Organisation du fichier :
- *    1. libelleTours()     : transforme le champ `tours` d'un rôle en texte lisible ;
- *    2. <Options>          : la page. Elle possède les fonctions qui modifient les réglages ;
- *    3. <CarteReglable>    : l'affichage d'UNE carte ;
- *    4. <LigneJoueur>      : l'affichage d'UN joueur.
+ *    1. <Options>          : la page. Elle possède les fonctions qui modifient les réglages ;
+ *    2. <CarteReglable>    : l'affichage d'UNE carte ;
+ *    3. <LigneJoueur>      : l'affichage d'UN joueur.
+ *  Les libellés (camps, groupes, nuits) sont dans libelles.ts, partagés avec Explications.
  *
  *  FLUX d'une modification (ex. décocher "Activée") :
  *    CarteReglable appelle regler({ active: false })
@@ -29,69 +29,11 @@
  * ===================================================================================== */
 
 import { LISTE_ROLES } from "../moteur/roles";
-import type { Camp, Role, Tours } from "../moteur/types";
+import type { Role } from "../moteur/types";
+import { groupeDe, LIBELLES_CAMPS, LIBELLES_GROUPES, libelleTours, ORDRE_GROUPES } from "./libelles";
 import type { CarteReglage, Donnees, JoueurProfil } from "./stockage";
 import { nouvelId } from "./stockage";
 import { ChoixImage, Visuel } from "./Visuel";
-
-/**
- * Libellé affiché pour chaque camp.
- * POURQUOI typé Record<Camp, string> : si un nouveau camp est ajouté dans types.ts,
- * TypeScript signalera ici qu'il manque son libellé.
- * ATTENTION : l'ORDRE des clés compte. C'est l'ordre d'affichage des groupes de cartes dans la
- * page (un objet garde ses clés texte dans l'ordre où elles ont été écrites).
- */
-const LIBELLES_CAMPS: Record<Camp, string> = {
-  village: "Village",
-  loups: "Loups",
-  fou: "Fou",
-  aberration: "Aberration",
-  solo: "Solo"
-};
-
-/**
- * Les camps, dans l'ordre d'affichage.
- * POURQUOI les tirer de LIBELLES_CAMPS plutôt qu'écrire une liste à part : le Record oblige à
- * avoir TOUS les camps, donc aucun groupe ne peut être oublié. Une liste à part pourrait l'être.
- * CONCEPT : Object.keys renvoie des string ; "as Camp[]" dit à TypeScript que ce sont des Camp
- * (vrai ici, puisque les clés sont celles du Record<Camp, …>).
- */
-const ORDRE_CAMPS = Object.keys(LIBELLES_CAMPS) as Camp[];
-
-/**
- * Transforme le champ `tours` d'un rôle en phrase pour le badge de la carte.
- *   undefined                 → "toutes les nuits"
- *   { de: 1, a: 1 }           → "nuit 1 uniquement"
- *   { de: 2 }                 → "dès la nuit 2"
- *   { de: 2, chaque: 2 }      → "dès la nuit 2, une nuit sur 2"
- */
-function libelleTours(tours?: Tours): string {
-  // Pas de restriction : le rôle agit toutes les nuits.
-  if (!tours) {
-    return "toutes les nuits";
-  }
-
-  // Début et fin identiques : une seule nuit.
-  const uneSeuleNuit = tours.de !== undefined && tours.de === tours.a;
-  if (uneSeuleNuit) {
-    return `nuit ${tours.de} uniquement`;
-  }
-
-  // Sinon, on assemble un morceau de phrase par champ renseigné.
-  const morceaux: string[] = [];
-  if (tours.de) {
-    morceaux.push(`dès la nuit ${tours.de}`);
-  }
-  if (tours.a) {
-    morceaux.push(`jusqu'à la nuit ${tours.a}`);
-  }
-  if (tours.chaque) {
-    morceaux.push(`une nuit sur ${tours.chaque}`);
-  }
-
-  // join(", ") : ["dès la nuit 2", "une nuit sur 2"] → "dès la nuit 2, une nuit sur 2"
-  return morceaux.join(", ");
-}
 
 /* =====================================================================================
  *  La page
@@ -207,24 +149,24 @@ export function Options({ donnees, modifier }: { donnees: Donnees; modifier: (d:
           Les règles de chaque carte sont dans <code>src/moteur/roles/</code>. Ici, on ne change que le titre, l'image et l'activation.
         </p>
 
-        {/* PATTERN : regroupement par deux map imbriqués. Le map extérieur parcourt les CAMPS
-            (un groupe = un titre + une grille), l'intérieur parcourt les cartes DE ce camp.
+        {/* PATTERN : regroupement par deux map imbriqués. Le map extérieur parcourt les GROUPES
+            (un groupe = un titre + une grille), l'intérieur parcourt les cartes DE ce groupe.
             POURQUOI pas un seul map qui compare chaque carte à la précédente : map ne voit qu'un
             élément à la fois ; regrouper d'abord, afficher ensuite, est plus simple à lire. */}
-        {ORDRE_CAMPS.map(camp => {
+        {ORDRE_GROUPES.map(groupe => {
           // On parcourt les rôles du CODE (et non les réglages enregistrés) : ainsi un rôle
           // ajouté dans roles/index.ts apparaît ici même s'il n'a jamais été réglé.
           // filter garde l'ordre de LISTE_ROLES à l'intérieur de chaque groupe.
-          const roles = LISTE_ROLES.filter(role => role.camp === camp);
+          const roles = LISTE_ROLES.filter(role => groupeDe(role) === groupe);
 
-          // Un camp sans aucune carte (Solo aujourd'hui) : pas de titre vide.
+          // Un groupe sans aucune carte (Solo aujourd'hui) : pas de titre vide.
           // CONCEPT : renvoyer null dans un map = « ne rien afficher pour cet élément ».
           if (roles.length === 0) return null;
 
           return (
-            <div key={camp}>
+            <div key={groupe}>
               <hr className="divider"/>
-              <h3>{LIBELLES_CAMPS[camp]}</h3>
+              <h3>{LIBELLES_GROUPES[groupe]}</h3>
               <div className="grille-cartes">
                 {roles.map(role => {
                   // "??" : si cette carte n'a pas encore de réglage, on utilise { active: true }.

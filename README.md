@@ -1,4 +1,4 @@
-# Loup-Garou — prototype meneur
+# Loup-Garou — prototype de l'oracle
 
 Application locale (React + TypeScript + Vite) pour préparer et animer une partie de Loup-Garou.
 Architecture **donner / recevoir** : voir `docs/cas-particulier.md`.
@@ -41,5 +41,5 @@ Il apparaît alors dans les Options et dans la distribution.
 ## Limites du prototype
 
 - Les réglages (titres, images, joueurs) sont stockés dans le `localStorage` du navigateur : l'API Express + SQLite viendra remplacer `src/ui/stockage.ts`.
-- Une seule application, pilotée par le meneur.
+- Une seule application, pilotée par l'oracle.
 - Pas encore de bouton « annuler », même si le journal le permettra.

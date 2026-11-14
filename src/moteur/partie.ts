@@ -38,7 +38,7 @@ export interface DecisionCourante {
 }
 
 /**
- * Tags qui empêchent un joueur de faire son rôle, avec le libellé affiché au meneur.
+ * Tags qui empêchent un joueur de faire son rôle, avec le libellé affiché à l'oracle.
  * RÉUTILISABLE : une nouvelle cause de blocage = une ligne ici, rien dans les rôles.
  */
 const TAGS_BLOQUANTS: Record<string, string> = {
@@ -74,6 +74,7 @@ export class Partie {
   private dureeImposee?: number;                     // minutes, imposées par la suite du Sablier
   vainqueur?: string;
   plaidoirie?: string;                               // id du joueur qui a racheté son vote : il parle seul
+  voteEnSuspens?: string;                            // id de l'accusé, tant qu'un rôle doit trancher (avantVote)
   debutPhase = 0;                                    // index du journal au début de la phase
   aleatoire: Aleatoire;
   private apparence: Apparence;
@@ -148,8 +149,13 @@ export class Partie {
     return this.vivants().filter(j => {
       const aCeRole = j.role === alias;
       const rejointCetteCarte = this.roleDe(j).rejoint?.includes(alias) ?? false;
-      return aCeRole || rejointCetteCarte;
+      return aCeRole || rejointCetteCarte || this.carteImitee(j) === alias;
     });
+  }
+  /** Carte volée que ce joueur joue en plus de la sienne (tag "imite" du Skinwalker). */
+  carteImitee(j: Joueur): string | undefined {
+    const role = j.tags.find(t => t.type === "imite")?.role;
+    return typeof role === "string" ? role : undefined;
   }
   joueursAvecTag(tag: string): Joueur[] { return this.vivants().filter(j => this.aTag(j, tag)); }
   aTag(j: Joueur, tag: string): boolean { return j.tags.some(t => t.type === tag); }
@@ -199,14 +205,25 @@ export class Partie {
   }
 
   mettreEnAttente(alias: string, moi: Joueur): void {
-    // Un joueur enchanté ou maudit ne fait pas son rôle : aucune décision, aucune réaction
-    // (le Chasseur tué ne tire pas, le Rat mordu ne choisit pas). Valable pour tous les rôles.
+    // Un joueur enchanté, maudit ou sans pouvoir ne fait pas son rôle : aucune décision, aucune
+    // réaction (le Chasseur tué ne tire pas, le Rat mordu ne choisit pas). Valable pour tous les rôles.
+    if (this.estEmpeche(moi, alias)) return;
+    this.attente.push({ alias, joueur: moi.id });
+  }
+
+  /**
+   * true si le joueur ne peut pas faire son rôle (enchanté, maudit, sans pouvoir…), et la raison est
+   * écrite au journal de l'oracle.
+   * RÉUTILISABLE : pour les pouvoirs qui agissent tout de suite, sans passer par mettreEnAttente()
+   * (la peste du Rat éliminé, le hurlement du Hurleur, les loups blessés par le Paysan). Ils
+   * commencent par `if (partie.estEmpeche(moi, alias)) return;`, comme le Chasseur qui ne tire pas.
+   */
+  estEmpeche(moi: Joueur, alias: string): boolean {
     const raison = this.raisonDuBlocage(moi, TAGS_BLOQUANTS);
     if (raison) {
-      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est ${raison} : ${this.titre(alias)} ne se réveille pas.` });
-      return;
+      this.log({ type: "info", joueur: moi.id, texte: `${moi.nom} est ${raison} : ${this.titre(alias)} ne fait pas son rôle.` });
     }
-    this.attente.push({ alias, joueur: moi.id });
+    return raison !== undefined;
   }
 
   /**
@@ -225,7 +242,7 @@ export class Partie {
    * Règle de l'Arlequin : un joueur lié qui joue SEUL sa carte ne peut viser que lui-même
    * et son partenaire (même mort : le Chasseur lié dont le partenaire est mort ne peut plus tirer).
    * POURQUOI pas pour une carte de groupe : un seul loup lié ne doit pas restreindre toute la
-   * meute ; le meneur applique la règle de tête.
+   * meute ; l'oracle applique la règle de tête.
    */
   ciblesPossibles(type: TypeCible = "aucune", moi?: Joueur, porteurs: Joueur[] = moi ? [moi] : []): Joueur[] {
     const cibles = this.ciblesDuType(type, moi);
@@ -324,13 +341,16 @@ export class Partie {
     return { message: `${this.titre(alias)} se réveille… (${raison}).`, choix: [] };
   }
 
-  /** Le meneur valide un choix pour la décision courante (étapes 2 → 3 → 4). */
+  /** L'oracle valide un choix pour la décision courante (étapes 2 → 3 → 4). */
   jouer(choix: ChoixFait): void {
     const courante = this.decisionCourante();
     if (!courante) throw new Error("Aucune décision en cours.");
     const option = courante.decision.choix.find(c => c.id === choix.id);
     if (!option) throw new Error(`Choix invalide : ${choix.id}`);
-    if (choix.cibles.length !== nbCibles(option.cible)) {
+    // POURQUOI recopier les cibles imposées : le moteur (journal, estVise du Hurleur) ne voit que
+    // choix.cibles. Une cible connue de la seule carte lui échapperait.
+    if (option.cibles) choix = { ...choix, cibles: option.cibles };
+    else if (choix.cibles.length !== nbCibles(option.cible)) {
       throw new Error(`« ${option.label} » demande ${nbCibles(option.cible)} cible(s).`);
     }
 
@@ -352,7 +372,7 @@ export class Partie {
     tourDeCarte(this, courante.alias, choix, courante.moi);
   }
 
-  /** Le meneur passe le tour de la carte courante sans action. */
+  /** L'oracle passe le tour de la carte courante sans action. */
   passer(): void {
     const courante = this.decisionCourante();
     if (!courante) return;
@@ -393,6 +413,8 @@ export class Partie {
     for (const joueur of this.vivants()) {
       aliasPresents.add(joueur.role);
       for (const carteRejointe of this.roleDe(joueur).rejoint ?? []) aliasPresents.add(carteRejointe);
+      const imitee = this.carteImitee(joueur);
+      if (imitee) aliasPresents.add(imitee);
     }
     // Cartes fantômes : appelées comme les autres (priorité, tours), sans porteur.
     if (this.cartesFantomes) {
@@ -433,7 +455,7 @@ export class Partie {
   /** Vrai si aucun joueur VIVANT n'a le tag "maire" : il faut en élire un. */
   aBesoinDUnMaire(): boolean { return this.joueursAvecTag("maire").length === 0; }
 
-  /** Le meneur désigne le maire. Le tag passe par donnerTag, comme le reste, puis l'événement est tiré. */
+  /** L'oracle désigne le maire. Le tag passe par donnerTag, comme le reste, puis l'événement est tiré. */
   elire(id: string): void {
     appliquerResultat(this, { donner: [{ tag: "maire", a: id }] }, "election");
     this.ouvrirEvenement();
@@ -475,7 +497,7 @@ export class Partie {
     this.choisirEvenement(EVENEMENTS.soleil);
   }
 
-  /** Valide un événement SANS choix (Rumeur, Sablier, animations) : son effet a lieu maintenant. */
+  /** Valide un événement SANS choix (Caravane de lamas, Sablier, animations) : son effet a lieu maintenant. */
   appliquerEvenement(): void {
     const evenement = this.evenement;
     if (!evenement || this.evenementApplique) return;
@@ -502,7 +524,7 @@ export class Partie {
 
   /**
    * Durée du débat en minutes (null = pas de minuteur), dans l'ordre :
-   * la suite du Sablier, puis le minuteur de l'événement du jour, puis le réglage du meneur.
+   * la suite du Sablier, puis le minuteur de l'événement du jour, puis le réglage de l'oracle.
    */
   dureeDuDebat(parDefaut: number): number | null {
     if (this.dureeImposee !== undefined) return this.dureeImposee;
@@ -536,9 +558,9 @@ export class Partie {
    */
   voter(id: string | null): void {
     // Sauf-conduit : garde-fou du moteur, même si l'interface rend déjà le siège non cliquable.
-    // ATTENTION : vérifié AVANT tout changement d'état, pour que le meneur puisse recliquer.
+    // ATTENTION : vérifié AVANT tout changement d'état, pour que l'oracle puisse recliquer.
     if (id && this.aTag(this.joueur(id), "sauf_conduit")) {
-      throw new Error(`${this.joueur(id).nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
+      throw new Error(`${this.joueur(id).nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
     }
     const interdiction = this.voteImpossible();
     if (id && interdiction) throw new Error(interdiction);
@@ -548,10 +570,46 @@ export class Partie {
     this.changerPhase("resultat_vote");
     if (!id) {
       this.log({ type: "info", texte: "Le village n'élimine personne." });
-      this.evenementApresVote(undefined);
+      this.finDuVote(undefined);
       return;
     }
 
+    // Crochet avantVote() : un rôle peut suspendre la mort (le Beau Parleur maire regarde la carte).
+    // FLUX : il met une décision URGENTE en attente ; l'interface l'affiche à la place du résultat,
+    // puis cette décision appelle trancherLeVote(). Un joueur bloqué (impuissant…) n'est pas mis en
+    // attente par mettreEnAttente : la file ne grandit pas, et le vote continue tout de suite.
+    // POURQUOI comparer la longueur de la file : le moteur ne connaît aucun rôle ; il regarde
+    // seulement SI quelqu'un a demandé la parole, pas QUI.
+    const attenteAvant = this.attente.length;
+    for (const joueur of this.vivants()) {
+      this.roleDe(joueur).avantVote?.(this, joueur, this.joueur(id));
+    }
+    if (this.attente.length > attenteAvant) {
+      this.voteEnSuspens = id;
+      return;
+    }
+    this.executerLeVote(id);
+  }
+
+  /**
+   * Fin d'un vote suspendu par avantVote().
+   * @param relancer true : personne ne meurt, le village revote ; false : la mort a lieu normalement
+   *                 (l'or, l'ignifuge, le chagrin… s'appliquent comme pour tout vote).
+   */
+  trancherLeVote(relancer: boolean): void {
+    const id = this.voteEnSuspens;
+    if (!id) throw new Error("Aucun vote en suspens.");
+    this.voteEnSuspens = undefined;
+    if (relancer) {
+      this.log({ type: "info", texte: `Le vote contre ${this.joueur(id).nom} est relancé.` });
+      this.changerPhase("vote");
+      return;
+    }
+    this.executerLeVote(id);
+  }
+
+  /** La mort par vote elle-même, et tout ce qui en découle (plaidoirie, flammes, crochets). */
+  private executerLeVote(id: string): void {
     // POURQUOI donnerTag ici et pas appliquerResultat : on a besoin de l'Issue renvoyée.
     const issue = donnerTag(this, this.joueur(id), "mort", { source: "vote", cause: "vote" });
     if (issue === "consomme") {
@@ -564,27 +622,26 @@ export class Partie {
     // « personne n'est éliminé » pour l'événement (l'Ultimatum tue alors le maire).
     if (issue === "bloque") {
       this.ajouterInfo({ pour: "tous", texte: `${this.joueur(id).nom} entre dans les flammes et en ressort indemne : un loup l'a protégé.` });
-      this.evenementApresVote(undefined);
+      this.finDuVote(undefined);
       return;
     }
 
-    // Crochet apresVote() : les rôles qui dépendent de QUI a été éliminé (le Fêtard).
-    // POURQUOI pas reagir() : reagir() n'est appelé que sur celui qui reçoit le tag (l'éliminé),
-    // jamais sur les autres joueurs.
     if (issue !== "accepte") return;
-    const elimine = this.joueur(id);
-    for (const joueur of this.vivants()) {
-      this.roleDe(joueur).apresVote?.(this, joueur, elimine);
-    }
-    this.evenementApresVote(elimine);
+    this.finDuVote(this.joueur(id));
   }
 
   /**
-   * Crochet apresVote() de l'événement du jour (Ultimatum, Coup double), une fois le vote définitif.
-   * FLUX : appelé par voter() quand personne n'est éliminé, ou quand la mort a été acceptée ; jamais
-   * pendant une plaidoirie (la mort consommée par l'or n'est pas un résultat).
+   * Crochets apresVote() des rôles (Fêtard, Stratège…) puis de l'événement du jour (Ultimatum,
+   * Coup double), une fois le vote définitif.
+   * FLUX : appelé par voter() quand personne n'est éliminé, quand le vote est bloqué, ou quand la
+   * mort a été acceptée ; jamais pendant une plaidoirie (la mort consommée par l'or n'est pas un résultat).
+   * POURQUOI pas reagir() : reagir() n'est appelé que sur celui qui reçoit le tag (l'éliminé),
+   * jamais sur les autres joueurs.
    */
-  private evenementApresVote(elimine?: Joueur): void {
+  private finDuVote(elimine?: Joueur): void {
+    for (const joueur of this.vivants()) {
+      this.roleDe(joueur).apresVote?.(this, joueur, elimine);
+    }
     const evenement = this.evenement;
     const resultat = evenement?.apresVote?.(this, elimine);
     if (!evenement || !resultat) return;
@@ -593,7 +650,7 @@ export class Partie {
     if (resultat.revoter && !this.aRevote) this.peutRevoter = true;
   }
 
-  /** Coup double : le meneur rouvre le vote (le débat se fait de tête, sans minuteur). */
+  /** Coup double : l'oracle rouvre le vote (le débat se fait de tête, sans minuteur). */
   revoter(): void {
     if (!this.peutRevoter) throw new Error("Aucun second vote n'est proposé.");
     this.peutRevoter = false;
@@ -619,7 +676,7 @@ export class Partie {
   /**
    * Infos publiques du tour, limitées aux phases demandées (par défaut : toutes).
    * POURQUOI le filtre de phase : une annonce de la NUIT (échec du Loup hypnotiseur) va au rapport
-   * de l'aube ; celles de l'événement (la rumeur) restent à l'événement, sans doublon.
+   * de l'aube ; celles de l'événement restent à l'événement, sans doublon.
    */
   infosPubliques(phases?: Phase[]): string[] {
     return this.infos
@@ -629,7 +686,7 @@ export class Partie {
   }
 
   /**
-   * Ce que le meneur doit appliquer au vote, d'après les tags "silence" et "dirige"
+   * Ce que l'oracle doit appliquer au vote, d'après les tags "silence" et "dirige"
    * (Loup hypnotiseur). Lu seulement pendant la phase de vote : rien n'est révélé au débat.
    * POURQUOI ici et pas dans loup-hypnotiseur.ts : ce sont des règles de TAGS, valables pour tout
    * futur rôle qui les donnerait (comme "enchante" dans decisionCourante).
@@ -651,6 +708,12 @@ export class Partie {
     const interdiction = this.voteImpossible();
     if (interdiction) rappels.push(interdiction);
     if (this.evenement?.rappelVote) rappels.push(this.evenement.rappelVote);
+    for (const joueur of this.vivants()) {
+      // Un joueur bloqué ne fait pas son rôle : pas de rappel (le Stratège sans pouvoir n'enquête plus).
+      if (this.raisonDuBlocage(joueur, TAGS_BLOQUANTS)) continue;
+      const rappel = this.roleDe(joueur).rappelVote?.(this, joueur);
+      if (rappel) rappels.push(rappel);
+    }
     for (const joueur of this.joueursAvecTag("silence")) {
       rappels.push(`Ne pas compter le vote de ${joueur.nom} : il est réduit au silence.`);
     }
@@ -662,7 +725,7 @@ export class Partie {
       }
     }
     for (const joueur of this.joueursAvecTag("sauf_conduit")) {
-      rappels.push(`${joueur.nom} a un sauf-conduit : il ne peut pas être éliminé aujourd'hui.`);
+      rappels.push(`${joueur.nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
     }
     for (const joueur of this.joueursAvecTag("soupcon")) {
       const maire = this.joueursAvecTag("maire")[0];

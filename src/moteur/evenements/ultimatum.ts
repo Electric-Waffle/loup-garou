@@ -12,10 +12,16 @@ import type { Evenement } from "../types";
  */
 const ultimatum: Evenement = {
   alias: "ultimatum",
-  titre: "Ultimatum",
+  titre: "Jugement d'Inti",
   image: "⚖️",
-  description: "Si le village n'élimine pas un loup aujourd'hui, le maire meurt.",
-  rappelVote: "Ultimatum : si le village n'élimine pas un loup, le maire meurt.",
+  description: "Inti exige justice : si le village n'élimine pas un loup aujourd'hui, le maire meurt.",
+  explication: [
+    "Inti exige justice : si le village n'élimine pas un loup aujourd'hui, le maire meurt.",
+    "« Pas un loup » : un joueur hors du camp des loups (le Fou compris), personne, ou un joueur sauvé des flammes par le Loup salamandre.",
+    "Un vote racheté avec l'or ne compte pas : seul le vote final décide.",
+    "La mort du maire suit les règles habituelles : chagrin des amoureux, tir du Chasseur, invulnérabilité du Loup vampire."
+  ],
+  rappelVote: "Jugement d'Inti : si le village n'élimine pas un loup, le maire meurt.",
 
   apresVote(partie, elimine) {
     const unLoupEstTombe = elimine !== undefined && partie.roleDe(elimine).camp === "loups";
@@ -25,7 +31,7 @@ const ultimatum: Evenement = {
     if (!maire) return;
     return {
       donner: [{ tag: "mort", a: maire.id, meta: { cause: "ultimatum" } }],
-      infos: [{ pour: "tous", texte: `Le village n'a pas éliminé de loup : ${maire.nom}, le maire, paie l'ultimatum.` }]
+      infos: [{ pour: "tous", texte: `Le village n'a pas éliminé de loup : ${maire.nom}, le maire, subit le jugement d'Inti.` }]
     };
   }
 };

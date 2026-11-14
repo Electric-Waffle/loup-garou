@@ -13,7 +13,7 @@ import type { Role } from "../types";
  *      vie de l'Ancien et potion de la Sorcière s'appliquent sans une ligne de plus.
  *
  * POURQUOI un numéro de nuit plutôt qu'un simple « peutMordre = true » : il n'y a rien à remettre
- * à zéro. Si le meneur passe son tour, la nuit d'après le numéro ne correspond plus.
+ * à zéro. Si l'oracle passe son tour, la nuit d'après le numéro ne correspond plus.
  * ATTENTION : il compte comme un loup pour la victoire (camp "loups"), même si la meute l'ignore.
  */
 const loupBarbare: Role = {
@@ -21,12 +21,19 @@ const loupBarbare: Role = {
   titre: "Loup barbare",
   image: "🗡️",
   camp: "loups",
-  description: "Un loup qui ne se réveille pas avec la meute. Si le village élimine un joueur qui n'est pas un loup, il peut mordre quelqu'un la nuit suivante, après les loups.",
+  description: "Un loup sauvage des hauts plateaux, qui chasse seul. Il ne se réveille pas avec la meute. Si le village élimine un joueur qui n'est pas un loup, il peut mordre quelqu'un la nuit suivante, après les loups.",
+  explication: [
+    "Un loup solitaire : il ne se réveille pas avec la meute, et les autres loups ignorent qu'il est des leurs.",
+    "Quand le village élimine un joueur qui n'est pas un loup, il se réveille la nuit suivante (rang 124, après la meute et avant la Sorcière) et mord une victime.",
+    "Les autres nuits, sa carte est appelée mais il reste caché. Si le village n'élimine personne, il ne mord pas non plus.",
+    "Il compte comme un loup pour la victoire, même si la meute ne le sait pas."
+  ],
   priorite: 124,
   appelNuit: true,
 
   apresVote(partie, moi, elimine) {
-    if (partie.roleDe(elimine).camp === "loups") return;
+    // Personne d'éliminé (ou vote bloqué) : le village ne s'est pas trompé.
+    if (!elimine || partie.roleDe(elimine).camp === "loups") return;
     moi.memoire.nuitDeMorsure = partie.tour + 1;
   },
 

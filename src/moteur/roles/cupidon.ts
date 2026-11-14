@@ -21,14 +21,21 @@ const cupidon: Role = {
   titre: "Cupidon",
   image: "💘",
   camp: "village",
-  description: "La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
+  description: "Le messager de Mama Killa, la Lune, qui veille sur les unions. La première nuit, il lie deux joueurs. Si l'un meurt, l'autre meurt de chagrin. La 3e nuit, il découvre leurs rôles.",
+  explication: [
+    "La première nuit (rang 50), il désigne deux joueurs qui tombent amoureux, lui-même compris s'il le veut.",
+    "Si l'un des amoureux meurt, l'autre meurt aussitôt de chagrin. Un joueur peut être lié à plusieurs personnes : la mort se propage alors à tous, de proche en proche.",
+    "La troisième nuit, il découvre les cartes de tous les amoureux encore vivants.",
+    "Les amoureux gagnent ensemble s'ils sont strictement plus nombreux que les autres vivants, quel que soit leur camp.",
+    "Chaque nuit, les amoureux se retrouvent en secret pendant la Réunion des amoureux (60 secondes)."
+  ],
   priorite: 50,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5… ; « a: 3 » coupe après la 3.
   // decision() n'a pas besoin de changer : elle distingue seulement « nuit du lien » et « autre nuit ».
   tours: { de: 1, chaque: 2, a: 3 },
 
-  // POURQUOI le titre lu dans la partie plutôt que « Cupidon » en dur : le meneur peut
+  // POURQUOI le titre lu dans la partie plutôt que « Cupidon » en dur : l'oracle peut
   // renommer la carte dans Options.
   decision(partie, moi) {
     const titre = partie.titre(moi.role);
@@ -73,7 +80,7 @@ function lierLesAmoureux(cibles: string[], partie: Partie): ResultatAction {
 
 /**
  * Nuit 3 : une info réservée au porteur de la carte (moi), avec les rôles sans les noms.
- * Le meneur choisit ensuite comment transmettre l'information.
+ * L'oracle choisit ensuite comment transmettre l'information.
  */
 function revelerLesAmoureux(partie: Partie, moi: Joueur): ResultatAction {
   // Tous les amoureux VIVANTS, quel que soit le lien : ceux de Cupidon, le Loup amoureux et son

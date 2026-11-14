@@ -1,5 +1,5 @@
 /* =====================================================================================
- *  PartieVue.tsx — l'écran de jeu du meneur
+ *  PartieVue.tsx — l'écran de jeu de l'oracle
  * =====================================================================================
  *
  *  À gauche : la table, avec chaque joueur, sa carte et ses tags.
@@ -7,7 +7,7 @@
  *    - la DÉCISION en cours (une carte appelée la nuit, ou une décision urgente comme le
  *      Chasseur), avec ses options et le choix des cibles ;
  *    - sinon, l'ÉTAPE DU JOUR correspondant à la phase (rapport, événement, débat, vote, fin) ;
- *    - toujours, le journal du meneur.
+ *    - toujours, le journal de l'oracle.
  *
  *  Organisation du fichier :
  *    1. dictionnaires de libellés (TAGS, CAUSES, PHASES) ;
@@ -19,7 +19,7 @@
  *
  *  FLUX d'un tour de carte (détaillé dans la note fonctionnement-du-code, parties 4 et 6) :
  *    1. à chaque rendu, on demande au moteur : partie.decisionCourante() ;
- *    2. le meneur clique une option (choisirOption), puis ses cibles (cliquerJoueur) ;
+ *    2. l'oracle clique une option (choisirOption), puis ses cibles (cliquerJoueur) ;
  *       ces choix sont gardés dans l'état local `option` et `cibles` ;
  *    3. "Valider" appelle agir(() => partie.jouer(...)) : le moteur applique le choix,
  *       puis rafraichir() demande à React de redessiner ;
@@ -34,6 +34,9 @@ import { useEffect, useRef, useState } from "react";
 import { nbCibles, type Partie } from "../moteur/partie";
 import type { Entree, Joueur, OptionChoix } from "../moteur/types";
 import { Table, type Siege } from "./Table";
+import { Cadran, finDuCadran, TitreDeFin, type FinCadran } from "./Cadran";
+import { FicheCarte } from "./FicheCarte";
+import { TAGS } from "./libelles";
 import { Visuel } from "./Visuel";
 
 /* =====================================================================================
@@ -42,55 +45,20 @@ import { Visuel } from "./Visuel";
  *  c'est ajouter UNE ligne ici, sans toucher au code d'affichage.
  * ===================================================================================== */
 
-/** Libellé affiché sur la table pour chaque tag. Un tag absent d'ici s'affiche avec son nom brut. */
-const TAGS: Record<string, string> = {
-  mordu: "🩸 mordu",
-  protege: "🛡️ protégé",
-  protege_hier: "⏳ protégé hier",
-  empoisonne: "☠️ empoisonné",
-  amoureux: "💘 amoureux",
-  vie_perdue: "💔 vie perdue",
-  agonisant: "🐀 agonisant",
-  peste: "🦠 peste (4 aubes)",
-  peste_active: "🦠 peste (3 aubes)",
-  peste_imminente: "🦠 peste (2 aubes)",
-  peste_mortelle: "🦠 peste (dernière aube)",
-  maire: "🎖️ maire",
-  enchante: "✨ enchanté",
-  lie: "🎭 lié",
-  or: "💰 or",
-  blesse: "🩹 blessé",
-  renforce: "🧱 maison renforcée",
-  invulnerable: "🦇 invulnérable",
-  pur: "🕊️ pur",
-  impur: "🩸 impur",
-  silence: "🤐 silencé",
-  dirige: "🌀 dirigé",
-  maudit: "😢 maudit",
-  fete: "🥳 fait la fête",
-  horrifie: "😱 horrifié",
-  possede: "😈 possédé",
-  ignifuge: "🦎 ignifuge",
-  catatonique: "🫥 catatonique",
-  impuissant: "🚫 sans pouvoir",
-  sauf_conduit: "📜 sauf-conduit",
-  soupcon: "🧐 soupçonné",
-  eclaire: "🌕 éclairé",
-  apaisee: "🕊️ démasquée",
-  mort: "⚰️ mort"
-};
 
 /** Explication affichée dans le rapport pour chaque cause de mort (meta.cause du tag "mort"). */
 const CAUSES: Record<string, string> = {
   horreur: "a vu la carte de l'aberration",
-  ultimatum: "victime de l'ultimatum",
+  ultimatum: "frappé par le jugement d'Inti",
   mordu: "dévoré par les loups",
   poison: "empoisonné",
   chagrin: "mort de chagrin",
   chasseur: "abattu par le chasseur",
   vote: "éliminé par le village",
   peste: "emporté par la peste",
-  isole: "dernier de la meute, dévoré par la nuit"
+  isole: "dernier de la meute, dévoré par la nuit",
+  conquistador: "abattu par le conquistador",
+  skinwalker: "mort dans la nuit"
 };
 
 /**
@@ -164,28 +132,35 @@ function selectionApresClic(selectionActuelle: string[], idClique: string, nombr
  * @param partie     l'objet du moteur. Il se modifie lui-même quand on appelle ses méthodes.
  * @param rafraichir fonction de App.tsx qui force un nouveau rendu (voir App.tsx)
  * @param dureeDebat durée du débat en minutes, depuis les réglages
+ * @param ficheAuClic réglage : un clic sur un joueur sans cible à choisir ouvre la fiche de sa carte
  * @param quitter    fonction de App.tsx qui ferme la partie
  */
 export function PartieVue({
   partie,
   rafraichir,
   dureeDebat,
-  quitter
+  ficheAuClic,
+  quitter,
+  finTest
 }: {
   partie: Partie;
   rafraichir: () => void;
   dureeDebat: number;
+  ficheAuClic: boolean;
   quitter: () => void;
+  /** Boutons de test (soleil du titre) : une fin à montrer sur le cadran, sans toucher à la partie. */
+  finTest?: { fin: FinCadran; n: number } | null;
 }) {
   // La décision à prendre maintenant, ou undefined s'il n'y en a pas.
   // FLUX : cette question est reposée à CHAQUE rendu. Il n'y a pas de boucle "pour chaque
   // carte" : c'est la succession des rendus (un par clic) qui fait avancer la nuit.
   const courante = partie.decisionCourante();
 
-  // État local : ce que le meneur est en train de sélectionner pour la décision en cours.
+  // État local : ce que l'oracle est en train de sélectionner pour la décision en cours.
   const [option, setOption] = useState<OptionChoix | null>(null); // l'option cliquée (Dévorer, Protéger...)
   const [cibles, setCibles] = useState<string[]>([]);             // les ids des joueurs sélectionnés
   const [erreur, setErreur] = useState<string | null>(null);      // le message si le moteur refuse
+  const [ficheOuverte, setFicheOuverte] = useState<string | null>(null); // alias de la carte affichée en fiche
 
   // PATTERN : réinitialisation par clé.
   // POURQUOI : quand une carte a fini de jouer, sa sélection ne doit pas déborder sur la
@@ -286,7 +261,7 @@ export function PartieVue({
   /**
    * Clic sur une option de la décision (Dévorer, Potion de vie, Ne rien faire...).
    * Sans cible : l'option est jouée immédiatement.
-   * Avec cible(s) : on la retient, et le meneur doit maintenant choisir les cibles.
+   * Avec cible(s) : on la retient, et l'oracle doit maintenant choisir les cibles.
    */
   function choisirOption(optionCliquee: OptionChoix) {
     const nombreDeCibles = nbCibles(optionCliquee.cible);
@@ -356,6 +331,12 @@ export function PartieVue({
     let auClic: (() => void) | undefined = undefined;
     if (estCliquable) {
       auClic = () => cliquerJoueur(joueur.id);
+    } else if (ficheAuClic && !enVote && !enElection && possibles.length === 0) {
+      // Aucun joueur à désigner en ce moment : le clic ouvre la fiche de sa carte (la vraie,
+      // même celle d'un Skinwalker déguisé : c'est l'écran de l'oracle).
+      // POURQUOI seulement dans ce cas : sinon un clic hors des cibles ouvrirait une fiche
+      // au lieu d'être ignoré, et l'oracle croirait avoir choisi quelqu'un.
+      auClic = () => setFicheOuverte(joueur.role);
     }
 
     const siege: Siege = {
@@ -366,7 +347,7 @@ export function PartieVue({
         <>
           <Visuel src={joueur.image} nom={joueur.nom} taille={44} />
           <span className="siege-nom">{joueur.nom}</span>
-          {/* Le meneur voit toutes les cartes : c'est l'écran du maître du jeu. */}
+          {/* L'oracle voit toutes les cartes : c'est l'écran du maître du jeu. */}
           <span className="siege-carte">
             <Visuel src={partie.image(joueur.role)} nom={partie.titre(joueur.role)} taille={16} />
             <span className="siege-carte-titre">{partie.titre(joueur.role)}</span>
@@ -387,19 +368,42 @@ export function PartieVue({
   });
 
   const classesPage = estNuit ? "page partie theme-nuit" : "page partie theme-jour";
-  const iconeMoment = estNuit ? "🌙" : "☀️";
+  // La fin montrée par le cadran : celle des boutons de test, sinon la vraie (si la partie est finie).
+  const enFin = !!finTest || partie.phase === "fin";
+  const finCadran = finTest?.fin ?? finDuCadran(partie.vainqueur);
+  const survivants = partie.vivants().length; // autant de villageois en fête sur le cadran
 
   return (
     <div className={classesPage}>
+      {partie.phase === "fin" && <RecapEntete partie={partie} />}
       <Table
         centre={
-          <div className="table-centre">
-            <span className="table-tour">{iconeMoment} Tour {partie.tour}</span>
-            <span className="table-titre">{PHASES[partie.phase]}</span>
-          </div>
+          <>
+            {/* Le cadran occupe la moitié haute du plateau ; le texte passe en dessous de l'horizon. */}
+            <Cadran phase={enFin ? "fin" : partie.phase} fin={finCadran} rejouer={finTest?.n} survivants={survivants} />
+            {enFin ? (
+              // Même key que le dessin du cadran : un test rejoué relance aussi la bascule du titre.
+              <TitreDeFin key={`${finCadran}-${finTest?.n ?? 0}`} fin={finCadran} vainqueur={partie.vainqueur} survivants={survivants} />
+            ) : (
+              <div className="table-centre table-centre-partie">
+                <span className="table-tour">Tour {partie.tour}</span>
+                <span className="table-titre">{PHASES[partie.phase]}</span>
+              </div>
+            )}
+          </>
         }
         sieges={sieges}
       />
+
+      {/* RÉUTILISABLE : la même fiche que la page Explications, avec l'apparence de la partie. */}
+      {ficheOuverte && (
+        <FicheCarte
+          role={partie.role(ficheOuverte)}
+          titre={partie.titre(ficheOuverte)}
+          image={partie.image(ficheOuverte)}
+          fermer={() => setFicheOuverte(null)}
+        />
+      )}
 
       <aside className="panneau">
         {/* Une décision est en cours : on l'affiche. Sinon : l'étape du jour. */}
@@ -447,7 +451,7 @@ export function PartieVue({
                   option "ne rien faire" (comme "Ne pas tirer" pour le Chasseur). */}
               {!courante.urgente && (
                 <button className="bouton bouton-discret" onClick={() => agir(() => partie.passer())}>
-                  {courante.evenement ? "Passer (Soleil)" : "Passer"}
+                  {courante.evenement ? "Passer (Inti rayonne)" : "Passer"}
                 </button>
               )}
               {courante.evenement && (
@@ -497,6 +501,8 @@ export function PartieVue({
 
         <Journal partie={partie} />
       </aside>
+
+      {partie.phase === "fin" && <RecapJournal partie={partie} />}
     </div>
   );
 }
@@ -556,7 +562,7 @@ function EtapeDeJour({
     case "evenement": {
       const evenement = partie.evenement;
       const applique = partie.evenementApplique;
-      // Les infos publiques de l'événement (ex. la rumeur), affichées l'une sous l'autre.
+      // Les infos publiques de l'événement (aucun événement actuel n'en donne à la validation, mais un futur événement le pourra), affichées l'une sous l'autre.
       // Celles de la nuit ont déjà été lues au rapport de l'aube.
       const infosPubliques = partie.infosPubliques(["evenement"]);
       return (
@@ -611,8 +617,10 @@ function EtapeDeJour({
     case "debat": {
       // Second débat payé avec l'or : le moteur dit qui parle seul.
       const accuse = partie.plaidoirie ? partie.joueur(partie.plaidoirie) : undefined;
-      // shortcut : l'interface connaît l'alias "pretre" ; à remplacer par un champ de Role si d'autres rappels arrivent.
-      const pretreMort = partie.joueurs.some(j => !j.vivant && j.role === "pretre");
+      // shortcut : l'interface connaît les alias des deux prêtres ; à remplacer par un champ de Role si d'autres rappels arrivent.
+      // Un prêtre « sans pouvoir » (Ancien éliminé par le village) ne chuchote plus, même mort.
+      const pretreMort = partie.joueurs.some(j =>
+        !j.vivant && (j.role === "pretre" || j.role === "pretre-impur") && !partie.aTag(j, "impuissant"));
       const rappelPretre = pretreMort && !partie.aBesoinDUnMaire();
       const duree = partie.dureeDuDebat(dureeDebat);
       return (
@@ -655,12 +663,72 @@ function EtapeDeJour({
     case "fin":
       return (
         <section className="fin">
-          <h2>🏆 {partie.vainqueur}</h2>
+          <h2>🏆 Partie terminée</h2>
           <p>La partie est terminée après {partie.tour} tour(s).</p>
+          <button className="bouton bouton-large" onClick={imprimerRecap}>Télécharger le récap (PDF)</button>
           <button className="bouton bouton-principal bouton-large" onClick={quitter}>Nouvelle partie</button>
         </section>
       );
   }
+}
+
+/**
+ * Le récap PDF de la partie : on passe par l'impression du navigateur (« Enregistrer au format PDF »).
+ * POURQUOI pas une librairie qui fabrique le PDF (html2canvas + jsPDF) : elles redessinent la page
+ * en image et ne savent pas rendre clip-path, backdrop-filter ni les dégradés coniques : le cadran,
+ * la pancarte et la table perdraient leur aspect. L'impression, elle, utilise le vrai moteur du
+ * navigateur ; la mise en page du récap est dans styles.css (section « Récap imprimable »).
+ * ATTENTION : le nom du fichier PDF proposé par le navigateur est le titre de la page : on le
+ * change le temps de l'impression. window.print() bloque jusqu'à la fermeture de la fenêtre.
+ */
+function imprimerRecap() {
+  const titre = document.title;
+  document.title = `Paqari - récap du ${new Date().toISOString().slice(0, 10)}`;
+  window.print();
+  document.title = titre;
+}
+
+/**
+ * Pour le récap imprimé : l'en-tête (titre du jeu, date, durée), puis la table finale s'imprime
+ * telle qu'elle est à l'écran, puis le journal complet, tour par tour.
+ * Invisible à l'écran (classe « imprimer-seulement »).
+ */
+function RecapEntete({ partie }: { partie: Partie }) {
+  return (
+    <header className="imprimer-seulement recap-entete">
+      <h1><span className="logo">☀️</span> Paqari</h1>
+      <p>
+        Récapitulatif de partie · {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+        {" · "}{partie.joueurs.length} joueurs · {partie.tour} tour(s)
+      </p>
+    </header>
+  );
+}
+
+function RecapJournal({ partie }: { partie: Partie }) {
+  // CONCEPT : regrouper une liste par clé. Map garde l'ordre d'insertion : les tours sortent dans
+  // l'ordre où ils ont été joués. Les entrées de la fin portent le numéro du dernier tour.
+  const parTour = new Map<number, Entree[]>();
+  for (const entree of partie.journal) {
+    parTour.set(entree.tour, [...(parTour.get(entree.tour) ?? []), entree]);
+  }
+  return (
+    <section className="imprimer-seulement recap-journal">
+      <h2>Journal de l'oracle</h2>
+      {[...parTour].map(([tour, entrees]) => (
+        <section key={tour} className="recap-tour">
+          <h3>Tour {tour}</h3>
+          <ol>
+            {entrees.map((entree, index) => (
+              <li key={index} className={`entree entree-${entree.type}`} style={{ paddingLeft: `${(entree.profondeur ?? 0) * 1.2}rem` }}>
+                {decrire(entree, partie)}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </section>
+  );
 }
 
 /**
@@ -705,7 +773,8 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
           {/* CONCEPT : ({ joueur, cause }) déstructure chaque objet { joueur, cause } renvoyé par morts(). */}
           {morts.map(({ joueur, cause }) => (
             <li key={joueur.id}>
-              <strong>{joueur.nom}</strong> ({partie.titre(joueur.role)}) — {expliquerCause(cause)}
+              {/* Victime du Skinwalker : sa carte n'est pas révélée. */}
+              <strong>{joueur.nom}</strong> {cause === "skinwalker" ? "(carte non révélée)" : `(${partie.titre(joueur.role)})`} — {expliquerCause(cause)}
             </li>
           ))}
         </ul>
@@ -715,10 +784,10 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
       {partie.infosPubliques(estLAube ? ["nuit", "aube"] : ["resultat_vote"]).map((texte, index) => (
         <p key={index} className="info-publique">{texte}</p>
       ))}
-      {/* Coup double : le meneur peut rouvrir le vote (le débat se fait de tête). */}
+      {/* Coup double : l'oracle peut rouvrir le vote (le débat se fait de tête). */}
       {!estLAube && partie.peutRevoter && (
         <button className="bouton bouton-large" onClick={() => agir(() => partie.revoter())}>
-          Voter quelqu'un d'autre (Coup double)
+          Voter quelqu'un d'autre (Chasse du puma)
         </button>
       )}
       <button className="bouton bouton-principal bouton-large" onClick={() => agir(passerALaSuite)}>
@@ -805,7 +874,7 @@ function Minuteur({ minutes, surChangement }: { minutes: number; surChangement?:
 }
 
 /* =====================================================================================
- *  6. Le journal du meneur
+ *  6. Le journal de l'oracle
  * ===================================================================================== */
 
 /**
@@ -882,7 +951,7 @@ function Journal({ partie }: { partie: Partie }) {
 
   return (
     <details className="journal" open>
-      <summary>Journal du meneur (tour {partie.tour})</summary>
+      <summary>Journal de l'oracle (tour {partie.tour})</summary>
       <ol>
         {entreesAffichees.map((entree, index) => {
           // L'indentation reflète la profondeur de la chaîne de tags : une mort de chagrin

@@ -1,12 +1,19 @@
 import type { Role } from "../types";
 import aberration from "./aberration";
 import ancien from "./ancien";
+import beauParleur from "./beau-parleur";
 import arlequin from "./arlequin";
 import batisseur from "./batisseur";
 import chasseur from "./chasseur";
 import conciliabule from "./conciliabule";
 import cupidon from "./cupidon";
+import fauxParleur from "./faux-parleur";
+import conquistador from "./conquistador";
 import fee from "./fee";
+import sourcier from "./sourcier";
+import hurleur from "./hurleur";
+import skinwalker from "./skinwalker";
+import stratege from "./stratege";
 import fetard from "./fetard";
 import fou from "./fou";
 import loup from "./loup";
@@ -23,6 +30,7 @@ import marchand from "./marchand";
 import paysan from "./paysan";
 import pleureuse from "./pleureuse";
 import pretre from "./pretre";
+import pretreImpur from "./pretre-impur";
 import rat from "./rat";
 import ratGarou from "./rat-garou";
 import salvateur from "./salvateur";
@@ -62,11 +70,19 @@ export const LISTE_ROLES: Role[] = [
   arlequin,
   marchand,
   pretre,
+  pretreImpur,
+  beauParleur,
+  fauxParleur,
   paysan,
   batisseur,
   pleureuse,
   fetard,
-  aberration
+  stratege,
+  hurleur,
+  sourcier,
+  conquistador,
+  aberration,
+  skinwalker
 ];
 
 /**

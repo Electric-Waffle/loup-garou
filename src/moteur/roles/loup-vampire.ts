@@ -24,7 +24,13 @@ const loupVampire: Role = {
   titre: "Loup vampire",
   image: "🦇",
   camp: "loups",
-  description: "Un loup qui vote avec la meute. Rien ne peut le tuer, sauf le vote du village.",
+  description: "Un loup qui boit le sang, comme le dieu chauve-souris des Mayas. Il vote avec la meute. Rien ne peut le tuer, sauf le vote du village.",
+  explication: [
+    "Un loup qui se réveille avec la meute et assiste au choix de la victime.",
+    "Il est invulnérable : poison, tir du Chasseur, chagrin d'amoureux, peste… rien ne le tue.",
+    "Seul le vote du village peut l'éliminer. S'il a hérité de l'or du Marchand, il peut même racheter ce vote.",
+    "Amoureux, il survit à la mort de son partenaire ; mais s'il est voté, son partenaire meurt de chagrin."
+  ],
   rejoint: ["loup"],
 
   // POURQUOI debut() et pas init() : init() remplit la memoire, invisible des règles générales.

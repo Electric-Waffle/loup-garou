@@ -5,9 +5,9 @@ import type { Role } from "../types";
  * et les loups ne peuvent pas le mordre. Les loups ne le savent pas.
  *
  * Déroulé :
- *   1. apresVote() : si l'éliminé est du camp des loups, une décision URGENTE demande au meneur
+ *   1. apresVote() : si l'éliminé est du camp des loups, une décision URGENTE demande à l'oracle
  *      si le Fêtard a voté contre lui. POURQUOI une question : le moteur ne connaît que l'éliminé,
- *      pas qui a voté pour qui (les mains levées, seul le meneur les a vues).
+ *      pas qui a voté pour qui (les mains levées, seul l'oracle les a vues).
  *   2. « Oui » : il se DONNE "fete", qui expire à l'aube. Posé le jour, il couvre toute la nuit.
  *      « Non » : il n'a pas voté contre le loup, rien ne se passe.
  *   3. recevoir() : tant qu'il a "fete", la morsure est bloquée (la Sorcière ne le voit donc pas
@@ -23,10 +23,17 @@ const fetard: Role = {
   titre: "Fêtard",
   image: "🥳",
   camp: "village",
-  description: "S'il a voté contre un loup éliminé par le village, il fait la fête toute la nuit : les loups ne peuvent pas le mordre.",
+  description: "Un habitué des fêtes où coule la bière de maïs. S'il a voté contre un loup éliminé par le village, il fait la fête toute la nuit : les loups ne peuvent pas le mordre.",
+  explication: [
+    "Il n'a pas de pouvoir de nuit.",
+    "Quand le village élimine un loup, l'oracle indique s'il a voté contre lui.",
+    "Si oui, il fait la fête toute la nuit : les loups ne peuvent pas le mordre, car il n'est pas chez lui.",
+    "Les loups ne savent pas pourquoi leur morsure a échoué. La fête ne dure qu'une nuit.",
+    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
+  ],
 
   apresVote(partie, moi, elimine) {
-    if (partie.roleDe(elimine).camp !== "loups") return;
+    if (!elimine || partie.roleDe(elimine).camp !== "loups") return;
     moi.memoire.loupElimine = elimine.id;
     partie.mettreEnAttente("fetard", moi);
   },

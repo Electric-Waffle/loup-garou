@@ -52,6 +52,7 @@ export interface Donnees {
   dureeDebat: number;                     // en minutes
   nbLoups: number;                        // cartes du camp des loups à distribuer
   cartesFantomes: boolean;                // la nuit, appeler aussi les cartes activées non distribuées
+  ficheAuClic: boolean;                   // en partie, un clic sur un joueur ouvre la fiche de sa carte
 }
 
 /**
@@ -124,7 +125,9 @@ function parDefaut(): Donnees {
     // ATTENTION : des réglages enregistrés avant ce champ n'ont pas de nbLoups.
     // charger() le complète avec cette valeur grâce à la fusion « ...defaut, ...lu ».
     nbLoups: 2,
-    cartesFantomes: false
+    cartesFantomes: false,
+    // Désactivée par défaut : sans elle, un clic hors des cibles ne fait rien, comme avant.
+    ficheAuClic: false
   };
 }
 
@@ -170,7 +173,7 @@ export function charger(): Donnees {
 
     // Le cas inverse : un rôle SUPPRIMÉ du code (ex. custom.ts) peut rester dans la distribution
     // enregistrée, et ROLES[alias] vaut alors undefined → page blanche. On jette la distribution :
-    // le meneur n'a qu'à redistribuer.
+    // l'oracle n'a qu'à redistribuer.
     const distributionLue = lu.distribution ?? {};
     const aliasDistribues = Object.values(distributionLue);
     const distributionValide = aliasDistribues.every(alias => ROLES[alias] !== undefined);

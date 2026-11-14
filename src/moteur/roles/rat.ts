@@ -21,7 +21,17 @@ const rat: Role = {
   titre: "Rat",
   image: "🐀",
   camp: "village",
-  description: "Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
+  hybride: true,
+  description: "Un rat des greniers à maïs. Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
+  explication: [
+    "Un villageois qui ne se laisse pas dévorer sans réagir.",
+    "Mordu par les loups, il choisit en silence, juste après leur tour : mordre un loup, ou rejoindre la meute.",
+    "Mordre : il meurt à l'aube, sans que la Sorcière puisse le sauver, et un des loups attrape la peste : il mourra 3 nuits plus tard.",
+    "Rejoindre la meute : la morsure est annulée, et il devient Rat-garou.",
+    "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
+    "Personne ne sait ce qu'il a choisi : les loups le devineront en voyant s'il est encore en vie.",
+    "Carte hybride : à sa mort, l'oracle annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
+  ],
 
   reagir(tag, meta, partie, moi) {
     if (tag === "mordu") partie.mettreEnAttente("rat", moi);
@@ -66,6 +76,8 @@ const rat: Role = {
  * et joueursAvecTag (vivants seulement) ne le trouve plus.
  */
 function contaminerLeMaire(partie: Partie, moi: Joueur): void {
+  // Sans pouvoir (ou enchanté, maudit) : il ne répand pas la peste, comme le Chasseur ne tire pas.
+  if (partie.estEmpeche(moi, moi.role)) return;
   const maire = partie.joueursAvecTag("maire")[0];
   if (!maire) return;
   appliquerResultat(partie, { donner: [{ tag: "peste", a: maire.id }] }, moi.role);

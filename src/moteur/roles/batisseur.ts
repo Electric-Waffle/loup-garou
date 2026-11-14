@@ -14,7 +14,14 @@ const batisseur: Role = {
   titre: "Bâtisseur",
   image: "🧱",
   camp: "village",
-  description: "Chaque nuit, il renforce une maison. Quand toutes les maisons des villageois vivants sont renforcées, le village gagne.",
+  description: "Un tailleur de pierre qui bâtit des murs sans mortier. Chaque nuit, il renforce une maison. Quand toutes les maisons des villageois vivants sont renforcées, le village gagne.",
+  explication: [
+    "Chaque nuit (rang 90), il renforce une maison, la sienne comprise. Une maison reste renforcée toute la partie.",
+    "Quand toutes les maisons des villageois vivants sont renforcées, le village gagne aussitôt, même s'il reste des loups.",
+    "Renforcer la maison d'un loup est une nuit perdue : elle ne compte pas.",
+    "Si sa victoire et celle des loups arrivent en même temps, c'est la sienne qui l'emporte.",
+    "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
+  ],
   priorite: 90,
   appelNuit: true,
 

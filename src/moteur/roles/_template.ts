@@ -21,8 +21,8 @@
  *  RAPPEL : LE CYCLE DONNER / RECEVOIR
  * -------------------------------------------------------------------------------------
  *
- *    1. Carte montrée       → le moteur appelle  decision()   (ce que voit le meneur)
- *    2. Décision du meneur  → le meneur choisit une option et ses cibles
+ *    1. Carte montrée       → le moteur appelle  decision()   (ce que voit l'oracle)
+ *    2. Décision de l'oracle  → l'oracle choisit une option et ses cibles
  *    3. DONNER              → le moteur appelle  agir()       (tags donnés + infos)
  *    4. RECEVOIR            → pour chaque tag donné, le moteur appelle donnerTag() :
  *                               a. recevoir() du rôle du RECEVEUR (peut intercepter)
@@ -140,7 +140,7 @@ const template: Role = {
   image: "❓",
 
   /**
-   * Camp du rôle : "village", "loups", "solo", "fou" ou "aberration".
+   * Camp du rôle : "village", "loups", "solo", "fou", "aberration" ou "skinwalker".
    * Utilisé par victoire.ts pour compter les loups vivants et décider du vainqueur.
    */
   camp: "village",
@@ -153,7 +153,7 @@ const template: Role = {
    * =================================================================================== */
 
   /**
-   * true  → le meneur appelle cette carte pendant la nuit (il faut aussi une méthode decision()).
+   * true  → l'oracle appelle cette carte pendant la nuit (il faut aussi une méthode decision()).
    * false → la carte n'est jamais appelée la nuit (Villageois, Ancien, Chasseur…).
    *         Elle peut quand même agir via recevoir(), reagir() ou une décision en attente.
    */
@@ -172,7 +172,10 @@ const template: Role = {
    *    50  Cupidon
    *    60  Réunion des amoureux    (après tous les liens)
    *    70  Prêtre
+   *    72  Beau Parleur (nuit 1 : son camp, avant les loups)
    *    80  Voyante
+   *    82  Sourcier
+   *    85  Stratège
    *    90  Bâtisseur
    *   100  Salvateur               (doit protéger AVANT que les loups mordent)
    *   102  Loup amoureux           ┐
@@ -182,7 +185,9 @@ const template: Role = {
    *   110  Loup savant
    *   115  Loup hypnotiseur        ┘
    *   120  Loup-Garou
+   *   122  Conquistador            (après la meute)
    *   124  Loup barbare            (après la meute, avant la Sorcière qui doit voir sa victime)
+   *   126  Skinwalker              (après le Salvateur, dont la protection le fait échouer)
    *   125  Corbeau                 (si ajouté)
    *   130  Sorcière                (doit voir les mordus, donc APRÈS les loups)
    * Ignoré si appelNuit vaut false.
@@ -244,13 +249,13 @@ const template: Role = {
   /* ===================================================================================
    *  ÉTAPES 1-2 : decision()
    *  Appelée quand la carte est montrée (la nuit, ou pour une décision en attente).
-   *  Elle ne modifie RIEN : elle décrit seulement ce que le meneur voit et peut choisir.
+   *  Elle ne modifie RIEN : elle décrit seulement ce que l'oracle voit et peut choisir.
    * =================================================================================== */
 
   /**
    * @param partie  l'état complet de la partie (voir la boîte à outils en bas du fichier)
    * @param moi     le joueur qui porte ce rôle (pour les loups : le premier loup vivant)
-   * @returns       un message pour le meneur et la liste des choix possibles
+   * @returns       un message pour l'oracle et la liste des choix possibles
    *
    * Types de cible disponibles (champ `cible` d'un choix) :
    *   "aucune"        → pas de cible, le choix est validé dès le clic
@@ -268,7 +273,7 @@ const template: Role = {
     //   if (moi.memoire.chargesRestantes > 0) choix.push({ id: "agir", label: "Agir", cible: "un_autre" });
     //   choix.push({ id: "rien", label: "Ne rien faire", cible: "aucune" });
 
-    // Exemple : montrer une information au meneur dans le message.
+    // Exemple : montrer une information à l'oracle dans le message.
     //   const mordus = partie.joueursAvecTag("mordu").map(j => j.nom).join(", ");
 
     return {
@@ -282,7 +287,7 @@ const template: Role = {
 
   /* ===================================================================================
    *  ÉTAPE 3 : agir()  —  DONNER
-   *  Appelée quand le meneur valide un choix.
+   *  Appelée quand l'oracle valide un choix.
    *  Elle renvoie ce que le rôle DONNE (des tags) et ce qu'il APPREND (des infos).
    *  C'est le moteur (donner.ts) qui distribue ensuite les tags via donnerTag().
    * =================================================================================== */
@@ -412,7 +417,7 @@ const template: Role = {
 
   /**
    * Comme reagir() : ne renvoie rien, agit via partie.mettreEnAttente() ou appliquerResultat().
-   * Exemple (Fêtard) : si l'éliminé est un loup, le meneur indique s'il a voté contre lui.
+   * Exemple (Fêtard) : si l'éliminé est un loup, l'oracle indique s'il a voté contre lui.
    */
   apresVote(partie: Partie, moi: Joueur, elimine: Joueur): void {
     // Par défaut : rien.
@@ -458,7 +463,7 @@ export default template;
  *    empoisonne    donné par la Sorcière ; devient "mort" (cause "poison") à l'aube
  *    amoureux      Cupidon, Loup amoureux, Loup succube ; meta.partenaires (liste, réseau) meurent de chagrin avec le porteur ; liste absente = sens unique
  *    vie_perdue    posé sur l'Ancien qui a survécu à une morsure
- *    impuissant    donné par l'Ancien éliminé au vote à tous les non-loups vivants ; bloquant, sans expiration
+ *    impuissant    donné par l'Ancien éliminé au vote aux villageois vivants et aux hybrides ; bloquant, sans expiration
  *    horrifie      Aberration ; loups tous horrifiés = pas de chasse, villageois tous horrifiés = pas de vote ;
  *                  retiré à tous à la mort de l'Aberration
  *    ignifuge      Loup salamandre ; une mort par vote est bloquée, APRÈS l'or (recevoir.ts) ; expire "aube_suivante"
@@ -469,6 +474,7 @@ export default template;
  *    blesse        posé sur les loups par le Paysan dévoré ; la carte Loup ne chasse pas
  *    silence       Loup hypnotiseur (meta.par) ; au vote, son vote ne compte pas ; expire "aube_suivante"
  *    dirige        Loup hypnotiseur (meta.par) ; au vote, il vote comme l'hypnotiseur ; expire "aube_suivante"
+ *    imite         Skinwalker ; meta.role = la carte volée, qu'il joue en plus de la sienne
  *    fete          Fêtard ; bloque "mordu" (son recevoir) ; posé le jour, expire à l'aube
  *    benediction   événement ; retire "protege_hier" et donne "protege" au nom du Salvateur
  *    recharge      événement Marché noir ; un rôle à charges le reçoit dans son recevoir()
@@ -480,7 +486,6 @@ export default template;
  *    apaisee       Conciliabule, sur la Pleureuse démasquée ; elle ne marque plus personne
  *    renforce      posé par le Bâtisseur ; toutes les maisons villageoises vivantes = victoire
  *    invulnerable  donné au Loup vampire ; bloque toute mort sauf le vote du village (recevoir.ts)
- *    pur / impur   choix du Prêtre la nuit 1 ; impur, il gagne avec les loups mais compte comme villageois (victoire.ts)
  *
  *  CAUSES DE MORT EXISTANTES
  *    "mordu", "poison", "chagrin", "chasseur", "vote"

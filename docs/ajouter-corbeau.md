@@ -63,7 +63,7 @@ const corbeau: Role = {
   priorite: 125,
   appelNuit: true,
 
-  // Étapes 1-2 : ce que le meneur voit et les choix proposés.
+  // Étapes 1-2 : ce que l'oracle voit et les choix proposés.
   decision(_partie: Partie, _moi: Joueur): Decision {
     return {
       message: "Le corbeau désigne un joueur qui aura 2 voix contre lui demain.",
@@ -78,7 +78,7 @@ const corbeau: Role = {
 
   // Étape 3 : DONNER.
   agir(choix: ChoixFait, partie: Partie, _moi: Joueur): ResultatAction {
-    // Si le meneur a choisi "Ne désigner personne", on ne donne rien.
+    // Si l'oracle a choisi "Ne désigner personne", on ne donne rien.
     if (choix.id !== "marquer") {
       return {};
     }
@@ -197,7 +197,7 @@ Un libellé lisible pour le tag, dans le dictionnaire `TAGS` :
  };
 ```
 
-Un rappel dans la phase de vote (composant `EtapeDeJour`, `case "vote"`), puisque le prototype ne compte pas encore les voix et que c'est le meneur qui les annonce :
+Un rappel dans la phase de vote (composant `EtapeDeJour`, `case "vote"`), puisque le prototype ne compte pas encore les voix et que c'est l'oracle qui les annonce :
 
 ```diff
            <p>Clique sur le joueur éliminé par le village.</p>
@@ -258,4 +258,4 @@ Résultat sur une copie du projet : **8 tests sur 8 passent**.
 **Fichiers non touchés** : `aube.ts` (le tag ne devient rien à l'aube), `victoire.ts` (camp village existant), `distribution.ts` (un seul exemplaire), `Options.tsx` (affichage automatique), et **aucun autre rôle**.
 
 > [!warning] Limite actuelle
-> Le prototype ne compte pas les voix : le meneur clique directement sur le joueur éliminé. Les « 2 voix » sont donc pour l'instant une information affichée. Le jour où le vote sera compté joueur par joueur, la fonction de comptage lira `tag.voix` sur les joueurs marqués, et le Corbeau lui-même n'aura pas à changer.
+> Le prototype ne compte pas les voix : l'oracle clique directement sur le joueur éliminé. Les « 2 voix » sont donc pour l'instant une information affichée. Le jour où le vote sera compté joueur par joueur, la fonction de comptage lira `tag.voix` sur les joueurs marqués, et le Corbeau lui-même n'aura pas à changer.

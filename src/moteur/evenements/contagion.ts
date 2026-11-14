@@ -10,9 +10,14 @@ import type { Evenement } from "../types";
  */
 const contagion: Evenement = {
   alias: "contagion",
-  titre: "Contagion",
+  titre: "Souffle de Supay",
   image: "🦠",
-  description: "Le maire désigne une personne : elle attrape la peste et mourra dans 3 jours.",
+  description: "Le maire désigne une personne : Supay lui souffle la peste, elle mourra dans 3 jours.",
+  explication: [
+    "Le maire désigne une personne, jamais lui-même.",
+    "Supay lui souffle la peste : elle mourra à la 3e aube.",
+    "Comme la peste du Rat, aucune potion ne la soigne. Seul un Loup vampire, invulnérable, y survivrait."
+  ],
 
   decision: (_partie, maire) => ({
     message: `${maire.nom}, le maire, désigne la personne qui attrape la peste.`,

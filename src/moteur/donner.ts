@@ -17,6 +17,13 @@ export function tourDeCarte(partie: Partie, alias: string, choix: ChoixFait, moi
     texte: `${partie.titre(alias)} : ${choix.id}${noms ? ` → ${noms}` : ""}`
   });
 
+  // Crochet estVise() : la cible apprend qu'une carte la désigne (le Hurleur), même sans recevoir de tag.
+  // POURQUOI avant agir() : la cible lit l'état d'avant l'action (le libellé du bouton choisi).
+  for (const id of choix.cibles) {
+    const cible = partie.joueur(id);
+    partie.roleDe(cible).estVise?.(partie, cible, alias, choix, moi);
+  }
+
   appliquerResultat(partie, role.agir?.(choix, partie, moi), alias);
 }
 

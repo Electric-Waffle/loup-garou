@@ -1,6 +1,6 @@
 import type { Partie } from "./partie";
 
-export type Camp = "village" | "loups" | "solo" | "fou" | "aberration";
+export type Camp = "village" | "loups" | "solo" | "fou" | "aberration" | "skinwalker";
 
 export type Phase = "nuit" | "aube" | "evenement" | "election" | "debat" | "vote" | "resultat_vote" | "fin";
 
@@ -41,6 +41,8 @@ export interface OptionChoix {
   id: string;
   label: string;
   cible?: TypeCible;
+  /** Cibles imposées (Clair de lune) : l'oracle ne clique rien, partie.jouer() les met dans choix.cibles. */
+  cibles?: string[];
 }
 
 export interface Decision {
@@ -98,11 +100,20 @@ export interface Role {
   image: string;        // image par défaut : emoji, URL ou data-URL
   camp: Camp;
   description: string;
+  /** Explication détaillée, une ligne par paragraphe : affichée dans la fiche de la page Explications. */
+  explication?: string[];
 
   priorite?: number;    // ordre d'appel la nuit (petit = d'abord)
-  appelNuit?: boolean;  // le meneur appelle-t-il cette carte la nuit ?
+  appelNuit?: boolean;  // l'oracle appelle-t-il cette carte la nuit ?
   tours?: Tours;        // absent = toutes les nuits
   rejoint?: string[];   // cartes de groupe que ce rôle joue aussi (ex. ["loup"] : il vote avec les loups)
+  /**
+   * Affichage seulement : rangée dans le groupe « Hybride » des options. Ce sont les paires d'une
+   * carte du village qui peut DEVENIR une carte des loups (Rat → Rat-garou, Prêtre pur → Prêtre
+   * impur, Beau Parleur → Faux Parleur), et ces cartes des loups. Chacune est une carte à part
+   * entière, distribuable seule.
+   */
+  hybride?: boolean;
 
   /**
    * Carte sans porteur fixe : renvoie les joueurs qui se réveillent pour elle (vide = sautée).
@@ -116,7 +127,7 @@ export interface Role {
   /** Au lancement de la partie, avant la nuit 1 : ce que le rôle DONNE (ex. le Marchand reçoit son or). */
   debut?(partie: Partie, moi: Joueur): ResultatAction | void;
 
-  /** Étapes 1-2 : ce que le meneur voit et les choix proposés */
+  /** Étapes 1-2 : ce que l'oracle voit et les choix proposés */
   decision?(partie: Partie, moi: Joueur): Decision;
 
   /** Étape 3 : DONNER des tags et/ou produire des infos */
@@ -127,6 +138,8 @@ export interface Role {
 
   /** Après coup : le tag a été accepté par le joueur qui a ce rôle (ex. le Chasseur meurt → il tire). */
   reagir?(tag: string, meta: Meta, partie: Partie, moi: Joueur): void;
+  /** Une carte vient de le désigner (avant son agir), avec ou sans tag : le Hurleur. */
+  estVise?(partie: Partie, moi: Joueur, alias: string, choix: ChoixFait, acteur: Joueur): void;
 
   /** À l'aube, après les conséquences des tags : appelé pour chaque joueur vivant qui a ce rôle (ex. le rat-garou seul meurt). */
   aube?(partie: Partie, moi: Joueur): ResultatAction | void;
@@ -135,7 +148,16 @@ export interface Role {
    * Après un vote qui a ÉLIMINÉ quelqu'un : appelé pour chaque joueur vivant qui a ce rôle
    * (ex. le Fêtard qui a voté contre un loup). Comme reagir(), il agit via mettreEnAttente / appliquerResultat.
    */
-  apresVote?(partie: Partie, moi: Joueur, elimine: Joueur): void;
+  apresVote?(partie: Partie, moi: Joueur, elimine?: Joueur): void;
+  /** Ligne affichée à l'écran du vote (le Stratège : « regardez pour qui il vote »). */
+  rappelVote?(partie: Partie, moi: Joueur): string | undefined;
+
+  /**
+   * Le village vient de désigner `accuse`, AVANT sa mort : appelé pour chaque joueur vivant qui a ce rôle.
+   * Un rôle qui met une décision en attente (mettreEnAttente) SUSPEND le vote ; cette décision le
+   * tranche ensuite avec partie.trancherLeVote() (ex. le Beau Parleur maire regarde la carte).
+   */
+  avantVote?(partie: Partie, moi: Joueur, accuse: Joueur): void;
 }
 
 /* ---------- Événements ---------- */
@@ -143,10 +165,10 @@ export interface Role {
 /**
  * Un événement du jour, tiré après l'élection du maire et avant le débat.
  * Deux genres, qui se déduisent des champs présents :
- *   - ANIMATION : ni appliquer, ni decision. Le meneur lit le texte, le moteur ne fait rien.
+ *   - ANIMATION : ni appliquer, ni decision. L'oracle lit le texte, le moteur ne fait rien.
  *   - GAMEPLAY  : appliquer (sans choix), ou decision + agir (le maire désigne quelqu'un),
  *                 et/ou minuteur (durée du débat).
- * FLUX : tiré (sans effet) → le meneur peut demander « Un autre » ou « Passer » (Soleil)
+ * FLUX : tiré (sans effet) → l'oracle peut demander « Un autre » ou « Passer » (Soleil)
  *        → appliqué à la validation (appliquer, ou agir via partie.jouer) → débat.
  */
 export interface Evenement {
@@ -154,22 +176,24 @@ export interface Evenement {
   titre: string;
   image: string;
   description: string;
+  /** Explication détaillée, une ligne par paragraphe : affichée dans la fiche de la page Explications. */
+  explication?: string[];
 
-  /** Effet sans choix, à la validation (ex. la Rumeur). Comme agir() : renvoie ce qu'il donne. */
+  /** Effet sans choix, à la validation (ex. la Caravane de lamas). Comme agir() : renvoie ce qu'il donne. */
   appliquer?(partie: Partie): ResultatAction | void;
 
   /** Le maire désigne : mêmes contrats que pour un rôle, avec le maire à la place de moi. */
   decision?(partie: Partie, maire: Joueur): Decision;
   agir?(choix: ChoixFait, partie: Partie, maire: Joueur): ResultatAction | void;
 
-  /** Durée du débat en minutes ; null = pas de minuteur ; absent = le réglage du meneur. */
+  /** Durée du débat en minutes ; null = pas de minuteur ; absent = le réglage de l'oracle. */
   minuteur?: number | null;
   /** Le temps restant au « Passer au vote » devient la durée du débat du lendemain (Sablier). */
   reporteLeTempsRestant?: boolean;
   /** Ne peut être ni remplacé ni passé (la suite du Sablier). */
   force?: boolean;
 
-  /** Rappel affiché au meneur à l'écran du vote (ex. « si le village n'élimine pas un loup… »). */
+  /** Rappel affiché à l'oracle à l'écran du vote (ex. « si le village n'élimine pas un loup… »). */
   rappelVote?: string;
 
   /**
