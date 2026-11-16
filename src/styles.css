@@ -263,7 +263,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .temple-escalier { fill: #6f604c; transition: fill 1.5s 1.2s; }
 .temple-porte { fill: #1a0f08; }
 /* Ce qui n'apparaît qu'en fin de partie. */
-.temple-ruines, .temple-sang, .flammes, .fetards, .dechirures { opacity: 0; }
+.temple-ruines, .temple-sang, .flammes, .fetards, .dechirures, .remparts { opacity: 0; }
 
 /* --- Victoire des loups : lune de sang, ciel rougi, le temple tremble et s'écroule. --- */
 .cadran-fin-loups .cadran-lune, .cadran-fin-fou .cadran-lune {
@@ -398,6 +398,106 @@ input[type="checkbox"] { accent-color: var(--accent); }
   30% { transform: translateY(-8px) rotate(-3deg); }
   60% { transform: translateY(-16px) rotate(3deg); opacity: 1; }
   100% { transform: translateY(-30px) rotate(-2deg) scale(.6); opacity: 0; }
+}
+
+/* --- Victoire des amoureux : le soleil devient un cœur qui bat, le ciel et le temple rosissent,
+   les amoureux survivants sautent de joie au pied du temple.
+   FLUX (secondes après le début de la fin) :
+     1,2 s  le soleil rapetisse et s'efface ; le ciel prend une teinte rose ; le temple rosit ;
+     1,5 s  le cœur éclot à sa place (il grossit en dépassant un peu sa taille, puis se pose) ;
+     2,0 s  les rayons roses tournent, les amoureux apparaissent et sautent ;
+     2,4 s  le cœur se met à battre (deux battements rapprochés, puis une pause, comme un vrai cœur).
+   RÉUTILISABLE : les points et l'animation « sauter » sont ceux du village ; seule leur couleur change. --- */
+.cadran-coeur {
+  position: absolute; left: 50%; top: 13%; width: 20%; overflow: visible;
+  opacity: 0; transform: translate(-50%, -50%) scale(0);
+}
+.cadran-coeur path { fill: #ff3d7f; stroke: #ffd6e6; stroke-width: 1.5; }
+.cadran-fin-amoureux .cadran-soleil {
+  opacity: 0; transform: translate(-50%, -50%) scale(.3);
+  transition: opacity .6s 1.2s, transform .6s 1.2s;
+}
+/* ATTENTION : deux animations sur la même propriété (transform). Tant que « battre » attend son délai,
+   c'est « eclore » qui s'applique (et reste figée sur sa fin grâce à forwards) ; dès que « battre »
+   démarre, elle prend la main, car la DERNIÈRE de la liste l'emporte. Ses 0 % et 100 % valent la fin
+   d'« eclore » : le relais ne se voit pas. */
+.cadran-fin-amoureux .cadran-coeur {
+  filter: drop-shadow(0 0 5px #ff7fb0);
+  animation: eclore .7s 1.5s cubic-bezier(.3, 1.6, .5, 1) forwards, battre 1.2s 2.4s ease-in-out infinite;
+}
+@keyframes eclore { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes battre {
+  0%, 45%, 100% { transform: translate(-50%, -50%) scale(1); }
+  12% { transform: translate(-50%, -50%) scale(1.16); }
+  25% { transform: translate(-50%, -50%) scale(1); }
+  35% { transform: translate(-50%, -50%) scale(1.1); }
+}
+.cadran-fin-amoureux .cadran-voile { background: #ff8fbf; opacity: .28; }
+.cadran-fin-amoureux .cadran-rayons {
+  opacity: 1; animation: tourner 12s linear infinite;
+  background: repeating-conic-gradient(#ffb3d1cc 0 9deg, transparent 9deg 30deg);
+}
+.cadran-fin-amoureux .temple-pierre { fill: #f2a7c6; }
+.cadran-fin-amoureux .temple-escalier { fill: #d9779f; }
+.cadran-fin-amoureux .temple-intact { animation: luire-rose 2s 2.4s ease-in-out infinite alternate; }
+@keyframes luire-rose { from { filter: drop-shadow(0 0 1px #ff7fb0); } to { filter: drop-shadow(0 0 4px #ff7fb0); } }
+/* Montagnes éclaircies, comme pour le village : sinon les points sombres seraient invisibles devant. */
+.cadran-fin-amoureux .montagnes { fill: #c98ea6; }
+.cadran-fin-amoureux .fetards { opacity: 1; transition: opacity .5s 2s; }
+.cadran-fin-amoureux .fetard { fill: #9c1146; animation: sauter .45s calc(var(--i) * .07s) ease-out infinite alternate; }
+
+/* --- Victoire du Bâtisseur (« Siège ») : le village se retranche. Des murailles sortent de terre
+   autour du temple, un donjon pousse à son sommet, les torches s'allument, les arbalètes tirent.
+   FLUX (secondes après le début de la fin) :
+     1,2 s  le ciel prend une lumière de fin de journée ; les murailles montent du sol ;
+     1,8 s  les tours d'angle montent à leur tour ;
+     2,4 s  le donjon pousse sur le sommet du temple, son fanion claque au vent ;
+     3,2 s  les torches s'allument une à une (0,15 s d'écart) et vacillent ;
+     3,6 s  les arbalètes apparaissent ; dès 4,2 s, elles tirent en boucle, chacune à son tour.
+   CONCEPT : « sortir de terre » = scaleY de 0 à 1 avec l'origine en BAS (transform-origin 50 % 100 %).
+   transform-box: fill-box (posé sur tout le paysage plus haut) fait que ces % visent la boîte du
+   dessin lui-même, et non tout le SVG. --- */
+.rempart-pierre { fill: #8a7860; stroke: #3d2814; stroke-width: .5; }
+.meurtriere { fill: #1a0f08; }
+.donjon-hampe { stroke: #3d2814; stroke-width: .7; }
+.fanion { fill: var(--jade); stroke: #1b4a42; stroke-width: .3; }
+.torche-manche { fill: #4a2d14; }
+.torche-flamme { fill: #ffb43b; filter: drop-shadow(0 0 1.5px #ff8a1f); }
+.arbalete-crosse { stroke: #5a3a1c; stroke-width: 1.1; stroke-linecap: round; }
+.arbalete-arc { fill: none; stroke: #2b1a0b; stroke-width: .8; }
+.arbalete-corde { fill: none; stroke: #e8dcc0; stroke-width: .35; }
+.carreau { stroke: #e8dcc0; stroke-width: .7; }
+
+.cadran-fin-batisseur .cadran-voile { background: #ffb15c; opacity: .2; }
+.cadran-fin-batisseur .remparts { opacity: 1; }
+.cadran-fin-batisseur .muraille,
+.cadran-fin-batisseur .tours-angle,
+.cadran-fin-batisseur .donjon { transform-origin: 50% 100%; transform: scaleY(0); }
+.cadran-fin-batisseur .muraille { animation: elever .9s 1.2s ease-out forwards; }
+.cadran-fin-batisseur .tours-angle { animation: elever .9s 1.8s ease-out forwards; }
+.cadran-fin-batisseur .donjon { animation: elever 1s 2.4s ease-out forwards; }
+@keyframes elever { to { transform: scaleY(1); } }
+.cadran-fin-batisseur .fanion { transform-origin: 0% 50%; animation: claquer .7s 3.4s ease-in-out infinite alternate; }
+@keyframes claquer { from { transform: scaleX(1) skewY(0deg); } to { transform: scaleX(.82) skewY(7deg); } }
+/* Torches : le manche apparaît avec elles ; la flamme s'allume puis vacille (même animation que le feu
+   du skinwalker). Deux animations, deux propriétés : apparaitre (opacité) et vaciller (transform). */
+.cadran-fin-batisseur .torches { animation: apparaitre .3s 3s forwards; }
+.cadran-fin-batisseur .torche-flamme {
+  opacity: 0; transform-origin: 50% 100%;
+  animation:
+    apparaitre .4s calc(3.2s + var(--i) * .15s) forwards,
+    vaciller .3s calc(var(--i) * .07s) ease-in-out infinite alternate;
+}
+.cadran-fin-batisseur .arbaletes { animation: apparaitre .5s 3.6s forwards; }
+/* Un tir : le carreau file vers l'extérieur (--sens : -1 à gauche, 1 à droite) et s'efface, puis
+   réapparaît sur l'arbalète, rechargée. Chaque arbalète tire avec 0,6 s de décalage (--i). */
+.cadran-fin-batisseur .carreau { animation: tirer 2.4s calc(4.2s + var(--i) * .6s) ease-in infinite; }
+@keyframes tirer {
+  0% { transform: translateX(0); opacity: 1; }
+  30% { transform: translateX(calc(var(--sens) * 26px)); opacity: 1; }
+  31%, 85% { transform: translateX(calc(var(--sens) * 26px)); opacity: 0; }
+  86% { transform: translateX(0); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

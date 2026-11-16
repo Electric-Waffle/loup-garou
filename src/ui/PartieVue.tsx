@@ -426,7 +426,12 @@ export function PartieVue({
   // La fin montrée par le cadran : celle des boutons de test, sinon la vraie (si la partie est finie).
   const enFin = !!finTest || partie.phase === "fin";
   const finCadran = finTest?.fin ?? finDuCadran(partie.vainqueur);
-  const survivants = partie.vivants().length; // autant de villageois en fête sur le cadran
+  // Les points qui font la fête au pied du temple : les amoureux vivants pour leur victoire,
+  // sinon tous les survivants.
+  // ATTENTION : avec le bouton de test, une partie peut n'avoir aucun amoureux ; on montre alors
+  // les survivants, pour que l'animation reste visible.
+  const amoureuxVivants = partie.joueursAvecTag("amoureux").length;
+  const survivants = finCadran === "amoureux" && amoureuxVivants > 0 ? amoureuxVivants : partie.vivants().length;
   const ouvert = joueurOuvert ? partie.joueur(joueurOuvert) : undefined;
   // Ce que montre la barre du panneau, même replié : la carte appelée, sinon l'étape du jour.
   const titreDuPanneau = courante ? courante.titre : PHASES[partie.phase];

@@ -34,10 +34,13 @@ test("même phase : le cadran ne bouge pas", () => {
 test("le texte du vainqueur donne la bonne animation de fin", () => {
   assert.equal(finDuCadran("Les loups-garous"), "loups");
   assert.equal(finDuCadran("Le village"), "village");
-  assert.equal(finDuCadran("Le village (toutes les maisons sont renforcées)"), "village");
+  assert.equal(finDuCadran("Le village (toutes les maisons sont renforcées)"), "batisseur");
+  // Skinwalker vivant : c'est sa fin à lui qui joue, même si le chantier est fini.
+  assert.equal(finDuCadran("Le skinwalker (il vole la victoire du village : toutes les maisons sont renforcées)"), "skinwalker");
   assert.equal(finDuCadran("Le skinwalker (il vole la victoire du village)"), "skinwalker");
   assert.equal(finDuCadran("Le fou"), "fou");
   assert.equal(finDuCadran("L'aberration"), "aberration");
-  assert.equal(finDuCadran("Les amoureux"), undefined);
+  assert.equal(finDuCadran("Les amoureux"), "amoureux");
+  assert.equal(finDuCadran("Personne : le village est désert."), undefined);
   assert.equal(finDuCadran(undefined), undefined);
 });

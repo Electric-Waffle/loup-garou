@@ -15,13 +15,41 @@ import { LIBELLES_CAMPS } from "./libelles";
  *   - village    : soleil aux rayons tournants, temple doré, villageois qui sautent de joie ;
  *   - skinwalker : comme le village, mais les villageois disparaissent et le temple brûle ;
  *   - fou        : comme les loups, mais un œil à la place de la lune, et les ruines saignent ;
- *   - aberration : éclipse, déchirures violettes dans le ciel, le temple flotte puis disparaît.
+ *   - aberration : éclipse, déchirures violettes dans le ciel, le temple flotte puis disparaît ;
+ *   - amoureux   : le soleil devient un cœur qui bat, le ciel et le temple rosissent, et les
+ *                  amoureux encore vivants sautent de joie (un point chacun) ;
+ *   - batisseur  : victoire du village par les maisons renforcées. Des murailles sortent de terre
+ *                  autour du temple, un donjon pousse à son sommet, les torches s'allument sur les
+ *                  remparts et les arbalètes tirent.
  * PATTERN : toute l'animation est en CSS (styles.css, section « Cadran ») ; le composant ne fait
  * que choisir les classes. Il ne touche jamais à la partie.
  */
 
-export type FinCadran = "loups" | "village" | "skinwalker" | "fou" | "aberration";
-export const FINS_CADRAN: FinCadran[] = ["loups", "village", "skinwalker", "fou", "aberration"];
+/**
+ * Les fins animées. Ce sont les camps du moteur (Camp), plus deux fins qui n'en sont pas :
+ *   - « amoureux » : les amoureux ne sont pas un camp (un joueur garde sa carte) ;
+ *   - « batisseur » : c'est le camp du village qui gagne, mais par une autre voie (le chantier).
+ */
+export type FinCadran = "loups" | "village" | "skinwalker" | "fou" | "aberration" | "amoureux" | "batisseur";
+export const FINS_CADRAN: FinCadran[] = ["loups", "village", "batisseur", "skinwalker", "fou", "aberration", "amoureux"];
+
+/**
+ * Ce qu'écrit la pancarte pour chaque fin.
+ * POURQUOI pas LIBELLES_CAMPS directement, comme avant : « amoureux » n'est pas un Camp, et le
+ * Record<Camp, …> de libelles.ts ne le connaît pas. On reprend les libellés des camps, et on ajoute le sien.
+ */
+const LIBELLES_FINS: Record<FinCadran, string> = {
+  loups: LIBELLES_CAMPS.loups,
+  village: LIBELLES_CAMPS.village,
+  skinwalker: LIBELLES_CAMPS.skinwalker,
+  fou: LIBELLES_CAMPS.fou,
+  aberration: LIBELLES_CAMPS.aberration,
+  amoureux: "Amoureux",
+  batisseur: LIBELLES_CAMPS.village // une victoire du camp du village
+};
+
+/** Le cœur qui remplace le soleil (fin des amoureux), dessiné dans un carré de 32 × 29. */
+const COEUR = "M16 29C16 29 0 18.5 0 8.5 0 3.5 4 0 8.5 0 12 0 14.5 2 16 4.5 17.5 2 20 0 23.5 0 28 0 32 3.5 32 8.5 32 18.5 16 29 16 29Z";
 
 /** Angle du disque pour chaque phase (0° = soleil tout en haut, 180° = lune tout en haut). */
 const ANGLES: Partial<Record<Phase, number>> = {
@@ -33,21 +61,27 @@ const ANGLES: Partial<Record<Phase, number>> = {
   resultat_vote: 70,  // soleil à droite
   nuit: 180           // soleil caché sous l'horizon, lune en haut
 };
-/** En fin de partie : la nuit pour les loups et le fou, le plein jour pour les autres. */
-const ANGLES_FIN: Record<FinCadran, number> = { loups: 180, fou: 180, village: 0, skinwalker: 0, aberration: 0 };
+/**
+ * En fin de partie : la nuit pour les loups et le fou, le plein jour pour les autres.
+ * Amoureux : plein jour, pour que le cœur prenne la place du soleil, tout en haut.
+ */
+const ANGLES_FIN: Record<FinCadran, number> = { loups: 180, fou: 180, village: 0, skinwalker: 0, aberration: 0, amoureux: 0, batisseur: 0 };
 
 /**
  * Traduit le texte du vainqueur (partie.vainqueur, écrit par victoire.ts) en animation de fin.
- * Les amoureux, ou un village désert, n'ont pas d'animation : undefined.
+ * Un village désert n'a pas d'animation : undefined.
  * ATTENTION : on lit le DÉBUT du texte. Si victoire.ts change ses phrases, cadran.test.ts le signalera.
  */
 export function finDuCadran(vainqueur: string | undefined): FinCadran | undefined {
   if (!vainqueur) return undefined;
   if (vainqueur.startsWith("Les loups")) return "loups";
-  if (vainqueur.startsWith("Le village")) return "village";
+  // Le village gagne de deux façons : plus de loup (« Le village »), ou le chantier du Bâtisseur
+  // (« Le village (toutes les maisons sont renforcées) »). La raison entre parenthèses les distingue.
+  if (vainqueur.startsWith("Le village")) return vainqueur.includes("maisons sont renforcées") ? "batisseur" : "village";
   if (vainqueur.startsWith("Le skinwalker")) return "skinwalker";
   if (vainqueur.startsWith("Le fou")) return "fou";
   if (vainqueur.startsWith("L'aberration")) return "aberration";
+  if (vainqueur.startsWith("Les amoureux")) return "amoureux";
   return undefined;
 }
 
@@ -134,6 +168,8 @@ const TITRES_FIN: Record<FinCadran, { titre: string; faux?: Bascule }> = {
   loups: { titre: "Lune de Sang" },
   village: { titre: "Gloire" },
   aberration: { titre: "Fracture" },
+  amoureux: { titre: "Idylle" },
+  batisseur: { titre: "Siège" },
   fou: { titre: "Hécatombe", faux: { titre: "Lune de Sang", camp: "loups", revele: () => 6 } },
   skinwalker: { titre: "Festin", faux: { titre: "Gloire", camp: "village", revele: revelationSkinwalker } }
 };
@@ -141,7 +177,7 @@ const TITRES_FIN: Record<FinCadran, { titre: string; faux?: Bascule }> = {
 /**
  * Sous l'horizon, en fin de partie : le titre de la fin, et le camp vainqueur sur une pancarte
  * qui déborde sur le bas de la table (son fond uni rend le texte lisible sur les rayons gravés).
- * Pour une fin sans animation (amoureux, village désert), on écrit le texte du vainqueur tel quel.
+ * Pour une fin sans animation (village désert), on écrit le texte du vainqueur tel quel.
  * PATTERN : la bascule fausse → vraie victoire est un fondu CSS entre deux textes superposés.
  * Les deux sont dans la page dès le départ ; seul le moment où chacun se montre change.
  */
@@ -155,7 +191,7 @@ export function TitreDeFin({ fin, vainqueur, survivants }: { fin?: FinCadran; va
     );
   }
   const { titre, faux } = TITRES_FIN[fin];
-  const camp = LIBELLES_CAMPS[fin];
+  const camp = LIBELLES_FINS[fin];
   return (
     <div className={`table-centre table-centre-partie titre-fin ${faux ? "avec-bascule" : ""}`}
       style={faux ? ({ "--revele": `${faux.revele(positionsFetards(survivants)).toFixed(2)}s` } as CSSProperties) : undefined}>
@@ -164,17 +200,138 @@ export function TitreDeFin({ fin, vainqueur, survivants }: { fin?: FinCadran; va
         <span className="vrai">{titre}</span>
       </span>
       <span className="pancarte">
-        {faux && <span className="faux">{LIBELLES_CAMPS[faux.camp]}</span>}
+        {faux && <span className="faux">{LIBELLES_FINS[faux.camp]}</span>}
         <span className="vrai">{camp}</span>
       </span>
     </div>
   );
 }
 
+/* -------------------------------------------------------------------------------------
+ *  Fin du Bâtisseur : les remparts
+ *  Repères du dessin (200 × 100, l'horizon en bas) : le temple occupe x = 72 à 128, son sanctuaire
+ *  le haut (x = 94 à 106, y = 65 à 73), et le sol est en y = 97.
+ *  POURQUOI tout calculer depuis le côté gauche : le décor est symétrique. miroir() donne la
+ *  position du même élément à droite ; une retouche à gauche se reporte toute seule.
+ *  POURQUOI pas un attribut transform="scale(-1 1)" pour retourner le côté droit : styles.css anime
+ *  la propriété CSS transform de ces éléments, qui remplacerait l'attribut. Des coordonnées
+ *  calculées n'ont pas ce conflit.
+ * ------------------------------------------------------------------------------------- */
+
+/** La position x, à droite, d'un élément de largeur `largeur` placé en x à gauche. */
+const miroir = (x: number, largeur: number) => 200 - x - largeur;
+
+/** Les murailles : du pied de la tour d'angle jusqu'au temple. */
+const MUR = { x: 51, y: 86, largeur: 21, hauteur: 11 };
+/** Les tours d'angle, au bout des murailles. */
+const TOUR = { x: 42, y: 79, largeur: 10, hauteur: 18 };
+/** Un créneau (merlon) : le petit bloc qui dépasse en haut d'un mur. */
+const CRENEAU = { largeur: 2.2, hauteur: 2.4 };
+
+/**
+ * Les x des créneaux posés sur un mur de x à x + largeur, espacés régulièrement.
+ * Ex. creneaux(51, 21) → [51, 55.7, 60.4, 65.1, 69.8] : le premier au bord gauche, le dernier au bord droit.
+ */
+function creneaux(x: number, largeur: number, nombre: number): number[] {
+  const pas = (largeur - CRENEAU.largeur) / (nombre - 1);
+  return Array.from({ length: nombre }, (_, k) => x + k * pas);
+}
+
+/** Les torches, plantées sur le chemin de ronde des murailles (x à gauche ; la droite en miroir). */
+const TORCHES = [61, 68];
+/** Les arbalètes : une sur la tour d'angle, une sur la muraille, de chaque côté. */
+const ARBALETES = [{ x: 47, y: 73.5 }, { x: 55, y: 81 }];
+
+/**
+ * Un pan de muraille, ou une tour, avec ses créneaux. Les deux ne diffèrent que par leurs
+ * dimensions et leur nombre de créneaux.
+ */
+function MurCrenele({ x, y, largeur, hauteur, nombreDeCreneaux }: { x: number; y: number; largeur: number; hauteur: number; nombreDeCreneaux: number }) {
+  return (
+    <>
+      <rect className="rempart-pierre" x={x} y={y} width={largeur} height={hauteur} />
+      {creneaux(x, largeur, nombreDeCreneaux).map(xCreneau => (
+        <rect key={xCreneau} className="rempart-pierre" x={xCreneau} y={y - CRENEAU.hauteur} width={CRENEAU.largeur} height={CRENEAU.hauteur} />
+      ))}
+    </>
+  );
+}
+
+/**
+ * Une arbalète vue de profil, tournée vers l'extérieur.
+ * @param sens -1 = elle vise la gauche, 1 = la droite. Chaque abscisse est écrite « cx + sens × écart » :
+ *             le même dessin, retourné pour l'autre côté.
+ * @param i    son numéro : les tirs se décalent (styles.css, --i), elles ne tirent pas toutes ensemble.
+ */
+function Arbalete({ cx, cy, sens, i }: { cx: number; cy: number; sens: number; i: number }) {
+  const x = (ecart: number) => cx + sens * ecart;
+  return (
+    <g className="arbalete" style={{ "--i": i, "--sens": sens } as CSSProperties}>
+      <path className="arbalete-crosse" d={`M${x(-3)},${cy} L${x(2.5)},${cy}`} />
+      <path className="arbalete-arc" d={`M${x(2)},${cy - 3} Q${x(4)},${cy} ${x(2)},${cy + 3}`} />
+      <path className="arbalete-corde" d={`M${x(2)},${cy - 3} L${x(0.5)},${cy} L${x(2)},${cy + 3}`} />
+      {/* Le carreau (la flèche de l'arbalète) : c'est lui qui part, en boucle. */}
+      <path className="carreau" d={`M${x(1)},${cy} L${x(4.5)},${cy}`} />
+    </g>
+  );
+}
+
+/** Une torche : un manche planté sur le rempart et une flamme qui vacille. */
+function Torche({ x, i }: { x: number; i: number }) {
+  return (
+    <g style={{ "--i": i } as CSSProperties}>
+      <rect className="torche-manche" x={x - 0.45} y={81} width={0.9} height={5} />
+      <path className="torche-flamme" d={`M${x},81 C${x - 1.6},79 ${x - 0.6},77.5 ${x},76.3 C${x + 0.6},77.5 ${x + 1.6},79 ${x},81 Z`} />
+    </g>
+  );
+}
+
+/**
+ * Tout le décor de la fin du Bâtisseur, caché tant que cette fin ne joue pas.
+ * FLUX (styles.css) : les murailles sortent de terre, puis les tours d'angle, puis le donjon pousse
+ * au sommet du temple ; les torches s'allument une à une, et les arbalètes se mettent à tirer.
+ */
+function Remparts() {
+  const torches = [...TORCHES, ...TORCHES.map(x => miroir(x, 0))];
+  const arbaletes = [
+    ...ARBALETES.map(a => ({ ...a, sens: -1 })),
+    ...ARBALETES.map(a => ({ x: miroir(a.x, 0), y: a.y, sens: 1 }))
+  ];
+  return (
+    <g className="remparts">
+      <g className="muraille">
+        <MurCrenele {...MUR} nombreDeCreneaux={5} />
+        <MurCrenele {...MUR} x={miroir(MUR.x, MUR.largeur)} nombreDeCreneaux={5} />
+      </g>
+      <g className="tours-angle">
+        <MurCrenele {...TOUR} nombreDeCreneaux={3} />
+        <MurCrenele {...TOUR} x={miroir(TOUR.x, TOUR.largeur)} nombreDeCreneaux={3} />
+        {/* Les meurtrières des tours. */}
+        <rect className="meurtriere" x={TOUR.x + 4.4} y={85} width={1.2} height={4} />
+        <rect className="meurtriere" x={miroir(TOUR.x + 4.4, 1.2)} y={85} width={1.2} height={4} />
+      </g>
+      {/* Le donjon, posé sur le sanctuaire du temple, et son fanion aux couleurs du village. */}
+      <g className="donjon">
+        <MurCrenele x={92} y={49} largeur={16} hauteur={17} nombreDeCreneaux={5} />
+        <rect className="meurtriere" x={99.3} y={54} width={1.4} height={4.5} />
+        <path className="donjon-hampe" d="M100,46.6 L100,37" />
+        <path className="fanion" d="M100.4,37 L108,39.2 L100.4,41.4 Z" />
+      </g>
+      <g className="torches">
+        {torches.map((x, i) => <Torche key={x} x={x} i={i} />)}
+      </g>
+      <g className="arbaletes">
+        {arbaletes.map((a, i) => <Arbalete key={`${a.x}-${a.y}`} cx={a.x} cy={a.y} sens={a.sens} i={i} />)}
+      </g>
+    </g>
+  );
+}
+
 /**
  * @param fin     l'animation de fin à jouer (seulement quand phase = "fin")
  * @param rejouer un numéro qui change à chaque demande : il relance les animations (boutons de test)
- * @param survivants le nombre de joueurs vivants : autant de villageois en fête
+ * @param survivants le nombre de points en fête au pied du temple : les joueurs vivants (village,
+ *                   skinwalker), ou les amoureux vivants (fin des amoureux) ; PartieVue choisit
  */
 export function Cadran({ phase, fin, rejouer = 0, survivants }: { phase: Phase; fin?: FinCadran; rejouer?: number; survivants: number }) {
   // ATTENTION : on modifie la ref pendant le rendu. C'est sans danger ici, car le calcul est
@@ -193,6 +350,10 @@ export function Cadran({ phase, fin, rejouer = 0, survivants }: { phase: Phase; 
         <span className="cadran-soleil" />
         <span className="cadran-lune" />
         <span className="cadran-oeil" />
+        {/* Le cœur des amoureux, posé à la place du soleil : caché, il attend sa fin.
+            POURQUOI un SVG et pas un dégradé CSS comme le soleil : un cœur ne se dessine pas avec
+            des cercles, et un SVG garde un contour net à toutes les tailles. */}
+        <svg className="cadran-coeur" viewBox="0 0 32 29"><path d={COEUR} /></svg>
       </div>
       <div className="cadran-voile" />
 
@@ -221,6 +382,8 @@ export function Cadran({ phase, fin, rejouer = 0, survivants }: { phase: Phase; 
           <rect className="temple-escalier" x="97" y="73" width="6" height="24" />
           <rect className="temple-porte" x="98" y="68" width="4" height="5" />
         </g>
+        {/* Après le temple : le donjon doit être dessiné PAR-DESSUS son sommet. */}
+        <Remparts />
         <g className="temple-ruines">
           <polygon className="temple-pierre" points="72,97 128,97 128,91 121,91 117,86 109,89 101,84 93,88 86,85 80,91 72,91" />
           <rect className="temple-pierre" x="56" y="92" width="7" height="4" transform="rotate(18 59 94)" />
