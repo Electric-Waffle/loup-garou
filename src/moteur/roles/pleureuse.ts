@@ -28,6 +28,11 @@ const pleureuse: Role = {
     "S'ils désignent la Pleureuse, ils sont tous délivrés, et elle perd son pouvoir.",
     "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
   ],
+  conseil: [
+    "Votre rôle ressemble à celui de la Fée, en bien plus puissant : maudissez des joueurs, devinez leur carte d'après les rôles qui ne jouent plus, et tâchez de maudire les loups.",
+    "Si vous vous rendez compte que vous avez surtout maudit des villageois innocents, révélez-vous : au Conciliabule suivant, ils vous désigneront et retrouveront leur rôle.",
+    "Si vous avez plutôt maudit des loups, restez cachée. Et entre les deux… tout dépendra de la proportion, de ceux qui restent, et de vos choix."
+  ],
   priorite: 15,
   appelNuit: true,
   tours: { de: 2 },

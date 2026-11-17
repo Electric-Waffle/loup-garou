@@ -28,6 +28,11 @@ const loupBarbare: Role = {
     "Les autres nuits, sa carte est appelée mais il reste caché. Si le village n'élimine personne, il ne mord pas non plus.",
     "Il compte comme un loup pour la victoire, même si la meute ne le sait pas."
   ],
+  conseil: [
+    "Vous êtes la cible numéro un du village. Mais contrairement à un loup ordinaire, les autres loups ne savent pas qui vous êtes, et vous ne savez pas qui ils sont.",
+    "Il faut la jouer fine, sur trois fronts : communiquer discrètement, à coups de mots-clés et de clins d'œil, pour qu'ils vous reconnaissent ; détourner les votes pour éviter de brûler un loup ; et bien choisir votre propre victime, les nuits où le village s'est trompé.",
+    "Ne vous rendez pas trop visible non plus : n'importe qui pourrait se faire passer pour le Loup barbare en faisant des clins d'œil à tout le monde, et vous passeriez pour un imposteur parmi d'autres."
+  ],
   priorite: 124,
   appelNuit: true,
 

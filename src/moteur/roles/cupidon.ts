@@ -29,6 +29,11 @@ const cupidon: Role = {
     "Les amoureux gagnent ensemble s'ils sont strictement plus nombreux que les autres vivants, quel que soit leur camp.",
     "Chaque nuit, les amoureux se retrouvent en secret pendant la Réunion des amoureux (60 secondes)."
   ],
+  conseil: [
+    "Votre pouvoir s'accompagne de grandes responsabilités. Si vos amoureux sont de deux camps différents, ils voudront vous tuer pour protéger leur secret, et ils viseront ceux qui restent silencieux ou qui disent avoir « déjà fait leur pouvoir » : c'est exactement le profil de Cupidon.",
+    "Gardez donc le secret absolu. Et si vous vivez jusqu'à la troisième nuit, révélez au village les rôles des amoureux que vous avez découverts.",
+    "Faire croire que vous avez un autre rôle est risqué, mais peut vous sauver de la colère d'amoureux que tout oppose."
+  ],
   priorite: 50,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5… ; « a: 3 » coupe après la 3.

@@ -35,6 +35,10 @@ const aberration: Role = {
     "Tant que je vit, personne d'autre gagne.",
     "Si tout le monde est horrifié, je gagne. Et si je meurt, la terreur de tout les joueurs mourira avec moi."
   ],
+  conseil: [
+    "Horrifiez ceux qui ont le plus de chances de survivre longtemps, plutôt que ceux qui risquent de mourir vite : un horrifié qui meurt, c'est une nuit perdue.",
+    "Tant que vous vivez, personne d'autre ne peut gagner : votre survie est votre première arme."
+  ],
   priorite: 25,
   appelNuit: true,
 

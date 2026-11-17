@@ -14,6 +14,10 @@ const chasseur: Role = {
     "Sa mort a d'abord lieu normalement : si son amoureux meurt de chagrin, le Chasseur tire quand même.",
     "Enchanté par la Fée, maudit par la Pleureuse ou privé de pouvoir par l'Ancien, il meurt sans tirer."
   ],
+  conseil: [
+    "Peu de rôles ne font rien : ne pas participer aux débats ni aux informations trahit assez vite votre carte.",
+    "Et tant que personne n'est sûr que le Chasseur est mort et a tiré, personne n'ose se faire remarquer, de peur d'être sa cible. Faites comme s'il n'y avait pas de Chasseur : vos ennemis se croiront en sécurité, et finiront par commettre une erreur fatale. Telle est la voie du chasseur."
+  ],
 
   reagir(tag, _meta, partie, moi) {
     if (tag === "mort") partie.mettreEnAttente("chasseur", moi);

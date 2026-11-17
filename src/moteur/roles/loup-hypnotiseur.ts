@@ -39,6 +39,12 @@ const loupHypnotiseur: Role = {
     "L'effet dure jusqu'à l'aube suivante : il couvre aussi le second vote d'une plaidoirie. L'oracle le voit rappelé à l'écran du vote, jamais pendant le débat.",
     "Sur une cible protégée par le Salvateur, rien ne se passe et le médaillon est perdu quand même, sans annonce. La Caravane de lamas lui rend ses médaillons."
   ],
+  conseil: [
+    "Il faut lire le cours des discussions, et faire taire ou manipuler les personnes les plus influentes pour forcer les votes.",
+    "Mais changer une voix sur dix quand les dix votent pour la même personne ne sert pas à grand-chose. Si vous partagez l'opinion entre plusieurs suspects, chaque groupe de votants est plus petit, et vos médaillons font alors la différence.",
+    "Mettez-vous d'accord avec les autres loups sur une stratégie de vote : vos manipulations n'en auront que plus de poids.",
+    "Votre stratégie ressemble à celle du Stratège, ce qui le rend d'autant plus suspect. Profitez-en le jour : s'il tente de diviser les votes, c'est peut-être parce que c'est LUI, l'hypnotiseur…"
+  ],
   priorite: 115,
   appelNuit: true,
   rejoint: ["loup"],

@@ -30,6 +30,11 @@ const loupAmoureux: Role = {
     "Il joue après le Salvateur : si sa cible est protégée, le lien échoue, sans seconde chance.",
     "Si sa cible est déjà liée par Cupidon, les liens s'additionnent."
   ],
+  conseil: [
+    "Vous ne serez généralement pas le seul amoureux de la partie : le but est de gagner avec les autres amoureux.",
+    "Il faut alors tenir trois fronts : établir la stratégie à la Réunion des amoureux, selon les rôles de chacun ; détourner la meute vers d'autres victimes que les amoureux ; et diriger les votes du village vers d'autres personnes qu'eux.",
+    "C'est difficile, mais si aucun amoureux ne meurt pendant deux tours, cela suffit généralement à gagner la partie."
+  ],
   priorite: 102,
   appelNuit: true,
   tours: { de: 1, a: 1 },

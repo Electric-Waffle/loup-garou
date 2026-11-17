@@ -25,6 +25,10 @@ const fee: Role = {
     "L'enchantement dure jusqu'à la fin de l'aube : un Chasseur enchanté tué cette nuit-là meurt sans tirer.",
     "Si elle enchante un loup, la meute chasse quand même tant qu'un autre loup peut jouer."
   ],
+  conseil: [
+    "Vous êtes du camp du village, mais votre rôle le gêne plus qu'autre chose : un villageois enchanté perd sa nuit. Visez toujours ceux que vous pensez être des loups.",
+    "Même quand vous vous trompez, tendez l'oreille au matin : si un rôle connu n'a rien fait cette nuit, c'est peut-être vous qui l'en avez empêché. Vous devinez ainsi la carte de votre cible, et apportez votre pierre à l'édifice."
+  ],
   priorite: 10,
   appelNuit: true,
   tours: { de: 2 },

@@ -31,6 +31,10 @@ const loupVampire: Role = {
     "Seul le vote du village peut l'éliminer. S'il a hérité de l'or du Marchand, il peut même racheter ce vote.",
     "Amoureux, il survit à la mort de son partenaire ; mais s'il est voté, son partenaire meurt de chagrin."
   ],
+  conseil: [
+    "Vous ne craignez qu'une chose : le vote du village. Si cela vous rend arrogant, c'est bien naturel : vous pouvez même voter contre les autres loups et rester seul de la meute, ce qui ne vous rendra que plus crédible aux yeux du village.",
+    "Mordez en priorité les rôles qui tuent d'un coup (Chasseur, Sorcière, Conquistador) : s'ils vous visent et que vous êtes encore en vie le lendemain, ils sauront à qui ils ont affaire."
+  ],
   rejoint: ["loup"],
 
   // POURQUOI debut() et pas init() : init() remplit la memoire, invisible des règles générales.

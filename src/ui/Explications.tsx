@@ -3,13 +3,14 @@
  * =====================================================================================
  *
  *  Organisation du fichier :
- *    1. <Explications>         : la page, ses 4 sections et ce qui est ouvert ;
+ *    1. <Explications>         : la page, ses 5 sections et ce qui est ouvert ;
  *    2. <Regles>               : les règles de base, en texte ;
- *    3. <FicheEvenement>       : la modale d'un événement ;
- *    4. <FicheCas>             : la modale d'un cas particulier, avec la table de la situation.
+ *    3. <FinsDuJeu>            : comment chacun gagne, avec des conseils (données : finsDuJeu.ts) ;
+ *    4. <FicheEvenement>       : la modale d'un événement ;
+ *    5. <FicheCas>             : la modale d'un cas particulier, avec la table de la situation.
  *
- *  FLUX : la page lit tout dans le code (LISTE_ROLES, EVENEMENTS, CAS_PARTICULIERS). Une carte,
- *  un événement ou un cas ajouté apparaît ici sans toucher à ce fichier.
+ *  FLUX : la page lit tout dans le code (LISTE_ROLES, EVENEMENTS, CAS_PARTICULIERS, FINS_DU_JEU).
+ *  Une carte, un événement, un cas ou une fin ajouté apparaît ici sans toucher à ce fichier.
  *  PATTERN : un état « ce qui est ouvert » par sorte de modale (alias, ou null = fermée).
  *  La modale n'existe que pendant qu'elle est ouverte : rendu conditionnel avec &&.
  *  POURQUOI `donnees` en props : les titres et images personnalisés dans les options doivent
@@ -21,7 +22,8 @@ import { EVENEMENTS } from "../moteur/evenements";
 import { LISTE_ROLES, ROLES } from "../moteur/roles";
 import type { Evenement } from "../moteur/types";
 import { CAS_PARTICULIERS, type CasParticulier } from "./casParticuliers";
-import { FicheCarte, PastilleCarte } from "./FicheCarte";
+import { BlocConseil, FicheCarte, PastilleCarte } from "./FicheCarte";
+import { FINS_DU_JEU } from "./finsDuJeu";
 import { groupeDe, LIBELLES_CAMPS, LIBELLES_GROUPES, ORDRE_GROUPES, TAGS } from "./libelles";
 import { Modale } from "./Modale";
 import type { Donnees } from "./stockage";
@@ -61,6 +63,12 @@ export function Explications({ donnees }: { donnees: Donnees }) {
       <section>
         <h2>Règles</h2>
         <Regles />
+      </section>
+
+      <section>
+        <h2>Fin du jeu</h2>
+        <p className="aide">Chaque façon de gagner la partie, et comment s'y prendre.</p>
+        <FinsDuJeu imageDe={imageDe} />
       </section>
 
       <section>
@@ -177,11 +185,10 @@ function Regles() {
         connaît toutes les cartes et guide la partie.
       </p>
       <h3>Les camps</h3>
-      <ul>
-        <li><strong>Le village</strong> gagne quand il n'y a plus aucun loup vivant.</li>
-        <li><strong>Les loups</strong> gagnent dès qu'ils sont au moins aussi nombreux que les autres joueurs vivants.</li>
-        <li><strong>Les autres</strong> (Fou, Skinwalker, Aberration, amoureux) ont leurs propres conditions, décrites sur leur carte et dans les cas particuliers.</li>
-      </ul>
+      <p>
+        Le village et les loups s'affrontent, mais d'autres peuvent leur voler la victoire : le Fou, le Skinwalker,
+        l'Aberration, les amoureux. Chaque façon de gagner est détaillée juste en dessous, dans la partie <em>Fin du jeu</em>.
+      </p>
       <h3>La nuit</h3>
       <p>
         Mama Killa, la Lune, se lève et tout le monde ferme les yeux. L'oracle appelle les cartes une par une, dans l'ordre de leur priorité :
@@ -206,23 +213,7 @@ function Regles() {
         Les pouvoirs laissent des marques sur les joueurs (mordu, protégé, amoureux, maudit…), visibles de l'oracle sur la table.
         C'est leur combinaison qui crée les cas particuliers expliqués plus bas.
       </p>
-      <h3>Les amoureux</h3>
-      <p>
-        Tous les joueurs amoureux forment un camp à part, quels que soient leur carte et la personne qu'ils aiment
-        (liés par Cupidon, par le Loup amoureux ou par le Loup succube). Ce camp gagne dès que les amoureux vivants sont
-        <strong> strictement plus nombreux</strong> que les autres vivants.
-      </p>
-      <p>
-        Pour s'organiser, les amoureux se retrouvent chaque nuit en secret pendant 60 secondes : ils se reconnaissent
-        et complotent. Seul le Loup succube n'y est pas convié.
-      </p>
-      <ul>
-        <li><strong>Amoureux du même camp</strong> (tous loups, ou tous villageois) : rien ne change vraiment, ils gagnent avec leur camp.</li>
-        <li>
-          <strong>Amoureux de camps différents</strong> : leurs camps d'origine ne les feront jamais gagner ensemble.
-          Leur seul espoir est d'unir leurs forces jusqu'à être en surnombre.
-        </li>
-      </ul>
+      {/* Les amoureux sont expliqués dans la partie « Fin du jeu » (finsDuJeu.ts). */}
       <h3>Les cartes hybrides</h3>
       <p>{TEXTE_HYBRIDES}</p>
       <p>
@@ -234,6 +225,40 @@ function Regles() {
         La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte. À la mort de l'un d'eux, le village
         apprend seulement qu'un villageois est mort : seuls le joueur et l'oracle savent lequel des quatre rôles c'était.
       </p>
+    </div>
+  );
+}
+
+/* =====================================================================================
+ *  Fin du jeu : comment chacun gagne
+ * ===================================================================================== */
+
+/**
+ * Une carte par façon de gagner : image, titre, badge du camp, conditions de victoire, conseils.
+ * @param imageDe l'image d'une carte, telle que choisie dans les options
+ * FLUX des conseils : écrits dans la fin (fin.conseils), ou repris de la carte (fin.conseilDeLaCarte,
+ * lu dans ROLES). « ?? [] » : une carte sans conseil donne une liste vide, et l'encadré n'apparaît pas.
+ */
+function FinsDuJeu({ imageDe }: { imageDe: (alias: string) => string }) {
+  return (
+    <div className="grille-fins">
+      {FINS_DU_JEU.map(fin => {
+        const conseils = fin.conseilDeLaCarte ? ROLES[fin.conseilDeLaCarte].conseil ?? [] : fin.conseils ?? [];
+        const image = fin.carte ? imageDe(fin.carte) : fin.image;
+        // « amoureux » n'est pas un Camp du moteur : son libellé est écrit ici.
+        const libelleDuCamp = fin.camp === "amoureux" ? "Amoureux" : LIBELLES_CAMPS[fin.camp];
+        return (
+          <article key={fin.titre} className="fin-du-jeu">
+            <div className="fin-du-jeu-entete">
+              <Visuel src={image} nom={fin.titre} taille={48} />
+              <h3>{fin.titre}</h3>
+              <span className={`badge camp-${fin.camp}`}>{libelleDuCamp}</span>
+            </div>
+            {fin.victoire.map((ligne, index) => <p key={index}>{ligne}</p>)}
+            {conseils.length > 0 && <BlocConseil lignes={conseils} />}
+          </article>
+        );
+      })}
     </div>
   );
 }

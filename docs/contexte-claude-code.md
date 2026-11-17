@@ -122,7 +122,7 @@ La victoire est vérifiée après le rapport de l'aube (`suiteDeLAube()`) et au 
   2. applique le tableau ordonné `CONSEQUENCES` ;
   3. appelle le crochet `aube()` de chaque rôle vivant ;
   4. fait expirer les tags (`aube` est retiré, `aube_suivante` devient `aube`).
-  - **L'ordre des lignes de `CONSEQUENCES` est une règle du jeu** : `mordu`, `agonisant`, `catatonique`, `empoisonne`, `protege`, puis la peste **écrite à l'envers** (`peste_mortelle`, `peste_imminente`, `peste_active`, `peste`), pour qu'un tag posé par une ligne ne soit pas repris par les suivantes dans la même aube.
+  - **L'ordre des lignes de `CONSEQUENCES` est une règle du jeu** : `mordu`, `agonisant`, `catatonique`, `empoisonne`, `protege`, puis la peste **écrite à l'envers** (`peste_mortelle`, `peste`), pour qu'un tag posé par une ligne ne soit pas repris par les suivantes dans la même aube.
 - **`victoire.ts`**, dans l'ordre :
   1. plus aucun vivant ;
   - **Aberration vivante** : aucun autre camp ne gagne ; elle gagne quand tous les autres vivants sont horrifiés (ou si elle est seule) ;
@@ -195,7 +195,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 - **`lie`** (Arlequin) : un joueur lié qui joue **seul** sa carte ne peut viser que lui-même et son partenaire. Pour une carte de groupe (les loups), l'oracle applique la règle de tête.
 
 ### Tags existants
-`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_active` → `peste_imminente` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie), `horrifie` (Aberration, permanent tant qu'elle vit), `catatonique` (bloquant, devient `mort` à l'aube, cause `horreur`), `possede` (Loup-démon), `ignifuge` (Loup salamandre : bloque une mort par vote, après l'or, jusqu'à l'aube suivante).
+`mordu`, `sauve`, `agonisant`, `empoisonne`, `protege`, `protege_hier`, `amoureux`, `vie_perdue`, `mort`, `devient`, `peste` → `peste_mortelle`, `maire`, `enchante`, `lie`, `or`, `blesse`, `renforce`, `invulnerable`, `silence`, `dirige`, `maudit`, `delivre`, `apaisee`, `fete`, `benediction`, `recharge`, `sauf_conduit` (non éliminable au vote du jour : `voter()` refuse, siège non cliquable), `soupcon` (rappel au vote), `eclaire` (la Voyante et le Loup voyante ne voient que ce joueur cette nuit), `impuissant` (plus de pouvoir jusqu'à la fin de la partie), `horrifie` (Aberration, permanent tant qu'elle vit), `catatonique` (bloquant, devient `mort` à l'aube, cause `horreur`), `possede` (Loup-démon), `ignifuge` (Loup salamandre : bloque une mort par vote, après l'or, jusqu'à l'aube suivante).
 
 **Causes de mort** : `mordu`, `poison`, `chagrin`, `chasseur`, `vote`, `peste`, `isole`.
 
@@ -215,7 +215,7 @@ Champ **`rejoint: ["loup"]`** : le rôle se réveille et vote avec les loups (Lo
 5. Nouveau type de cible : `TypeCible`, `ciblesDuType()`, `nbCibles()`.
 6. Nouveau camp ou condition de victoire : `types.ts` (`Camp`), `victoire.ts`, `LIBELLES_CAMPS` et `LIBELLES_GROUPES` dans `src/ui/libelles.ts`, plus une couleur `.camp-<camp>` dans `styles.css`. Nouvelle cause de mort : `CAUSES` dans `PartieVue.tsx`.
 7. Écrire un test dans `scenario.test.ts`.
-8. Remplir `explication` (une ligne par paragraphe) : c'est la fiche de la page Explications. `src/ui/explications.test.ts` vérifie que chaque carte et chaque événement en a une. Un cas particulier qui la concerne s'ajoute dans `src/ui/casParticuliers.ts` (4 cas au plus par carte, vérifié par le même test).
+8. Remplir `explication` et `conseil` (une ligne par paragraphe) : c'est la fiche de la page Explications. `src/ui/explications.test.ts` vérifie que chaque carte et chaque événement a une explication, et que chaque carte (sauf Loup-Garou et Villageois) a un conseil. Si la carte change une condition de victoire, mettre à jour la partie « Fin du jeu » (`src/ui/finsDuJeu.ts`). Un cas particulier qui la concerne s'ajoute dans `src/ui/casParticuliers.ts` (4 cas au plus par carte, vérifié par le même test).
 
 ### Ordre d'appel la nuit (`priorite`)
 Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombre simple (ex. 125), jamais de décimales. Sans priorité, une carte joue en fin de nuit (999).
@@ -270,7 +270,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup savant | loups | Nuit 1 : découvre 3 cartes activées non distribuées. Vote avec les loups. |
 | Loup hypnotiseur | loups | Vote avec les loups. Deux médaillons à usage unique (`memoire`), un par nuit au plus : silence (tag `silence`) ou suggestion (tag `dirige`), qui durent jusqu'à l'aube suivante. Au vote seulement, `partie.rappelsDuVote()` rappelle à l'oracle de ne pas compter le vote du silencé et de faire voter le dirigé comme l'hypnotiseur (sauf s'il est mort). Sur une cible protégée par le Salvateur : rien, médaillon perdu, sans annonce. |
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
-| Rat | village (hybride) | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 4e aube, soit 3 nuits plus tard) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou (tag `devient`). Éliminé par le vote, il contamine le maire. |
+| Rat | village (hybride) | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 2e aube) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou (tag `devient`). Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups (hybride) | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |
 | Skinwalker | skinwalker | Nuit 3+ (126) : donne `mort` (cause `skinwalker`, carte non révélée au rapport) et se donne `imite` avec la carte de la victime (`init()` neuf). `porteursDe()` et `commencerNuit()` l'appellent au tour de cette carte ; Voyante et Loup voyante la voient (`partie.carteImitee()`). Victime protégée par le Salvateur : échec, et pas de meurtre la nuit suivante. Pouvoirs passifs de la carte volée non joués. Vole la victoire du village s'il est vivant. |
 | Fou | fou | Se réveille et vote avec les loups, mais son vote ne compte pas. Ne compte pas comme loup. Si les loups devraient gagner alors qu'il est vivant, il gagne seul. |
@@ -305,7 +305,7 @@ Tirés après l'élection du maire. L'oracle peut demander « Un autre » ou « 
 | Rien | Inti rayonne (`soleil`, aussi forcé par « Passer »). La Rumeur (camp d'un joueur au hasard) a été retirée : trop puissante. |
 | Animation (aucun champ de jeu) | Colère de Supay (`baillon`), Éclipse (`tenebres`), Inti Raymi (`carnaval`), Bâton de Viracocha (`baton-de-parole`), Voix d'outre-tombe (`murmures`), Masque de jade (`bouche-cousue`) |
 | Minuteur | Course d'Inti (`sablier` : 8 min, temps restant reporté au lendemain, suite imposée), Grondement d'Illapa (`urgence` : 2 min), Paix de Pachamama (`treve` : pas de minuteur) |
-| Le maire désigne | Asile du temple (`sauf-conduit`, tag `sauf_conduit`), Vol du condor (`soupcon`), Bénédiction de Pachamama (`benediction`), Passation (tag `maire`), Souffle de Supay (`contagion`, tag `peste_active` : mort à la 3e aube), Lumière de Mama Killa (`clair-de-lune`, tag `eclaire`) |
+| Le maire désigne | Asile du temple (`sauf-conduit`, tag `sauf_conduit`), Vol du condor (`soupcon`), Bénédiction de Pachamama (`benediction`), Passation (tag `maire`), Souffle de Supay (`contagion`, tag `peste` : mort à la 2e aube), Lumière de Mama Killa (`clair-de-lune`, tag `eclaire`) |
 | Sans choix | Caravane de lamas (`marche-noir` : `recharge` à tous les vivants) |
 | Selon le résultat du vote | Jugement d'Inti (`ultimatum` : pas de loup éliminé, ou personne, le maire meurt), Chasse du puma (`coup-double` : un loup éliminé, un second vote, une seule fois) |
 

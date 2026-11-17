@@ -30,6 +30,10 @@ const ratGarou: Role = {
     "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
     "Carte hybride : à sa mort, l'oracle annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
   ],
+  conseil: [
+    "Vous avez choisi la meute : vous connaissez les loups, mais vous ne votez pas avec eux. Aidez-les le jour, en détournant les votes de vos nouveaux alliés.",
+    "Gardez la meute en vie : si vous devenez le dernier loup, vous mourez à l'aube. Et si le village vous élimine, vous contaminez le maire : même le bûcher peut servir."
+  ],
   rejoint: ["loup"],
 
   reagir(tag, meta, partie, moi) {

@@ -30,6 +30,11 @@ const loupVoyante: Role = {
     "Lumière de Mama Killa : il ne peut voir que le joueur éclairé. Face à un Skinwalker déguisé, il voit la carte volée.",
     "Comme la Voyante, s'il regarde la carte de l'Aberration, il devient catatonique et meurt à l'aube."
   ],
+  conseil: [
+    "Voir les rôles quand on est loup n'est pas si utile… sauf que vous pouvez vous faire passer pour la Voyante, et peut-être faire tuer la vraie.",
+    "Et ce n'est pas tout : certains loups craignent certains rôles. Le Loup vampire, par exemple, redoute le Conquistador : s'il survit à sa balle, le Conquistador saura sur qui il a tiré. Selon les rôles de vos alliés, cherchez ces cartes-là, et faites remonter l'information pour savoir qui tuer et qui épargner.",
+    "Vous êtes d'une aide précieuse pour la meute. Et si vous pouvez dénicher le Fou au passage…"
+  ],
   priorite: 107,
   appelNuit: true,
   rejoint: ["loup"],

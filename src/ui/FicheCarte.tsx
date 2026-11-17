@@ -16,6 +16,20 @@ import { LIBELLES_CAMPS, libelleTours } from "./libelles";
 import { Modale } from "./Modale";
 import { Visuel } from "./Visuel";
 
+/**
+ * Un encadré « Conseil » : des paragraphes de conseils de jeu.
+ * RÉUTILISABLE : la fiche d'une carte (Role.conseil) et la partie « Fin du jeu » des Explications.
+ */
+export function BlocConseil({ lignes }: { lignes: string[] }) {
+  return (
+    <div className="conseil">
+      <p className="conseil-titre">💡 Conseil</p>
+      {/* key={index} : la liste est fixe (texte du code), elle ne change jamais d'ordre. */}
+      {lignes.map((ligne, index) => <p key={index}>{ligne}</p>)}
+    </div>
+  );
+}
+
 /** Une carte en petit : image ronde, nom et camp. Cliquable. */
 export function PastilleCarte({ role, titre, image, ouvrir }: {
   role: Role;
@@ -72,6 +86,7 @@ export function FicheCarte({ role, titre, image, fermer, joueur }: {
       <p className="fiche-resume">{role.description}</p>
       {/* key={index} : la liste est fixe (texte du code), elle ne change jamais d'ordre. */}
       {role.explication?.map((ligne, index) => <p key={index}>{ligne}</p>)}
+      {role.conseil && <BlocConseil lignes={role.conseil} />}
     </Modale>
   );
 }

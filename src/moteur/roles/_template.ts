@@ -147,6 +147,10 @@ const template: Role = {
 
   /** Texte affiché sur la carte dans la page Options. */
   description: "Décrire ici la règle du rôle en une ou deux phrases.",
+  // La fiche de la page Explications : la règle en détail, puis comment bien jouer la carte.
+  // Une ligne par paragraphe. explications.test.ts vérifie que les deux sont remplis.
+  explication: ["Expliquer ici la règle en détail."],
+  conseil: ["Donner ici un conseil pour bien jouer la carte."],
 
   /* ===================================================================================
    *  APPEL LA NUIT

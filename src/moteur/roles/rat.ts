@@ -9,7 +9,7 @@ import type { Joueur, Role } from "../types";
  *   1. Les loups le mordent → reagir("mordu") ouvre une décision URGENTE (comme le Chasseur),
  *      jouée avant la Sorcière.
  *   2a. « Mordre » : il devient "agonisant" (mort certaine à l'aube, invisible pour la Sorcière)
- *       et un participant au vote des loups, tiré au hasard, attrape la "peste" (mort 3 nuits plus tard).
+ *       et un participant au vote des loups, tiré au hasard, attrape la "peste" (mort à la 2e aube).
  *   2b. « Se transformer » : "sauve" annule la morsure, puis "devient" change sa carte en rat-garou.
  *   3. S'il est éliminé par le vote, le maire attrape la peste.
  *
@@ -22,15 +22,19 @@ const rat: Role = {
   image: "🐀",
   camp: "village",
   hybride: true,
-  description: "Un rat des greniers à maïs. Dévoré par les loups, il mord un loup qui mourra de la peste 3 nuits plus tard, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
+  description: "Un rat des greniers à maïs. Dévoré par les loups, il mord un loup qui mourra de la peste à la 2e aube, ou rejoint la meute. Éliminé par le village, il contamine le maire.",
   explication: [
     "Un villageois qui ne se laisse pas dévorer sans réagir.",
     "Mordu par les loups, il choisit en silence, juste après leur tour : mordre un loup, ou rejoindre la meute.",
-    "Mordre : il meurt à l'aube, sans que la Sorcière puisse le sauver, et un des loups attrape la peste : il mourra 3 nuits plus tard.",
+    "Mordre : il meurt à l'aube, sans que la Sorcière puisse le sauver, et un des loups attrape la peste : il mourra à la 2e aube, soit le surlendemain de la morsure.",
     "Rejoindre la meute : la morsure est annulée, et il devient Rat-garou.",
     "Éliminé par le vote du village, il contamine le maire, qui attrape la peste.",
     "Personne ne sait ce qu'il a choisi : les loups le devineront en voyant s'il est encore en vie.",
     "Carte hybride : à sa mort, l'oracle annonce « Rat », sans jamais révéler le camp que le joueur avait choisi."
+  ],
+  conseil: [
+    "Le Rat, c'est le rôle du lâche. Et le lâche ne rejoint pas un camp par loyauté, mais par intérêt.",
+    "Si les loups semblent sur le point de gagner, rejoignez la meute dès qu'ils vous mordent. Si c'est plutôt le village, mordez : mourez pour la cause, et emportez un loup avec vous."
   ],
 
   reagir(tag, meta, partie, moi) {

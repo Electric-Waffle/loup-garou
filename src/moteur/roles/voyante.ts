@@ -21,6 +21,10 @@ const voyante: Role = {
     "Face à un Skinwalker déguisé, elle voit la carte qu'il a volée, pas la sienne.",
     "Si elle regarde la carte de l'Aberration, elle devient catatonique : elle ne fait plus rien et meurt à l'aube."
   ],
+  conseil: [
+    "Si le Loup savant est en jeu, sonder une carte hors jeu vaut le coup : le jour où quelqu'un prétend l'avoir, vous le prenez en plein mensonge.",
+    "Mais ne passez pas trois nuits d'affilée sur ces cartes : privilégiez les joueurs suspects, et le maire."
+  ],
   priorite: 80,
   appelNuit: true,
 

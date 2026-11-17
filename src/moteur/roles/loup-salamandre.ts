@@ -34,6 +34,12 @@ const loupSalamandre: Role = {
     "Le doute est total : est-il protégé parce qu'il est loup, ou pour le faire croire ?",
     "Un joueur qui a de l'or le dépense d'abord : la salamandre n'agit qu'au vote final. Ce jour-là compte comme « personne n'est éliminé » (le Jugement d'Inti tue alors le maire)."
   ],
+  conseil: [
+    "Vous avez LE rôle qui peut retourner l'esprit de toute la table. Ne protégez pas que des loups : le village comprendrait que tous les protégés sont des loups, et trouverait un autre moyen de s'en débarrasser.",
+    "Ne protégez pas que des villageois non plus, sinon vous aurez du mal à les éliminer.",
+    "Protégez selon le cours de la discussion, et orientez-la. Par exemple, protégez un villageois, faites peser les soupçons sur lui pour qu'il finisse au bûcher, et quand il en ressort indemne, accusez-le d'être un loup. Ou faites la même chose avec un loup.",
+    "Les possibilités sont infinies. Pour être maître des votes, devenez maire, et menez tout le monde en bateau."
+  ],
   priorite: 108,
   appelNuit: true,
   rejoint: ["loup"],

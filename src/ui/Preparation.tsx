@@ -24,9 +24,14 @@
 import { useState } from "react";
 import { distribuer } from "../moteur/distribution";
 import { ROLES } from "../moteur/roles";
+import { LIBELLES_CAMPS } from "./libelles";
+import { Modale } from "./Modale";
 import { cartesActives, type Donnees } from "./stockage";
 import { Table, type Siege } from "./Table";
 import { Visuel } from "./Visuel";
+
+/** Les cartes qu'une partie peut contenir plusieurs fois : elles restent proposées dans le menu d'un joueur. */
+const CARTES_EN_PLUSIEURS_EXEMPLAIRES = ["loup", "villageois"];
 
 /**
  * @param donnees  tous les réglages actuels
@@ -46,6 +51,8 @@ export function Preparation({
   const [selection, setSelection] = useState<string | null>(null);
   // Message d'erreur de la distribution, ou null.
   const [erreur, setErreur] = useState<string | null>(null);
+  // Le joueur dont on choisit la carte à la main (menu ouvert par clic droit ou appui long), ou null.
+  const [idDuMenu, setIdDuMenu] = useState<string | null>(null);
 
   /* -----------------------------------------------------------------------------------
    *  Valeurs dérivées : recalculées à chaque rendu à partir de `donnees`.
@@ -158,6 +165,34 @@ export function Preparation({
     setSelection(null);
   }
 
+  /**
+   * Les cartes qu'on peut donner à la main : les cartes ACTIVÉES que personne n'a reçues.
+   * Exception : le Loup-Garou et le Villageois, qui existent en plusieurs exemplaires dans une partie
+   * (composer() complète avec eux) : ils restent proposés tant qu'ils sont activés.
+   *
+   *   distribuees  → Set des alias que les joueurs assis ont déjà : { "voyante", "loup", ... }
+   *   actifs.filter → les cartes actives absentes de ce Set, ou qui peuvent être en double
+   * CONCEPT : un Set se parcourt avec has() en un seul coup, sans reparcourir la liste à chaque carte.
+   */
+  const distribuees = new Set(table.map(idJoueur => donnees.distribution[idJoueur]).filter(Boolean));
+  const cartesLibres = actifs.filter(alias => !distribuees.has(alias) || CARTES_EN_PLUSIEURS_EXEMPLAIRES.includes(alias));
+
+  // Le joueur dont le menu est ouvert, et sa carte actuelle.
+  const joueurDuMenu = idDuMenu ? joueursParId.get(idDuMenu) : undefined;
+  const carteActuelle = idDuMenu ? donnees.distribution[idDuMenu] : undefined;
+
+  /**
+   * Donne la carte choisie au joueur du menu. Son ancienne carte retourne au tas : elle redevient
+   * « activée et non distribuée », donc proposée à son tour au prochain menu.
+   * POURQUOI ne pas toucher aux autres joueurs : c'est un choix volontaire de l'oracle ; les
+   * proportions (nombre de loups…) ne sont plus garanties, c'est à lui de les tenir.
+   */
+  function donnerLaCarte(alias: string) {
+    if (!idDuMenu) return;
+    modifier({ ...donnees, distribution: { ...donnees.distribution, [idDuMenu]: alias } });
+    setIdDuMenu(null);
+  }
+
   /** Bouton "Distribuer les cartes" / "Redistribuer". */
   function lancerDistribution() {
     // POURQUOI un try/catch : le moteur lève une Error si la distribution est impossible
@@ -216,6 +251,11 @@ export function Preparation({
       id: idJoueur,
       classe: estSelectionne ? "siege-selection" : "",
       onClick: () => cliquerSiege(idJoueur),
+      // Clic droit ou appui de 2 secondes : choisir sa carte parmi celles qui restent.
+      onMenu: () => {
+        setSelection(null); // un siège en attente d'échange ne doit pas le rester derrière le menu
+        setIdDuMenu(idJoueur);
+      },
       // CONCEPT : <>...</> est un "fragment" : il regroupe plusieurs éléments sans ajouter
       // de balise autour (un composant ou une prop ne peut contenir qu'UN élément racine).
       contenu: (
@@ -252,7 +292,10 @@ export function Preparation({
             </li>
           ))}
         </ul>
-        <p className="aide">Clique sur deux sièges pour échanger leur place.</p>
+        <p className="aide">
+          Touche deux sièges pour échanger leur place. Clic droit sur un joueur (ou appui de 2 secondes
+          au téléphone) : choisir sa carte parmi celles qui ne sont pas distribuées.
+        </p>
 
         <div className="actions-colonne">
           {/* Le moteur exige au moins 3 joueurs : le bouton est désactivé en dessous. */}
@@ -324,6 +367,29 @@ export function Preparation({
         centre={<span className="table-titre">{table.length} joueurs</span>}
         sieges={sieges}
       />
+
+      {joueurDuMenu && (
+        <Modale fermer={() => setIdDuMenu(null)}>
+          <h2>Carte de {joueurDuMenu.nom}</h2>
+          <p className="aide">
+            {carteActuelle ? `Carte actuelle : ${titre(carteActuelle)}. ` : "Pas encore de carte. "}
+            Cartes activées et pas encore distribuées :
+          </p>
+          {cartesLibres.length === 0 ? (
+            <p>Aucune carte disponible : toutes les cartes activées sont déjà distribuées.</p>
+          ) : (
+            <div className="grille-pastilles">
+              {cartesLibres.map(alias => (
+                <button key={alias} className="pastille" onClick={() => donnerLaCarte(alias)}>
+                  <Visuel src={image(alias)} nom={titre(alias)} taille={56} />
+                  <span className="pastille-nom">{titre(alias)}</span>
+                  <span className={`badge camp-${ROLES[alias].camp}`}>{LIBELLES_CAMPS[ROLES[alias].camp]}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </Modale>
+      )}
     </div>
   );
 }

@@ -23,6 +23,11 @@ const fou: Role = {
     "Il n'est pas un loup : il ne compte pas dans le nombre de loups.",
     "Si les loups devraient gagner alors qu'il est vivant, c'est lui qui gagne, seul : les loups perdent."
   ],
+  conseil: [
+    "Vous gagnez quand les loups devraient gagner : intégrez-vous à la meute, et gardez les loups en vie.",
+    "Votre priorité : identifier la Voyante, et pousser la meute à la dévorer le plus vite possible.",
+    "Mais ne vous trahissez pas : si les loups comprennent que vous êtes le Fou, ils vous élimineront avant de prendre la majorité."
+  ],
   rejoint: ["loup"]
 };
 

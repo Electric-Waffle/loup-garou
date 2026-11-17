@@ -22,6 +22,11 @@ const batisseur: Role = {
     "Si sa victoire et celle des loups arrivent en même temps, c'est la sienne qui l'emporte.",
     "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
   ],
+  conseil: [
+    "Renforcez d'abord les maisons de ceux qui ont le plus de chances de survivre longtemps (la vôtre compte aussi) : une maison renforcée dont l'habitant meurt est une nuit gâchée.",
+    "Ne vous faites pas reconnaître : un Bâtisseur démasqué est vite dévoré, et sans lui, le chantier s'arrête.",
+    "Cherchez les loups pour ne pas renforcer leur maison : elle ne compte pas, et ce serait encore une nuit gâchée."
+  ],
   priorite: 90,
   appelNuit: true,
 

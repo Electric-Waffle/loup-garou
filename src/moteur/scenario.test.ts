@@ -191,18 +191,29 @@ test("Rat : il rejoint la meute et survit à la morsure", () => {
   assert.deepEqual(p.porteursDe("loup").map(j => j.id), ["bob", "david"]);
 });
 
-test("Peste : la victime meurt à la 4e aube, pas avant", () => {
+test("Peste : la victime meurt à la 2e aube, pas avant", () => {
   const p = new Partie(tableAvecRat());
   const bob = p.joueur("bob");
   donnerTag(p, bob, "peste", { source: "rat" });
 
-  for (let i = 1; i <= 3; i++) {
-    aube(p);
-    assert.equal(bob.vivant, true, `vivant après l'aube ${i}`);
-  }
+  aube(p);
+  assert.equal(bob.vivant, true, "vivant après l'aube 1");
   aube(p);
   assert.equal(bob.vivant, false);
   assert.ok(p.journal.some(e => e.type === "recu" && e.tag === "mort" && e.joueur === "bob" && e.cause === "peste"));
+});
+
+test("Peste : même délai quelle que soit la source (Rat la nuit, événement le jour)", () => {
+  // Une seule règle : « peste » à la réception, mort à la 2e aube. Aucun tag d'entrée différent selon la source.
+  for (const source of ["rat", "evenement:contagion"]) {
+    const p = new Partie(tableAvecRat());
+    const bob = p.joueur("bob");
+    donnerTag(p, bob, "peste", { source });
+    aube(p);
+    assert.equal(bob.vivant, true, `${source} : vivant après l'aube 1`);
+    aube(p);
+    assert.equal(bob.vivant, false, `${source} : mort à l'aube 2`);
+  }
 });
 
 test("Rat-garou : il meurt à l'aube s'il est le dernier de la meute", () => {
@@ -479,8 +490,8 @@ test("Loup vampire : empoisonné ou pestiféré, il survit à l'aube sans boucle
   donnerTag(p, vampire, "empoisonne", { source: "sorciere" });
   donnerTag(p, vampire, "peste", { source: "rat" });
 
-  // 4 aubes : le poison est bloqué à la 1re, la peste à la 4e.
-  for (let i = 1; i <= 4; i++) aube(p);
+  // 2 aubes : le poison est bloqué à la 1re, la peste à la 2e.
+  for (let i = 1; i <= 2; i++) aube(p);
 
   assert.equal(vampire.vivant, true);
   assert.ok(!p.aTag(vampire, "empoisonne") && !p.aTag(vampire, "peste_mortelle"));
@@ -1208,9 +1219,8 @@ test("Passation : un seul maire", () => {
   assert.deepEqual(p.joueursAvecTag("maire").map(j => j.id), ["j3"]);
 });
 
-test("Contagion : la personne désignée meurt à la 3e aube", () => {
+test("Contagion : la personne désignée meurt à la 2e aube", () => {
   const p = jourAvecEvenement(SIMPLE, "contagion", "j2");
-  aube(p);
   aube(p);
   assert.equal(p.joueur("j2").vivant, true);
   aube(p);
@@ -1498,6 +1508,25 @@ test("Loup-démon : brûlé au vote, il possède un villageois qui devient Loup-
   assert.equal(p.joueur("j2").role, "loup");
   assert.ok(p.porteursDe("loup").some(j => j.id === "j2"));
   assert.ok(p.infos.some(i => i.pour === "j2" && i.texte.includes("possédé")));
+});
+
+test("Loup-démon : dernier loup brûlé par le village, la possession empêche la victoire du village", () => {
+  const p = partieAvec(["loup-demon", "villageois", "voyante", "chasseur"], { aleatoire: () => 0 });
+  p.voter("j0");
+  // Un villageois est devenu Loup-Garou AVANT la vérification de victoire (nuitSuivante).
+  assert.equal(p.joueur("j1").role, "loup");
+  assert.equal(verifierVictoire(p), undefined);
+  p.nuitSuivante();
+  assert.equal(p.vainqueur, undefined);
+  assert.equal(p.phase, "nuit");
+});
+
+test("Loup-démon : dernier loup, mais plus aucun villageois à posséder, le village gagne", () => {
+  // Le Fou n'est pas du camp du village : il ne peut pas être possédé.
+  const p = partieAvec(["loup-demon", "fou"], { aleatoire: () => 0 });
+  p.voter("j0");
+  assert.deepEqual(p.joueurs.filter(j => p.aTag(j, "possede")), []);
+  assert.equal(verifierVictoire(p), "Le village");
 });
 
 test("Loup-démon : tué autrement que par le vote, personne n'est possédé", () => {

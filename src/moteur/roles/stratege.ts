@@ -27,6 +27,11 @@ const stratege: Role = {
     "À partir de la nuit 2 (rang 85), le Stratège se réveille et l'oracle lui donne la réponse.",
     "Privé de pouvoir au moment du vote, il n'apprend rien."
   ],
+  conseil: [
+    "Votre but : diviser les votes, semer des suspects un peu partout, puis rejoindre l'un des groupes pour déduire qui est loup et qui ne l'est pas.",
+    "Si tout le monde, vous compris, vote pour la même personne, des loups auront forcément voté comme vous : vous n'apprenez rien. Mais si le doute pèse sur trois joueurs et que vous votez avec un groupe de quatre, la réponse de l'oracle (un loup avec vous, ou aucun) devient précieuse.",
+    "Attention toutefois à ne pas semer trop de désordre : cela pourrait vous rendre suspect."
+  ],
   // POURQUOI 85 : son information ne dépend d'aucune carte de la nuit. Après la Voyante (80).
   priorite: 85,
   appelNuit: true,

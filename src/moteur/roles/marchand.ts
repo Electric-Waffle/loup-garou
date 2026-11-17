@@ -28,6 +28,11 @@ const marchand: Role = {
     "L'or appartient à celui qui le porte : un loup qui en hérite peut racheter son propre vote.",
     "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
   ],
+  conseil: [
+    "Votre plus grande richesse, c'est votre or. Pas parce qu'il vous garde en vie un peu plus longtemps, mais parce qu'il vous offre un pouvoir redoutable : parler pendant tout un débat, sans que personne ne puisse vous couper.",
+    "Jouez l'espion : restez dans l'ombre, observez tout le monde, déduisez. Puis, vers le troisième tour, laissez-vous désigner au vote et déballez toutes vos déductions : elles peuvent retourner l'esprit de toute la table, et vous faire gagner la partie.",
+    "Et surtout, cachez votre or : si un loup vous tue, il passe à votre tueur, et cette tribune tomberait entre de mauvaises mains."
+  ],
 
   debut: (_partie, moi) => ({
     donner: [{ tag: "or", a: moi.id }]

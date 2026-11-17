@@ -51,6 +51,11 @@ const ancien: Role = {
     "Les cartes hybrides le perdent aussi, quel que soit le camp choisi : le Rat ne peut plus mordre, rejoindre la meute ni répandre la peste, le Prêtre (pur ou impur, même mort) ne peut plus chuchoter au maire, le Beau ou le Faux Parleur perd sa relance et sa seconde vie. Sinon, une carte hybride qui agirait encore trahirait qu'elle est passée du côté des loups.",
     "Les loups, le Fou, l'Aberration et le Skinwalker gardent leurs pouvoirs : ils ne sont pas villageois."
   ],
+  conseil: [
+    "Soyez invisible aux yeux du village, et une proie alléchante aux yeux des loups. Votre seconde vie est un bouclier : elle achète un tour de plus au village.",
+    "Le pire qui puisse vous arriver, c'est que le village vous élimine : tous les villageois perdraient leur pouvoir.",
+    "Méfiez-vous du Loup voyante : c'est votre pire ennemi. S'il découvre votre carte, la meute saura qu'il vaut mieux vous laisser au bûcher du village."
+  ],
 
   recevoir(tag, meta, r, partie, moi) {
     if (tag === "mort" && meta.cause === "mordu" && !partie.aTag(moi, "vie_perdue")) {

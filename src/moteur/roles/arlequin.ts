@@ -24,6 +24,12 @@ const arlequin: Role = {
     "Pour une carte de groupe comme les loups, l'oracle applique la règle de tête.",
     "Le lien disparaît à la fin de l'aube : un Chasseur tué cette nuit-là tire librement."
   ],
+  conseil: [
+    "Votre rôle est complexe : il faut deviner les cartes de chacun pour lier les bonnes personnes, et tourner les nuits à votre avantage.",
+    "Vous voulez sauver le maire et vous savez qui est le Salvateur ? Liez-les : le Salvateur ne pourra protéger que lui-même ou le maire.",
+    "Vous connaissez deux loups ? Liez-les : ils ne pourront viser qu'eux-mêmes ou l'autre, et l'un des deux risque d'y passer (pour la meute, c'est l'oracle qui applique la règle).",
+    "Vous ne connaissez personne ? Liez deux joueurs et écoutez ce qui se dit à l'aube : si certains rôles ont fait des choix surprenants, c'est peut-être parce que vous leur avez mis des bâtons dans les roues."
+  ],
   priorite: 20,
   appelNuit: true,
   // FLUX : peutAgir() teste (tour - 1) % 2 === 0, soit les nuits 1, 3, 5…

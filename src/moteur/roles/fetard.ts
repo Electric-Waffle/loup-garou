@@ -31,6 +31,11 @@ const fetard: Role = {
     "Les loups ne savent pas pourquoi leur morsure a échoué. La fête ne dure qu'une nuit.",
     "La Pleureuse, le Fêtard, le Marchand et le Bâtisseur partagent la même carte : à sa mort, le village apprend seulement qu'un villageois est mort. Seuls le joueur et l'oracle savent lequel des quatre rôles c'était."
   ],
+  conseil: [
+    "C'est un rôle bien égoïste, mais qui récompense l'observation et les bons choix. Votez au mieux, et restez en vie le plus longtemps possible : en vérité, votre survie garde le village en jeu plus longtemps.",
+    "Et si vous vous sentez à l'aise… narguez les loups. Le soir où vous faites la fête, s'ils viennent vous dévorer, ils perdent leur tour, sans savoir pourquoi : le Salvateur ? la Sorcière ?",
+    "Tant qu'ils ignorent que vous êtes le Fêtard, que vous votez juste et que vous les narguez assez pour qu'ils tentent de vous manger chaque soir, vous tenez le rôle le plus puissant du jeu."
+  ],
 
   apresVote(partie, moi, elimine) {
     if (!elimine || partie.roleDe(elimine).camp !== "loups") return;

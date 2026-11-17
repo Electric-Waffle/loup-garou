@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { EVENEMENTS } from "../moteur/evenements";
 import { LISTE_ROLES, ROLES } from "../moteur/roles";
 import { CAS_PARTICULIERS } from "./casParticuliers";
+import { FINS_DU_JEU } from "./finsDuJeu";
 import { TAGS } from "./libelles";
 
 // POURQUOI ces tests : la page Explications lit ces données sans les vérifier. Une carte ajoutée
@@ -11,6 +12,24 @@ import { TAGS } from "./libelles";
 test("Explications : chaque carte et chaque événement a une explication détaillée", () => {
   for (const role of LISTE_ROLES) assert.ok(role.explication?.length, `${role.alias} sans explication`);
   for (const evenement of Object.values(EVENEMENTS)) assert.ok(evenement.explication?.length, `${evenement.alias} sans explication`);
+});
+
+// Le Loup-Garou et le Villageois n'en ont pas : choix assumé, ce sont des cartes qu'on ne met presque jamais en jeu.
+const SANS_CONSEIL = ["loup", "villageois"];
+
+test("Conseils : chaque carte en a un, sauf le Loup-Garou et le Villageois", () => {
+  for (const role of LISTE_ROLES) {
+    if (SANS_CONSEIL.includes(role.alias)) continue;
+    assert.ok(role.conseil?.length, `${role.alias} sans conseil`);
+  }
+});
+
+test("Fin du jeu : chaque fin a des conseils, et ses cartes existent", () => {
+  for (const fin of FINS_DU_JEU) {
+    if (fin.carte) assert.ok(ROLES[fin.carte], `${fin.titre} : carte ${fin.carte} inconnue`);
+    const conseils = fin.conseilDeLaCarte ? ROLES[fin.conseilDeLaCarte]?.conseil : fin.conseils;
+    assert.ok(conseils?.length, `${fin.titre} sans conseil`);
+  }
 });
 
 test("Cas particuliers : cartes et tags connus, au plus 4 cas par carte", () => {

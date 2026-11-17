@@ -28,6 +28,10 @@ const pretreImpur: Role = {
     "Il compte comme un loup : tant qu'il vit, le village n'a pas gagné, et il rapproche la meute de la victoire.",
     "Mort, comme le Prêtre pur, il garde les yeux ouverts le jour et les ferme la nuit. Il ne vote plus, mais pendant le débat il peut chuchoter au maire… pour le tromper.",
     "Carte hybride : à sa mort, l'oracle annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
+  ],
+  conseil: [
+    "Comme le Prêtre pur, gagnez de votre vivant la confiance du village et du maire : une fois mort, vous lui chuchoterez à l'oreille… pour le tromper.",
+    "Les loups ne savent pas que vous êtes des leurs : à vous de les protéger des votes sans vous trahir. Et vous avez le droit de mentir : prétendre être pur reste le meilleur moyen d'être écouté."
   ]
 };
 

@@ -28,6 +28,10 @@ const loupDemon: Role = {
     "Le possédé garde ses liens (amoureux, or…) mais chasse désormais avec la meute. L'oracle le prévient discrètement.",
     "Tué autrement (morsure, poison, chagrin…), il meurt simplement, sans possession."
   ],
+  conseil: [
+    "Comme le Prêtre, votre rôle prend toutes ses lettres de noblesse dans la mort. Si vous sentez la défaite approcher, révélez-vous vous-même : le village sera trop content de vous brûler, et vous posséderez l'un des siens.",
+    "Mais ce coup de poker ne marche pas s'il reste des rôles capables de vous tuer autrement que par le vote : tué par le Chasseur, la Sorcière ou le Conquistador, vous ne possédez personne. Attendez qu'ils soient morts avant de tenter votre chance."
+  ],
   rejoint: ["loup"],
 
   reagir(tag, meta, partie, moi) {

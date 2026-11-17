@@ -15,6 +15,10 @@ const sorciere: Role = {
     "Une seule action par nuit : soigner, empoisonner, ou ne rien faire.",
     "L'événement Caravane de lamas lui rend ses deux potions."
   ],
+  conseil: [
+    "N'hésitez pas à sauver la victime de la première nuit : une vie sauvée tôt, c'est un villageois de plus pour tous les votes à venir.",
+    "N'attendez pas non plus une certitude absolue pour empoisonner un joueur suspect : la Caravane de lamas peut vous rendre vos potions."
+  ],
   priorite: 130,
   appelNuit: true,
 

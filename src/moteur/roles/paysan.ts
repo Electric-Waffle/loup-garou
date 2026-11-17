@@ -26,6 +26,11 @@ const paysan: Role = {
     "Dévoré par les loups, il les blesse tous : la nuit suivante, la meute ne mange personne.",
     "Le Loup barbare, qui ne chasse pas avec la meute, n'est pas blessé."
   ],
+  conseil: [
+    "Votre but : vous faire dévorer, pour que les loups, blessés, ne mangent personne la nuit suivante.",
+    "Mais les choses ne se passent pas toujours comme prévu, et c'est parfois le village qui vous élimine. Observez donc tout le monde : avant le bûcher, vous assommerez les deux joueurs qui gêneront le plus vos ennemis.",
+    "Et avant de brûler, rappelez au village de tendre l'oreille à l'aube suivante : les rôles qui n'auront pas joué cette nuit-là trahiront qui vous avez mis K.-O."
+  ],
 
   reagir(tag, meta, partie, moi) {
     if (tag !== "mort") return;

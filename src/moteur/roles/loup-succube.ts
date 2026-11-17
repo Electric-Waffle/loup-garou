@@ -35,6 +35,10 @@ const loupSuccube: Role = {
     "Le compagnon vient à la Réunion des amoureux à partir de la nuit suivante ; le Succube, jamais.",
     "Il joue après le Salvateur : un compagnon protégé fait échouer le lien, et il reste seul jusqu'à la nuit suivante."
   ],
+  conseil: [
+    "Liez-vous à un villageois important, mais pas trop. Le but : lier les mains d'une personne influente, qui tient plus à sa propre vie qu'à celle du village.",
+    "Si vous liez quelqu'un qui prend son rôle trop au sérieux, il pourrait chercher à vous faire tuer, au prix de sa propre vie. Il vous faut une personne qui pèse dans la partie, et que vous pouvez mener à la baguette. Ainsi est la voie de la succube."
+  ],
   // POURQUOI 105 : APRÈS le Salvateur (100), sinon sa protection n'existe pas encore quand le
   // Succube se lie. Prix : la Réunion des amoureux (60) est déjà passée, un nouveau compagnon
   // n'y vient qu'à partir de la nuit suivante.

@@ -33,6 +33,11 @@ const sourcier: Role = {
     "Le testé ne compte pas : « 0 » veut dire qu'il n'y a pas d'autre non-villageois que lui.",
     "Si le testé meurt avant la réponse, le Sourcier n'apprend rien : il faut bien choisir, et à l'avance."
   ],
+  conseil: [
+    "C'est un rôle de parieur. Il faut tester la bonne personne : celle qui ne mourra pas entre le test et la réponse.",
+    "Mais surtout, celle qui est placée au bon endroit, pour que la réponse désigne clairement le loup. Par exemple, si l'un des deux joueurs à la bonne distance est quelqu'un dont vous connaissez la carte, plus aucun doute sur l'autre.",
+    "Vous sentez-vous chanceux ?"
+  ],
   // POURQUOI 82 : son info ne dépend d'aucune carte de la nuit. Juste après la Voyante (80).
   priorite: 82,
   appelNuit: true,

@@ -30,6 +30,10 @@ const hurleur: Role = {
     "Au rapport de l'aube, l'oracle annonce que le Hurleur a été visé, par quelle carte et avec quelle action.",
     "Son nom n'est jamais donné : le village sait seulement que le Hurleur a été visé."
   ],
+  conseil: [
+    "Si vous poussez tout le monde à utiliser son pouvoir sur vous, vous n'apprendrez pas grand-chose, mais eux sauront tout de vous. En revanche, si vous provoquez une seule personne et qu'un seul rôle vient vous voir la nuit, vous pouvez deviner sa carte.",
+    "Votre rôle sert surtout au village tout entier : selon qui vient vous voir la nuit, chacun apprend quels rôles existent vraiment dans la partie, et pourquoi vous êtes encore en vie au matin."
+  ],
 
   estVise(partie, moi, alias, choix, acteur) {
     if (partie.phase !== "nuit") return;

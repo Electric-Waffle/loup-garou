@@ -33,6 +33,11 @@ const pretre: Role = {
     "Mort, il continue de jouer comme un vivant : il garde les yeux ouverts le jour et les ferme la nuit. Il ne vote plus, mais pendant le débat il peut chuchoter au maire, pour l'aider.",
     "Carte hybride : à sa mort, l'oracle annonce « Prêtre », sans jamais révéler le camp que le joueur avait choisi."
   ],
+  conseil: [
+    "Vous pourriez croire que votre rôle ne commence qu'à votre mort. Mais aucun maire n'écoutera quelqu'un qui n'a rien fait pour le village, ou avec qui il n'a aucune complicité. De votre vivant, gagnez la confiance du village et du maire.",
+    "Une fois mort, servez-vous de cette confiance pour orienter les choix du maire selon vos propres observations. Vous ne connaissez pas les rôles, puisque vous fermez les yeux la nuit, mais votre intelligence suffit pour diriger le cours du jeu.",
+    "Une dernière chose : vous avez le droit de mentir. Si vous pensez que le maire est un loup et que vous êtes pur, vous pouvez lui dire que vous êtes impur, et l'orienter volontairement vers des choix qui profitent au village."
+  ],
   // POURQUOI 70 : n'importe quelle place convient (son choix n'affecte personne la nuit 1).
   // Juste après les liens (Loup amoureux 30, Cupidon 50, Réunion des amoureux 60) et avant la Voyante (80).
   priorite: 70,

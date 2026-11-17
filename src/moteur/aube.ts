@@ -17,14 +17,18 @@ const CONSEQUENCES: { tag: string; devient: string; meta?: Meta; si?: (t: Tag) =
   // Seule une protection du Salvateur l'empêche de protéger la même personne la nuit suivante.
   { tag: "protege",    devient: "protege_hier", si: t => t.source === "salvateur" },
 
-  // Peste : un cran par aube, mort à la 4e aube après la morsure du Rat (3 nuits plus tard).
+  // Peste : mort à la 2e aube qui suit la contamination, QUELLE QUE SOIT LA SOURCE (Rat, Rat-garou,
+  // événement) et le moment (la nuit ou le jour). Un seul tag « peste » à la réception, un cran par aube.
+  //   contaminé la nuit 2 → aube 2 : peste_mortelle → aube 3 : mort
+  //   contaminé le jour 2 → aube 3 : peste_mortelle → aube 4 : mort
+  // POURQUOI une règle unique : avant, la peste du Rat (posée la nuit) mettait 4 aubes, celle de
+  // l'événement (posée le jour) 3, et il fallait deux tags d'entrée. Une règle sans exception se retient.
+  // Pour la rallonger : ajouter un tag intermédiaire dans la chaîne (peste → peste_x → peste_mortelle).
   // ATTENTION : écrite À L'ENVERS. La boucle traite les lignes dans l'ordre, et un tag posé
   // par une ligne est vu par les lignes suivantes de la même aube. Dans l'ordre naturel
-  // (peste → peste_active → … → mort), la peste tuerait dès la première aube.
-  { tag: "peste_mortelle",  devient: "mort", meta: { cause: "peste" } },
-  { tag: "peste_imminente", devient: "peste_mortelle" },
-  { tag: "peste_active",    devient: "peste_imminente" },
-  { tag: "peste",           devient: "peste_active" }
+  // (peste → peste_mortelle → mort), la peste tuerait dès la première aube.
+  { tag: "peste_mortelle", devient: "mort", meta: { cause: "peste" } },
+  { tag: "peste",          devient: "peste_mortelle" }
 ];
 
 export function aube(partie: Partie): void {

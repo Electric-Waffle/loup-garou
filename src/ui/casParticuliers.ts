@@ -98,7 +98,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
     etapes: [
       { quoi: "Juste après le tour des loups, le Rat choisit en silence : il mord.", pourquoi: "Sa morsure ouvre une décision urgente, jouée avant la Sorcière." },
       { quoi: "Il devient agonisant : il mourra à l'aube, et la Sorcière ne le voit pas.", pourquoi: "« Agonisant » remplace la morsure : sans morsure, la potion de vie n'a rien à soigner." },
-      { quoi: "Un des loups attrape la peste, tiré au hasard. Il mourra à la 4e aube.", pourquoi: "La peste avance d'un cran à chaque aube : 3 nuits de sursis." },
+      { quoi: "Un des loups attrape la peste, tiré au hasard. Il mourra à la 2e aube.", pourquoi: "La peste avance d'un cran à chaque aube et tue à la deuxième : un seul matin de sursis, quelle que soit la source de la peste." },
       { quoi: "Personne n'est prévenu : ni les loups, ni le village.", pourquoi: "Le choix du Rat doit rester secret ; ils le comprendront au fil des aubes." }
     ]
   },
@@ -144,7 +144,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
       { role: "loup" }
     ],
     etapes: [
-      { quoi: "Le maire attrape la peste : il mourra à la 4e aube.", pourquoi: "Les deux cartes réagissent à leur mort par le vote en contaminant le maire vivant." },
+      { quoi: "Le maire attrape la peste : il mourra à la 2e aube.", pourquoi: "Les deux cartes réagissent à leur mort par le vote en contaminant le maire vivant." },
       { quoi: "Si le Rat était lui-même le maire, rien ne se passe.", pourquoi: "Il est déjà mort : il n'y a plus de maire vivant à contaminer." }
     ]
   },

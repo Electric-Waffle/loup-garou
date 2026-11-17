@@ -30,6 +30,11 @@ const conquistador: Role = {
     "Si sa victime avait de l'or, il récupère sa balle, et l'or lui revient : il pourra racheter son propre vote.",
     "Sans balle, il est appelé chaque nuit mais ne peut plus rien faire."
   ],
+  conseil: [
+    "C'est le Chasseur des amateurs de risque. La bonne stratégie : observer les joueurs, deviner leurs rôles, puis porter un jugement sain un soir. Mais n'attendez pas trop : vous pourriez mourir avant d'avoir tiré votre balle.",
+    "S'il y a un Marchand en jeu, tout change : attendez sa mort, et espérez toucher celui qui a pris son or. Votre balle vous reviendra, et l'or avec. En clair, la chasse ne commence qu'à la mort du Marchand.",
+    "Ou alors, tuez directement le Marchand et prenez son or, comme au temps des conquistadors…"
+  ],
   priorite: 122,
   appelNuit: true,
   init: () => ({ balle: true }),

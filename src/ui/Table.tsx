@@ -22,7 +22,10 @@
  *  RÉUTILISABLE : tel quel, pour n'importe quel affichage d'éléments en cercle.
  * ===================================================================================== */
 
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import {
+  useEffect, useLayoutEffect, useMemo, useRef, useState,
+  type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode, type RefObject
+} from "react";
 
 /** Ce que le parent doit fournir pour chaque siège. */
 export interface Siege {
@@ -30,6 +33,8 @@ export interface Siege {
   contenu: ReactNode;    // ce qui est affiché dans le siège
   classe?: string;       // classes CSS en plus de "siege" (sélection, mort, cible...)
   onClick?: () => void;  // si présent, le siège devient cliquable
+  /** Clic droit (souris) ou appui de 2 secondes (doigt) : ouvre un menu propre au parent. */
+  onMenu?: () => void;
 }
 
 /** Un point normalisé : x et y entre -1 et 1, (0, 0) étant le centre de la table. */
@@ -207,28 +212,121 @@ export function Table({ sieges, centre }: { sieges: Siege[]; centre?: ReactNode 
           "--y-carre": carre.y.toFixed(4)
         } as CSSProperties;
 
-        // POURQUOI changer de balise selon onClick : un <button> est accessible au clavier
-        // (Tab pour s'y rendre, Entrée pour cliquer) et annoncé comme cliquable par les
-        // lecteurs d'écran. Un siège non cliquable ne doit pas l'être : un simple <div> suffit.
-        // CONCEPT : en JSX, une variable qui commence par une MAJUSCULE et contient un nom de
-        // balise ("button", "div") peut s'utiliser comme une balise : <Balise>...</Balise>.
-        // Avec une minuscule (<balise>), React chercherait une balise HTML appelée "balise".
-        const Balise = siege.onClick ? "button" : "div";
-
-        // "?? ''" : si aucune classe supplémentaire n'est fournie, on n'écrit pas "undefined".
-        const classes = `siege ${siege.classe ?? ""}`;
-
         // CONCEPT : la prop "key". Quand React redessine une liste, il compare l'ancienne et la
         // nouvelle grâce à cette clé, pour savoir quel élément est lequel. Avec l'id du joueur
         // (stable), deux joueurs qui échangent leur place sont reconnus et simplement déplacés.
         // ATTENTION : ne jamais utiliser l'index comme key quand l'ordre peut changer : React
         // confondrait les éléments après un échange de places.
-        return (
-          <Balise key={siege.id} className={classes} style={position} onClick={siege.onClick}>
-            {siege.contenu}
-          </Balise>
-        );
+        return <PlaceDeTable key={siege.id} siege={siege} position={position} />;
       })}
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------------------
+ *  Un siège, et son menu (clic droit ou appui long)
+ * ------------------------------------------------------------------------------------- */
+
+/** Durée de l'appui long, en millisecondes. */
+const DUREE_APPUI_LONG = 2000;
+/** De combien de pixels le doigt peut bouger sans que ce soit un défilement (l'appui long est alors annulé). */
+const TOLERANCE_DEPLACEMENT = 12;
+
+/**
+ * Un siège : un <button> s'il est cliquable, un <div> sinon.
+ *
+ * Menu (Siege.onMenu), deux gestes :
+ *   - SOURIS : clic droit (évènement « contextmenu »), qui ouvre le menu tout de suite ;
+ *   - DOIGT  : appui prolongé DUREE_APPUI_LONG, sans bouger.
+ *
+ * POURQUOI un composant à part et pas du code dans la boucle de Table : l'appui long a un état
+ * (un minuteur, un drapeau) et utilise useRef, or un hook ne peut pas être appelé dans un map().
+ * Chaque siège a ainsi son propre minuteur.
+ *
+ * FLUX de l'appui long :
+ *   1. pointerdown (doigt)       → un minuteur de 2 s démarre ;
+ *   2. le doigt bouge de > 12 px, se lève, ou le navigateur reprend la main (défilement : pointercancel)
+ *      → le minuteur est annulé : c'est un clic ou un défilement, pas un appui long ;
+ *   3. le minuteur arrive au bout → le menu s'ouvre, et `appuiLongFait` passe à true ;
+ *   4. le doigt se lève : le navigateur envoie quand même un « click ». On l'avale grâce à
+ *      `appuiLongFait`, sinon l'appui long ouvrirait le menu ET sélectionnerait le siège pour l'échange.
+ *
+ * ATTENTION : sur téléphone, le navigateur envoie aussi « contextmenu » après ~0,5 s d'appui. On
+ * l'ignore pour le doigt (pointerType « touch ») : sans ça, le menu s'ouvrirait en 0,5 s et pas en 2 s.
+ */
+function PlaceDeTable({ siege, position }: { siege: Siege; position: CSSProperties }) {
+  const minuteur = useRef<number | undefined>(undefined);
+  const depart = useRef({ x: 0, y: 0 });
+  const appuiLongFait = useRef(false);
+  const typeDeDoigt = useRef<string>("mouse");
+
+  const arreter = () => {
+    window.clearTimeout(minuteur.current);
+    minuteur.current = undefined;
+  };
+  // CONCEPT : un effet sans dépendance utile, mais avec un nettoyage : si le siège disparaît pendant
+  // l'appui (la table change), le minuteur ne doit pas ouvrir un menu fantôme.
+  useEffect(() => arreter, []);
+
+  const { onMenu, onClick } = siege;
+
+  const auDoigtPose = (evenement: PointerEvent<HTMLElement>) => {
+    typeDeDoigt.current = evenement.pointerType;
+    appuiLongFait.current = false;
+    // La souris passe par le clic droit ; seuls le doigt et le stylet font un appui long.
+    if (!onMenu || evenement.pointerType === "mouse") return;
+    depart.current = { x: evenement.clientX, y: evenement.clientY };
+    minuteur.current = window.setTimeout(() => {
+      appuiLongFait.current = true;
+      navigator.vibrate?.(30); // un petit retour tactile quand le menu s'ouvre (ignoré s'il n'existe pas)
+      onMenu();
+    }, DUREE_APPUI_LONG);
+  };
+
+  const auDoigtBouge = (evenement: PointerEvent<HTMLElement>) => {
+    if (minuteur.current === undefined) return;
+    const deplacement = Math.hypot(evenement.clientX - depart.current.x, evenement.clientY - depart.current.y);
+    if (deplacement > TOLERANCE_DEPLACEMENT) arreter();
+  };
+
+  const auClicDroit = (evenement: MouseEvent<HTMLElement>) => {
+    if (!onMenu) return;
+    evenement.preventDefault(); // pas de menu du navigateur (« Enregistrer l'image »…)
+    if (typeDeDoigt.current === "mouse") onMenu();
+  };
+
+  const auClic = () => {
+    if (appuiLongFait.current) {
+      appuiLongFait.current = false;
+      return;
+    }
+    onClick?.();
+  };
+
+  // POURQUOI changer de balise selon onClick : un <button> est accessible au clavier
+  // (Tab pour s'y rendre, Entrée pour cliquer) et annoncé comme cliquable par les
+  // lecteurs d'écran. Un siège non cliquable ne doit pas l'être : un simple <div> suffit.
+  // CONCEPT : en JSX, une variable qui commence par une MAJUSCULE et contient un nom de
+  // balise ("button", "div") peut s'utiliser comme une balise : <Balise>...</Balise>.
+  // Avec une minuscule (<balise>), React chercherait une balise HTML appelée "balise".
+  const Balise = onClick ? "button" : "div";
+
+  // "?? ''" : si aucune classe supplémentaire n'est fournie, on n'écrit pas "undefined".
+  const classes = `siege ${siege.classe ?? ""} ${onMenu ? "siege-menu" : ""}`;
+
+  return (
+    <Balise
+      className={classes}
+      style={position}
+      onClick={onClick ? auClic : undefined}
+      onPointerDown={onMenu ? auDoigtPose : undefined}
+      onPointerMove={onMenu ? auDoigtBouge : undefined}
+      onPointerUp={onMenu ? arreter : undefined}
+      onPointerCancel={onMenu ? arreter : undefined}
+      onPointerLeave={onMenu ? arreter : undefined}
+      onContextMenu={onMenu ? auClicDroit : undefined}
+    >
+      {siege.contenu}
+    </Balise>
   );
 }

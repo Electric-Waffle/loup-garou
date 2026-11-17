@@ -37,6 +37,12 @@ const beauParleur: Role = {
     "Il peut aussi devenir maire plus tard dans la partie : il a donc intérêt à garder sa carte secrète jusqu'au bout.",
     "Carte hybride : à sa mort, l'oracle annonce « Beau Parleur », sans jamais révéler le camp que le joueur avait choisi."
   ],
+  conseil: [
+    "Votre éloquence décide si votre pouvoir s'active. Ne perdez pas espoir si elle ne vous a pas valu le titre de maire : des événements font changer de maire, et le maire lui-même peut vous transmettre son titre.",
+    "Ne révélez donc jamais votre rôle : sinon, l'oracle ne vous montrera pas les cartes.",
+    "Si vous êtes resté du côté du village, servez-vous de votre seconde vie comme d'un bouclier, et gardez votre unique relance pour sauver l'Ancien ou un rôle important. Pensez à justifier vos choix devant le village : sinon, il croira que vous n'avez sauvé personne parce que vous êtes mauvais.",
+    "Gardez toujours l'adhésion du peuple à l'esprit : il faut qu'il vous croie juste… même si vous ne l'êtes pas."
+  ],
   priorite: 72,
   appelNuit: true,
   tours: { de: 1, a: 1 },

@@ -33,6 +33,10 @@ const fauxParleur: Role = {
     "Il peut aussi devenir maire plus tard dans la partie : il a donc intérêt à garder sa carte secrète jusqu'au bout.",
     "Carte hybride : à sa mort, l'oracle annonce « Beau Parleur », sans jamais révéler le camp que le joueur avait choisi."
   ],
+  conseil: [
+    "Les armes du Beau Parleur, au service de la meute. Ne révélez jamais votre rôle : sinon, l'oracle ne vous montrera pas les cartes.",
+    "Maire, gardez votre unique relance pour sauver un loup du bûcher, et justifiez-la devant le village : il faut qu'il vous croie juste… alors que vous ne l'êtes pas."
+  ],
   rejoint: ["loup"],
 
   init: () => ({ relanceUtilisee: false }),

@@ -21,6 +21,11 @@ const loupSavant: Role = {
     "Il sait donc quelles cartes ne sont pas en jeu, et peut bluffer en prétendant en avoir une.",
     "Ces 3 cartes existent aussi pour la Voyante et le Loup voyante, qui peuvent les sonder pour apprendre qu'elles ne sont à personne."
   ],
+  conseil: [
+    "Vous voyez des cartes qui ne sont pas en jeu : servez-vous-en ! Faites-vous passer pour l'une d'elles, et tâchez de faire tuer la Voyante, qui pourrait sonder la même carte et vous prendre en plein mensonge.",
+    "Plus vous poussez le jeu de rôle loin, plus vous ressemblez à un villageois ordinaire, et plus vous avez de chances de rester en vie.",
+    "N'empruntez pas non plus un rôle trop exigeant : si ses effets tardent à se faire sentir, vous deviendrez suspect."
+  ],
   // POURQUOI 110 : juste avant le tour des loups (120), pour qu'il sache avant de voter.
   priorite: 110,
   appelNuit: true,

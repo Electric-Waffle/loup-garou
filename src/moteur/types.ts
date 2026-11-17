@@ -102,6 +102,14 @@ export interface Role {
   description: string;
   /** Explication détaillée, une ligne par paragraphe : affichée dans la fiche de la page Explications. */
   explication?: string[];
+  /**
+   * Conseil pour bien jouer la carte, une ligne par paragraphe : affiché sous l'explication, dans la
+   * fiche. La partie « Fin du jeu » de la page Explications reprend aussi celui du Fou, de
+   * l'Aberration, du Skinwalker et du Bâtisseur (voir src/ui/finsDuJeu.ts) : un seul texte à tenir à jour.
+   * POURQUOI ici, dans le moteur, alors que le moteur ne le lit jamais : comme `description` et
+   * `explication`, c'est la carte qui sait comment on la joue. Tout ce qui la concerne reste dans son fichier.
+   */
+  conseil?: string[];
 
   priorite?: number;    // ordre d'appel la nuit (petit = d'abord)
   appelNuit?: boolean;  // l'oracle appelle-t-il cette carte la nuit ?

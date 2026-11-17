@@ -36,6 +36,11 @@ const skinwalker: Role = {
     "Si sa victime est protégée par le Salvateur, il échoue, et ne peut tuer personne la nuit suivante.",
     "Si le village gagne alors qu'il est vivant, c'est lui qui gagne, seul."
   ],
+  conseil: [
+    "Votre but : faire tomber les loups au plus vite.",
+    "Identifiez les rôles utiles pour les éradiquer : en tuant leur porteur, vous jouez leur carte en plus de la vôtre.",
+    "Et ne vous faites pas prendre par la Voyante ou le Loup voyante : avant votre premier meurtre, ils voient votre vraie carte. Ensuite, ils voient la carte que vous avez volée."
+  ],
   priorite: 126,
   appelNuit: true,
   tours: { de: 3 },

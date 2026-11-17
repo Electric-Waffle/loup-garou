@@ -15,6 +15,10 @@ const salvateur: Role = {
     "Il ne peut jamais protéger la même personne deux nuits de suite.",
     "Elle ne protège ni du poison de la Sorcière, ni du tir du Chasseur, ni de la peste."
   ],
+  conseil: [
+    "Il y a autant à apprendre en protégeant la bonne personne qu'en ne la protégeant pas. Un joueur qui révèle un rôle très important et qui survit à la nuit sans votre protection ment peut-être… et les loups le savent.",
+    "Servez-vous aussi de la parole : laisser entendre au village qui sera « sûrement protégé » cette nuit dissuade les loups de le viser. Vous pouvez alors protéger quelqu'un d'autre !"
+  ],
   priorite: 100,
   appelNuit: true,
 
