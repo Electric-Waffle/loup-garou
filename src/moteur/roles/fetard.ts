@@ -23,6 +23,7 @@ const fetard: Role = {
   titre: "Fêtard",
   image: "🥳",
   camp: "village",
+  partagee: true,
   description: "Un habitué des fêtes où coule la bière de maïs. S'il a voté contre un loup éliminé par le village, il fait la fête toute la nuit : les loups ne peuvent pas le mordre.",
   explication: [
     "Il n'a pas de pouvoir de nuit.",

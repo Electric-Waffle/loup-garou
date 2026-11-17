@@ -19,8 +19,9 @@
 
 import { useState } from "react";
 import { EVENEMENTS } from "../moteur/evenements";
+import { LISTE_RELIQUES } from "../moteur/reliques";
 import { LISTE_ROLES, ROLES } from "../moteur/roles";
-import type { Evenement } from "../moteur/types";
+import type { Evenement, Relique } from "../moteur/types";
 import { CAS_PARTICULIERS, type CasParticulier } from "./casParticuliers";
 import { BlocConseil, FicheCarte, PastilleCarte } from "./FicheCarte";
 import { FINS_DU_JEU } from "./finsDuJeu";
@@ -49,6 +50,7 @@ export function Explications({ donnees }: { donnees: Donnees }) {
   // Ce qui est ouvert en modale (null = rien).
   const [carteOuverte, setCarteOuverte] = useState<string | null>(null);
   const [evenementOuvert, setEvenementOuvert] = useState<Evenement | null>(null);
+  const [reliqueOuverte, setReliqueOuverte] = useState<Relique | null>(null);
   const [casOuvert, setCasOuvert] = useState<CasParticulier | null>(null);
 
   // Titre et image choisis dans les options, sinon ceux du code.
@@ -131,6 +133,26 @@ export function Explications({ donnees }: { donnees: Donnees }) {
       </section>
 
       <section>
+        <h2>Reliques</h2>
+        <p className="aide">
+          Un modificateur de partie, choisi par l'oracle à la préparation (une seule par partie). Le camp qui a perdu
+          la partie précédente offre une relique à l'autre camp pour la suivante, pour l'aider.
+        </p>
+        <div className="liste-evenements">
+          {LISTE_RELIQUES.map(relique => (
+            <button key={relique.alias} className="ligne-cliquable" onClick={() => setReliqueOuverte(relique)}>
+              <Visuel src={relique.image} nom={relique.titre} taille={40} />
+              <span>
+                <strong>{relique.titre}</strong>
+                <span className={`badge camp-${relique.camp}`}>{relique.camp === "village" ? "Aide le village" : "Aide les loups"}</span>
+                <span className="aide"> — {relique.description}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
         <div className="titre-section">
           <select className="champ filtre" value={filtreCas} onChange={e => setFiltreCas(e.target.value)} aria-label="Cas d'une seule carte">
             <option value="">Toutes les cartes</option>
@@ -162,6 +184,7 @@ export function Explications({ donnees }: { donnees: Donnees }) {
           fermer={() => setCarteOuverte(null)}
         />
       )}
+      {reliqueOuverte && <FicheRelique relique={reliqueOuverte} fermer={() => setReliqueOuverte(null)} />}
       {evenementOuvert && <FicheEvenement evenement={evenementOuvert} fermer={() => setEvenementOuvert(null)} />}
       {casOuvert && <FicheCas cas={casOuvert} titreDe={titreDe} imageDe={imageDe} fermer={() => setCasOuvert(null)} />}
     </div>
@@ -266,6 +289,24 @@ function FinsDuJeu({ imageDe }: { imageDe: (alias: string) => string }) {
 /* =====================================================================================
  *  Modale d'un événement
  * ===================================================================================== */
+
+function FicheRelique({ relique, fermer }: { relique: Relique; fermer: () => void }) {
+  return (
+    <Modale fermer={fermer}>
+      <div className="fiche-entete">
+        <Visuel src={relique.image} nom={relique.titre} taille={112} />
+        <div>
+          <h2>{relique.titre}</h2>
+          <div className="badges">
+            <span className={`badge camp-${relique.camp}`}>{relique.camp === "village" ? "Aide le village" : "Aide les loups"}</span>
+          </div>
+        </div>
+      </div>
+      <p className="fiche-resume">{relique.description}</p>
+      {relique.explication?.map((ligne, index) => <p key={index}>{ligne}</p>)}
+    </Modale>
+  );
+}
 
 function FicheEvenement({ evenement, fermer }: { evenement: Evenement; fermer: () => void }) {
   return (

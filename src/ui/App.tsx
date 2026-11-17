@@ -157,7 +157,8 @@ export function App() {
     const nouvellePartie = new Partie(joueurs, {
       apparence: apparence,
       cartesActives: cartesActives(donnees),
-      cartesFantomes: donnees.cartesFantomes
+      cartesFantomes: donnees.cartesFantomes,
+      relique: donnees.relique
     });
 
     setPartie(nouvellePartie);

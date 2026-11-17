@@ -122,6 +122,9 @@ export const TAGS: Record<string, string> = {
   soupcon: "🦅 soupçonné",
   eclaire: "🌕 éclairé",
   apaisee: "🕊️ démasquée",
+  encens: "🪔 révélé (invincible)",
+  ecaille: "🐉 écaille (immunisé)",
+  muet: "🔇 muet",
   mort: "⚰️ mort"
 };
 

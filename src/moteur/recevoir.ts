@@ -23,6 +23,13 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
   const reaction = role.recevoir?.(tag, meta, r, partie, joueur);
   if (reaction) return reaction;
 
+  // 1 bis. La relique de la partie, qui voit tous les joueurs (Toison d'or, Encens, Graal…).
+  // POURQUOI APRÈS le rôle : la seconde vie de l'Ancien, par exemple, a priorité sur une relique qui
+  // réagirait à la même morsure ; et AVANT le switch : une relique peut ainsi bloquer une mort avant
+  // que l'or, le chagrin ou le tir du Chasseur ne partent.
+  const reactionDeLaRelique = partie.relique.recevoir?.(tag, meta, r, partie, joueur);
+  if (reactionDeLaRelique) return reactionDeLaRelique;
+
   // 2. Règles générales par tag
   switch (tag) {
     case "mordu":
@@ -112,6 +119,8 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
       // qu'au vote final. BLOQUER, et pas consommer : partie.voter() lit "consomme" comme « payé avec
       // l'or » et relancerait une plaidoirie.
       if (meta.cause === "vote" && partie.aTag(joueur, "ignifuge")) {
+        // L'annonce est faite ICI (elle était dans Partie.executerLeVote) : c'est celui qui bloque qui sait quoi dire.
+        partie.ajouterInfo({ pour: "tous", texte: `${joueur.nom} entre dans les flammes et en ressort indemne : un loup l'a protégé.` });
         return r.bloquer("ignifuge : il ressort indemne des flammes");
       }
 
@@ -193,6 +202,7 @@ function reponses(partie: Partie, joueur: Joueur, tag: string, meta: Meta, profo
       if (tag === "mort") joueur.vivant = false;
       log("recu");
       partie.roleDe(joueur).reagir?.(tag, meta, partie, joueur);
+      partie.relique.reagir?.(tag, meta, partie, joueur);
       return "accepte";
     },
     bloquer(raison) {

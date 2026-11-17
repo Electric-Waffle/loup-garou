@@ -36,6 +36,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { nbCibles, type Partie } from "../moteur/partie";
+import { RELIQUE_PAR_DEFAUT } from "../moteur/reliques";
 import type { Entree, Joueur, OptionChoix } from "../moteur/types";
 import { Table, type Siege } from "./Table";
 import { Cadran, finDuCadran, TitreDeFin, type FinCadran } from "./Cadran";
@@ -449,7 +450,13 @@ export function PartieVue({
               <TitreDeFin key={`${finCadran}-${finTest?.n ?? 0}`} fin={finCadran} vainqueur={partie.vainqueur} survivants={survivants} />
             ) : (
               <div className="table-centre table-centre-partie">
-                <span className="table-tour">Tour {partie.tour}</span>
+                <span className="table-tour">
+                  Tour {partie.tour}
+                  {/* La relique en jeu, rappelée en permanence à l'oracle (rien si c'est le Temple Divin). */}
+                  {partie.relique.alias !== RELIQUE_PAR_DEFAUT && (
+                    <span title={`Relique : ${partie.relique.titre}`}> · {partie.relique.image}</span>
+                  )}
+                </span>
                 <span className="table-titre">{PHASES[partie.phase]}</span>
               </div>
             )}
@@ -794,6 +801,13 @@ function EtapeDeJour({
         <section className="fin">
           <h2>🏆 Partie terminée</h2>
           <p>La partie est terminée après {partie.tour} tour(s).</p>
+          {/* Lore des reliques : le camp qui perd offre une relique à l'autre à la partie suivante. */}
+          {campDeLaRelique(partie.vainqueur) && (
+            <p className="aide">
+              🏺 À la prochaine partie, offrez une relique {campDeLaRelique(partie.vainqueur) === "loups" ? "aux loups" : "au village"} :
+              {" "}{campDeLaRelique(partie.vainqueur) === "loups" ? "le village a gagné" : "les loups ont gagné"}.
+            </p>
+          )}
           <div className="panneau-pied">
             <button className="bouton bouton-large" onClick={imprimerRecap}>Télécharger le récap (PDF)</button>
             <button className="bouton bouton-principal bouton-large" onClick={quitter}>Nouvelle partie</button>
@@ -801,6 +815,18 @@ function EtapeDeJour({
         </section>
       );
   }
+}
+
+/**
+ * À qui offrir une relique à la partie suivante, d'après le vainqueur : au camp qui a PERDU.
+ * Le village gagne (y compris par le Bâtisseur) → les loups ; les loups gagnent → le village.
+ * Les autres fins (Fou, Skinwalker, Aberration, amoureux, village désert) n'ont pas de camp perdant clair.
+ * ATTENTION : on lit le DÉBUT du texte écrit par victoire.ts, comme finDuCadran().
+ */
+function campDeLaRelique(vainqueur: string | undefined): "village" | "loups" | undefined {
+  if (vainqueur?.startsWith("Le village")) return "loups";
+  if (vainqueur?.startsWith("Les loups")) return "village";
+  return undefined;
 }
 
 /**
@@ -876,6 +902,8 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
   const titre = estLAube ? "Rapport de la nuit" : "Résultat du vote";
   let libelleBouton = "La nuit tombe";
   if (estLAube) libelleBouton = partie.aBesoinDUnMaire() ? "Élire le maire" : "Événement du jour";
+  // Larme de Lune : pas d'élection, d'événement ni de vote ; le bouton enchaîne directement la nuit.
+  if (estLAube && partie.jourEstSaute()) libelleBouton = "La nuit tombe (jour sauté)";
 
   /** Passe à la phase suivante. Les deux méthodes vérifient d'abord la victoire. */
   function passerALaSuite() {

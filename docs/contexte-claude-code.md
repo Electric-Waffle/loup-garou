@@ -313,6 +313,26 @@ Tirés après l'élection du maire. L'oracle peut demander « Un autre » ou « 
 
 ---
 
+### Les reliques (`src/moteur/reliques/`, un fichier chacune)
+Un modificateur de partie, choisi à la préparation (une seule par partie, `Partie.relique`, état dans `Partie.etatRelique`). Lore : le camp qui a perdu la partie précédente offre une relique à l'autre. Le Temple Divin (défaut) ne fait rien : la partie a toujours une relique, le moteur ne teste jamais « s'il y en a une ».
+
+| Crochet de `Relique` | Appelé par | Exemple |
+| --- | --- | --- |
+| `debut(partie)` | constructeur de `Partie`, après les `debut()` des rôles | Encens de vérité : choisit et révèle un loup |
+| `recevoir(tag, meta, r, partie, joueur)` | `donnerTag()`, après le `recevoir()` du rôle, avant le `switch` | Toison d'or, Encens, Graal, Écaille, Fontaine |
+| `reagir(tag, meta, partie, joueur)` | `accepter()`, après le `reagir()` du rôle | Sifflet de la Mort, Œil de l'Oracle |
+| `apresCarte` / `decision` / `agir` | `jouer()` : après une carte de la nuit, une décision URGENTE de la relique (alias `relique`) | Larme de Lune : « utiliser la larme ? » juste après la morsure |
+| `apresVote(partie, elimine?)` | `finDuVote()` | Hache de guerre : revote sans limite (`revoter: true`) |
+| `apresEvenement(partie, evenement)` | validation de l'événement | Œil de l'Oracle : révèle son nom |
+
+- **Première victime des loups** (Graal, Écaille) : on intercepte le tag `mort` (cause `mordu`, source = une carte du camp des loups), pas `mordu` : à l'aube, la morsure a déjà passé le Salvateur, la Sorcière et l'Ancien. `reliques/outils.ts` : `estUneMorsureDeLoup`, `loupsVivants`.
+- **Un vote qui ne tue pas** (Encens, Fontaine, ignifuge) : `executerLeVote()` le traite comme « personne n'est éliminé ». Celui qui empêche la mort écrit lui-même l'annonce publique (elle n'est plus dans `Partie`).
+- **Écaille** : `Partie.aTagDe(j, "protege", "salvateur")` répond vrai pour un joueur « ecaille » : les loups qui lient ou regardent y sont déjà branchés.
+- **Larme de Lune** : `etatRelique.jourSaute` = numéro de nuit ; `suiteDeLAube()` enchaîne alors la nuit suivante (`jourEstSaute()`).
+- **Œil de l'Oracle** lit `Role.hybride` et le nouveau champ `Role.partagee` (Pleureuse, Fêtard, Marchand, Bâtisseur).
+- Ajouter une relique : un fichier, `LISTE_RELIQUES` dans `reliques/index.ts`, une `explication`, un test dans `scenario.test.ts`. Un tag nouveau : un libellé dans `TAGS` (`libelles.ts`).
+- Interface : un `<select>` dans Préparer (`Donnees.relique`), la relique rappelée dans « Tour N · 💧 », la page Explications (section Reliques) et l'écran de fin, qui rappelle le lore.
+
 ## 6. Le cas d'étude de référence
 « L'Ancien amoureux du Chasseur » (`docs/cas-particulier.md`, rejoué par `npm test` et `npm run scenario`). Les loups mordent l'Ancien et la Sorcière empoisonne le Chasseur. À l'aube, l'Ancien transforme sa mort en `vie_perdue`, puis le Chasseur meurt. L'Ancien meurt alors de chagrin (amoureux). Le Chasseur tire sur le loup, et le village gagne.
 

@@ -19,6 +19,7 @@ const marchand: Role = {
   titre: "Marchand",
   image: "💰",
   camp: "village",
+  partagee: true,
   description: "Un marchand des routes de l'Inca, la bourse pleine d'or. Voté, il dépense son or pour un second vote où lui seul a la parole. Tué, son or passe à son tueur.",
   explication: [
     "Il commence la partie avec de l'or.",

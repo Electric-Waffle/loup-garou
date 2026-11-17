@@ -3,10 +3,11 @@ import { melanger, type Aleatoire } from "./distribution";
 import { appliquerResultat, tourDeCarte } from "./donner";
 import { EVENEMENTS, LISTE_EVENEMENTS } from "./evenements";
 import { donnerTag } from "./recevoir";
+import { RELIQUE_PAR_DEFAUT, RELIQUES } from "./reliques";
 import { ROLES } from "./roles";
 import { peutAgir } from "./tours";
 import type {
-  ChoixFait, Decision, Entree, Evenement, Info, Joueur, Phase, Role, TypeCible
+  ChoixFait, Decision, Entree, Evenement, Info, Joueur, Phase, Relique, Role, TypeCible
 } from "./types";
 import { verifierVictoire } from "./victoire";
 
@@ -24,6 +25,7 @@ export interface OptionsPartie {
   aleatoire?: Aleatoire;
   cartesActives?: string[];  // cartes activées dans Options, distribuées ou non
   cartesFantomes?: boolean;  // appeler la nuit les cartes activées que personne n'a reçues
+  relique?: string;          // alias de la relique de la partie ; absent = le Temple Divin (aucun effet)
 }
 
 export interface DecisionCourante {
@@ -41,6 +43,13 @@ export interface DecisionCourante {
  * Tags qui empêchent un joueur de faire son rôle, avec le libellé affiché à l'oracle.
  * RÉUTILISABLE : une nouvelle cause de blocage = une ligne ici, rien dans les rôles.
  */
+/**
+ * Alias de la décision urgente d'une relique dans `attente` (avec les alias des rôles : « chasseur », « rat »…).
+ * POURQUOI une valeur à part : ce n'est pas un rôle, ROLES[ALIAS_RELIQUE] n'existe pas ; decisionCourante()
+ * et jouer() le reconnaissent avant de chercher un rôle.
+ */
+const ALIAS_RELIQUE = "relique";
+
 const TAGS_BLOQUANTS: Record<string, string> = {
   enchante: "enchanté, il garde les yeux fermés",
   maudit: "maudit par la pleureuse, il ne fait pas son rôle",
@@ -83,10 +92,21 @@ export class Partie {
   cartesDuSavant: string[];   // 3 cartes hors jeu, tirées seulement si le Loup savant est actif
   private cartesFantomes: boolean;
 
+  /**
+   * La relique de la partie (toujours une : le Temple Divin ne fait rien). Voir types.ts, Relique.
+   * ATTENTION : assignée AVANT les crochets debut() des rôles, car donnerTag() l'interroge déjà.
+   */
+  relique: Relique;
+  /** Ce que la relique retient d'un tour à l'autre (première victime déjà prise, larme utilisée…). */
+  etatRelique: Record<string, any> = {};
+
   constructor(joueurs: JoueurInitial[], options: OptionsPartie = {}) {
     this.apparence = options.apparence ?? {};
     this.aleatoire = options.aleatoire ?? Math.random;
     this.cartesFantomes = options.cartesFantomes ?? false;
+    // POURQUOI le repli sur le défaut si l'alias est inconnu : des réglages enregistrés peuvent citer
+    // une relique supprimée du code depuis ; mieux vaut le Temple Divin qu'une partie qui plante.
+    this.relique = RELIQUES[options.relique ?? RELIQUE_PAR_DEFAUT] ?? RELIQUES[RELIQUE_PAR_DEFAUT];
     this.joueurs = joueurs.map(j => ({
       ...j,
       vivant: true,
@@ -110,6 +130,12 @@ export class Partie {
     for (const joueur of this.joueurs) {
       appliquerResultat(this, this.roleDe(joueur).debut?.(this, joueur), joueur.role);
     }
+
+    // Puis la relique, APRÈS les rôles : l'Encens de vérité choisit un loup, qui doit déjà être en place.
+    if (this.relique.alias !== RELIQUE_PAR_DEFAUT) {
+      this.log({ type: "info", texte: `Relique en jeu : ${this.relique.titre}.` });
+    }
+    appliquerResultat(this, this.relique.debut?.(this), `relique:${this.relique.alias}`);
 
     // ATTENTION : en dernier, car la file de la nuit 1 lit cartesHorsJeu et cartesFantomes.
     this.commencerNuit();
@@ -164,7 +190,36 @@ export class Partie {
    * seule la protection du Salvateur bloque les loups qui lient ou regardent (pas celle d'un événement).
    */
   aTagDe(j: Joueur, tag: string, source: string): boolean {
+    // Écaille de Quetzalcoatl : le joueur est protégé du Salvateur « H24 ». Les loups qui lient ou
+    // regardent (Loup amoureux, Succube, Voyante, Hypnotiseur) et le Skinwalker posent cette question
+    // avant d'agir : la relique répond oui à leur place, sans qu'ils connaissent la relique.
+    if (tag === "protege" && source === "salvateur" && this.aTag(j, "ecaille")) return true;
     return j.tags.some(t => t.type === tag && t.source === source);
+  }
+
+  /**
+   * Les voisins VIVANTS d'un joueur à la table : le premier vivant avant lui, le premier après lui,
+   * dans l'ordre des sièges (partie.joueurs), en tournant. Le joueur lui-même est exclu, et un voisin
+   * qui est les deux à la fois (table de deux) n'est compté qu'une fois.
+   * Utilisé par le Sifflet de la Mort : un voisin mort cette nuit-là est sauté.
+   */
+  voisinsVivants(joueur: Joueur): Joueur[] {
+    const nombre = this.joueurs.length;
+    const place = this.joueurs.indexOf(joueur);
+    // CONCEPT : ((x % n) + n) % n est le modulo « mathématique » : % seul renverrait un index négatif
+    // pour -1. Il fait passer du siège 0 au dernier siège en reculant.
+    const prochainVivant = (sens: 1 | -1): Joueur | undefined => {
+      for (let pas = 1; pas < nombre; pas++) {
+        const candidat = this.joueurs[(((place + sens * pas) % nombre) + nombre) % nombre];
+        if (candidat.vivant) return candidat;
+      }
+      return undefined;
+    };
+    const avant = prochainVivant(-1);
+    const apres = prochainVivant(1);
+    const voisins = [avant, apres].filter((v): v is Joueur => v !== undefined);
+    // Un seul vivant à table : avant et après sont le même joueur.
+    return voisins.filter((v, i) => voisins.findIndex(w => w.id === v.id) === i);
   }
 
   /** Retire un tag. Avec une profondeur, l'opération est tracée dans le journal. */
@@ -270,6 +325,14 @@ export class Partie {
     const urgente = this.attente[0];
     if (urgente) {
       const moi = this.joueur(urgente.joueur);
+      // Décision de la RELIQUE (la Larme de Lune, après la morsure) : ce n'est pas un rôle, son titre
+      // et son image viennent d'elle, comme pour un événement.
+      if (urgente.alias === ALIAS_RELIQUE) {
+        return {
+          alias: ALIAS_RELIQUE, titre: this.relique.titre, image: this.relique.image,
+          moi, porteurs: [moi], decision: this.relique.decision!(this), urgente: true
+        };
+      }
       const role = this.role(urgente.alias);
       return { ...this.carte(urgente.alias), moi, porteurs: [moi], decision: role.decision!(this, moi), urgente: true };
     }
@@ -363,6 +426,15 @@ export class Partie {
       this.log({ type: "action", source: evenement.alias, texte: `${evenement.titre} : ${choix.id}` });
       appliquerResultat(this, evenement.agir?.(choix, this, courante.moi), `evenement:${evenement.alias}`);
       this.evenementApplique = true;
+      appliquerResultat(this, this.relique.apresEvenement?.(this, evenement), `relique:${this.relique.alias}`);
+      return;
+    }
+
+    // Décision urgente de la relique : elle n'est pas un rôle, donc pas de tourDeCarte().
+    if (courante.alias === ALIAS_RELIQUE) {
+      this.attente.shift();
+      this.log({ type: "action", source: this.relique.alias, joueur: courante.moi.id, texte: `${this.relique.titre} : ${choix.id}` });
+      appliquerResultat(this, this.relique.agir?.(choix, this), `relique:${this.relique.alias}`);
       return;
     }
 
@@ -370,6 +442,13 @@ export class Partie {
     else this.file.shift();
 
     tourDeCarte(this, courante.alias, choix, courante.moi);
+
+    // La relique peut réagir à la carte qui vient de jouer en ouvrant sa propre décision urgente.
+    // FLUX : elle passe en tête de file (decisionCourante lit attente avant la nuit), donc l'oracle la
+    // voit tout de suite, avant la carte suivante : la Larme de Lune, juste après la morsure.
+    if (!courante.urgente && this.relique.apresCarte?.(this, courante.alias, choix)) {
+      this.attente.push({ alias: ALIAS_RELIQUE, joueur: courante.moi.id });
+    }
   }
 
   /** L'oracle passe le tour de la carte courante sans action. */
@@ -383,7 +462,9 @@ export class Partie {
     }
     if (courante.urgente) this.attente.shift();
     else this.file.shift();
-    this.log({ type: "passe", source: courante.alias, texte: `${this.titre(courante.alias)} : passe` });
+    // Titre de la relique, ou du rôle : ROLES ne connaît pas l'alias de la relique.
+    const titre = courante.alias === ALIAS_RELIQUE ? this.relique.titre : this.titre(courante.alias);
+    this.log({ type: "passe", source: courante.alias, texte: `${titre} : passe` });
   }
 
   /* ================= Déroulé ================= */
@@ -448,8 +529,20 @@ export class Partie {
   suiteDeLAube(): void {
     if (this.attente.length) throw new Error("Une décision est en attente.");
     if (this.verifier()) return;
+    // Larme de Lune : pas d'élection, d'événement, de débat ni de vote ; on retourne à la nuit.
+    // FLUX : nuitSuivante() refait la vérification de victoire (sans effet, déjà faite) puis passe au tour suivant.
+    if (this.jourEstSaute()) {
+      this.log({ type: "info", texte: "Le jour est sauté : la nuit suivante commence." });
+      this.nuitSuivante();
+      return;
+    }
     if (this.aBesoinDUnMaire()) this.changerPhase("election");
     else this.ouvrirEvenement();
+  }
+
+  /** Le jour d'aujourd'hui est-il sauté (Larme de Lune utilisée par les loups cette nuit) ? */
+  jourEstSaute(): boolean {
+    return this.etatRelique.jourSaute === this.tour;
   }
 
   /** Vrai si aucun joueur VIVANT n'a le tag "maire" : il faut en élire un. */
@@ -504,6 +597,7 @@ export class Partie {
     if (evenement.decision) throw new Error("Cet événement attend que le maire désigne quelqu'un.");
     appliquerResultat(this, evenement.appliquer?.(this), `evenement:${evenement.alias}`);
     this.evenementApplique = true;
+    appliquerResultat(this, this.relique.apresEvenement?.(this, evenement), `relique:${this.relique.alias}`);
   }
 
   private tirerEvenement(exclure?: string): Evenement | undefined {
@@ -618,15 +712,15 @@ export class Partie {
       return;
     }
 
-    // Vote BLOQUÉ (ignifuge, Loup salamandre) : le village l'apprend, et le jour compte comme
-    // « personne n'est éliminé » pour l'événement (l'Ultimatum tue alors le maire).
-    if (issue === "bloque") {
-      this.ajouterInfo({ pour: "tous", texte: `${this.joueur(id).nom} entre dans les flammes et en ressort indemne : un loup l'a protégé.` });
+    // Vote qui ne tue PAS : bloqué (ignifuge du Loup salamandre, Encens de vérité) ou transformé
+    // (Fontaine de fée). Le village a déjà été prévenu par celui qui l'a empêché (recevoir.ts ou la
+    // relique) ; le jour compte comme « personne n'est éliminé » pour l'événement (l'Ultimatum tue alors le maire).
+    // POURQUOI le message n'est plus écrit ici : avec les reliques, un vote peut échouer pour plusieurs
+    // raisons, et seule celle qui l'empêche sait quoi dire.
+    if (issue !== "accepte") {
       this.finDuVote(undefined);
       return;
     }
-
-    if (issue !== "accepte") return;
     this.finDuVote(this.joueur(id));
   }
 
@@ -644,10 +738,18 @@ export class Partie {
     }
     const evenement = this.evenement;
     const resultat = evenement?.apresVote?.(this, elimine);
-    if (!evenement || !resultat) return;
-    appliquerResultat(this, resultat, `evenement:${evenement.alias}`);
-    // ATTENTION : un seul second vote par jour, même si le second éliminé est encore un loup.
-    if (resultat.revoter && !this.aRevote) this.peutRevoter = true;
+    if (evenement && resultat) {
+      appliquerResultat(this, resultat, `evenement:${evenement.alias}`);
+      // ATTENTION : un seul second vote par jour, même si le second éliminé est encore un loup.
+      if (resultat.revoter && !this.aRevote) this.peutRevoter = true;
+    }
+
+    // Puis la relique (Hache de guerre). Son revote n'est PAS borné à un par jour : c'est sa force.
+    const deLaRelique = this.relique.apresVote?.(this, elimine);
+    if (deLaRelique) {
+      appliquerResultat(this, deLaRelique, `relique:${this.relique.alias}`);
+      if (deLaRelique.revoter) this.peutRevoter = true;
+    }
   }
 
   /** Coup double : l'oracle rouvre le vote (le débat se fait de tête, sans minuteur). */
@@ -726,6 +828,10 @@ export class Partie {
     }
     for (const joueur of this.joueursAvecTag("sauf_conduit")) {
       rappels.push(`${joueur.nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
+    }
+    // Sifflet de la Mort : la PAROLE est coupée (la voix, elle, compte), contrairement à « silence ».
+    for (const joueur of this.joueursAvecTag("muet")) {
+      rappels.push(`${joueur.nom} ne peut pas parler pendant le vote : le sifflet de la mort l'a réduit au silence.`);
     }
     for (const joueur of this.joueursAvecTag("soupcon")) {
       const maire = this.joueursAvecTag("maire")[0];

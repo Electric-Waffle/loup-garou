@@ -114,6 +114,8 @@ code { background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; 
 .champ-court { width: 4.5rem; }
 .champ-ligne { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--texte-doux); font-size: .9rem; }
 input[type="checkbox"] { accent-color: var(--accent); }
+/* Le choix de la relique : le libellé à gauche, la liste prend le reste de la ligne. */
+.champ-relique .champ { width: auto; flex: 1; max-width: 15rem; }
 
 /* ---------- Visuels ---------- */
 /* Un médaillon d'or autour de chaque image ronde. */

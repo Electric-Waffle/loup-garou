@@ -110,6 +110,12 @@ export interface Role {
    * `explication`, c'est la carte qui sait comment on la joue. Tout ce qui la concerne reste dans son fichier.
    */
   conseil?: string[];
+  /**
+   * Carte « partagée » : à la mort du joueur, le village apprend seulement « un villageois est mort ».
+   * Aujourd'hui : Pleureuse, Fêtard, Marchand, Bâtisseur. Lu par l'Œil de l'Oracle, une relique qui
+   * révèle justement laquelle des quatre c'était.
+   */
+  partagee?: boolean;
 
   priorite?: number;    // ordre d'appel la nuit (petit = d'abord)
   appelNuit?: boolean;  // l'oracle appelle-t-il cette carte la nuit ?
@@ -210,6 +216,63 @@ export interface Evenement {
    * second vote (une seule fois par jour, le moteur y veille).
    */
   apresVote?(partie: Partie, elimine?: Joueur): (ResultatAction & { revoter?: boolean }) | void;
+}
+
+/* ---------- Reliques ---------- */
+
+/**
+ * Une relique : un modificateur de partie, choisi par l'oracle à la préparation (une seule par partie).
+ * Lore : quand un camp gagne, l'oracle offre une relique à l'AUTRE camp à la partie suivante, pour
+ * l'aider. `camp` dit donc qui la relique avantage (pas qui la joue).
+ *
+ * PATTERN : même principe que Role et Evenement. Le moteur ne connaît aucune relique : il appelle des
+ * crochets facultatifs aux bons moments, et chaque relique n'implémente que ceux dont elle a besoin.
+ * Les crochets reprennent les contrats des rôles (recevoir, reagir, apresVote…), avec la partie à la
+ * place de « moi » : une relique agit sur toute la table.
+ * ÉTAT : une relique est partagée par toutes les parties ; son état va dans `partie.etatRelique`,
+ * jamais dans l'objet relique (comme joueur.memoire pour un rôle).
+ */
+export type CampDeRelique = "village" | "loups";
+
+export interface Relique {
+  alias: string;
+  titre: string;
+  image: string;
+  camp: CampDeRelique;
+  description: string;
+  /** Explication détaillée, une ligne par paragraphe : fiche de la page Explications. */
+  explication?: string[];
+
+  /** Au lancement, avant la nuit 1, après le crochet debut() des rôles. Même contrat que Role.debut. */
+  debut?(partie: Partie): ResultatAction | void;
+
+  /**
+   * Un joueur QUELCONQUE reçoit un tag. Appelé APRÈS le recevoir() de son rôle et AVANT les règles
+   * générales de recevoir.ts : une Issue renvoyée (bloquer, consommer, transformer…) court-circuite la suite.
+   */
+  recevoir?(tag: string, meta: Meta, r: Reponses, partie: Partie, joueur: Joueur): Issue | void;
+
+  /** Après qu'un joueur QUELCONQUE a accepté un tag (même moment que Role.reagir, pour toute la table). */
+  reagir?(tag: string, meta: Meta, partie: Partie, joueur: Joueur): void;
+
+  /**
+   * Une carte de la nuit vient d'être jouée (`alias`, avec le choix de l'oracle). Renvoie true pour
+   * ouvrir sur-le-champ une décision URGENTE de la relique (comme celle du Chasseur ou du Rat), jouée
+   * avant la carte suivante. La Larme de Lune la pose juste après la morsure des loups.
+   */
+  apresCarte?(partie: Partie, alias: string, choix: ChoixFait): boolean;
+
+  /** La décision urgente ouverte par apresCarte(), présentée à l'oracle (« Passer » n'existe pas : une option « non »). */
+  decision?(partie: Partie): Decision;
+
+  /** L'oracle a validé un choix de cette décision. Même contrat que Role.agir(). */
+  agir?(choix: ChoixFait, partie: Partie): ResultatAction | void;
+
+  /** Après le vote DÉFINITIF du jour. Même contrat que Evenement.apresVote : `revoter` propose un autre vote. */
+  apresVote?(partie: Partie, elimine?: Joueur): (ResultatAction & { revoter?: boolean }) | void;
+
+  /** Après la validation de l'événement du jour (l'Œil de l'Oracle en révèle le nom). */
+  apresEvenement?(partie: Partie, evenement: Evenement): ResultatAction | void;
 }
 
 /* ---------- Journal ---------- */

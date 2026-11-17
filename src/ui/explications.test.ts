@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { EVENEMENTS } from "../moteur/evenements";
+import { LISTE_RELIQUES, RELIQUE_PAR_DEFAUT, RELIQUES } from "../moteur/reliques";
 import { LISTE_ROLES, ROLES } from "../moteur/roles";
 import { CAS_PARTICULIERS } from "./casParticuliers";
 import { FINS_DU_JEU } from "./finsDuJeu";
@@ -16,6 +17,12 @@ test("Explications : chaque carte et chaque événement a une explication détai
 
 // Le Loup-Garou et le Villageois n'en ont pas : choix assumé, ce sont des cartes qu'on ne met presque jamais en jeu.
 const SANS_CONSEIL = ["loup", "villageois"];
+
+test("Reliques : chacune a une explication, et le Temple Divin est le défaut", () => {
+  for (const relique of LISTE_RELIQUES) assert.ok(relique.explication?.length, `${relique.alias} sans explication`);
+  assert.ok(RELIQUES[RELIQUE_PAR_DEFAUT], "la relique par défaut doit exister");
+  assert.equal(new Set(LISTE_RELIQUES.map(r => r.alias)).size, LISTE_RELIQUES.length, "alias en double");
+});
 
 test("Conseils : chaque carte en a un, sauf le Loup-Garou et le Villageois", () => {
   for (const role of LISTE_ROLES) {

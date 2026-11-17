@@ -19,6 +19,7 @@
  *  (un état "chargement en cours", puis l'appel dans un useEffect).
  * ===================================================================================== */
 
+import { RELIQUE_PAR_DEFAUT, RELIQUES } from "../moteur/reliques";
 import { LISTE_ROLES, ROLES } from "../moteur/roles";
 
 /* -------------------------------------------------------------------------------------
@@ -52,6 +53,7 @@ export interface Donnees {
   dureeDebat: number;                     // en minutes
   nbLoups: number;                        // cartes du camp des loups à distribuer
   cartesFantomes: boolean;                // la nuit, appeler aussi les cartes activées non distribuées
+  relique: string;                        // alias de la relique de la prochaine partie (reliques/index.ts)
   ficheAuClic: boolean;                   // en partie, un clic sur un joueur ouvre la fiche de sa carte
 }
 
@@ -126,7 +128,10 @@ function parDefaut(): Donnees {
     // charger() le complète avec cette valeur grâce à la fusion « ...defaut, ...lu ».
     nbLoups: 2,
     cartesFantomes: false,
+    // Le Temple Divin : aucun effet. Des réglages enregistrés avant les reliques n'ont pas ce champ :
+    // charger() le complète avec cette valeur.
     // Désactivée par défaut : sans elle, un clic hors des cibles ne fait rien, comme avant.
+    relique: RELIQUE_PAR_DEFAUT,
     ficheAuClic: false
   };
 }
@@ -182,7 +187,9 @@ export function charger(): Donnees {
       ...defaut,
       ...lu,
       cartes: cartesFusionnees,
-      distribution: distributionValide ? distributionLue : {}
+      distribution: distributionValide ? distributionLue : {},
+      // Une relique supprimée du code depuis l'enregistrement : retour au Temple Divin, comme pour les cartes.
+      relique: lu.relique !== undefined && RELIQUES[lu.relique] ? lu.relique : RELIQUE_PAR_DEFAUT
     };
     return donnees;
   } catch {

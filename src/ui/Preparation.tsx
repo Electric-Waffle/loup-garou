@@ -23,6 +23,7 @@
 
 import { useState } from "react";
 import { distribuer } from "../moteur/distribution";
+import { LISTE_RELIQUES, RELIQUES } from "../moteur/reliques";
 import { ROLES } from "../moteur/roles";
 import { LIBELLES_CAMPS } from "./libelles";
 import { Modale } from "./Modale";
@@ -334,6 +335,29 @@ export function Preparation({
             />
           </label>
 
+          {/* La relique de la partie : un modificateur qui avantage un camp. Lore : le camp qui a PERDU
+              la partie précédente en reçoit une pour aider l'autre camp à la suivante. */}
+          <label className="champ-ligne champ-relique">
+            Relique
+            <select
+              className="champ"
+              value={donnees.relique}
+              onChange={evenement => modifier({ ...donnees, relique: evenement.target.value })}
+            >
+              {/* Un optgroup par camp avantagé. LISTE_RELIQUES est déjà rangée : village d'abord. */}
+              {(["village", "loups"] as const).map(camp => (
+                <optgroup key={camp} label={camp === "village" ? "Aide le village" : "Aide les loups"}>
+                  {LISTE_RELIQUES.filter(relique => relique.camp === camp).map(relique => (
+                    <option key={relique.alias} value={relique.alias}>{relique.image} {relique.titre}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <p className="aide">
+            {RELIQUES[donnees.relique]?.description}
+            {" "}Le camp qui a perdu la partie précédente offre une relique à l'autre camp.
+          </p>
           {/* Les cartes activées mais non distribuées sont appelées la nuit, avec seulement « Passer »,
               pour que personne ne sache quelles cartes sont réellement en jeu. */}
           <label className="champ-ligne">
