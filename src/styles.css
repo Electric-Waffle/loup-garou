@@ -130,7 +130,9 @@ input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ---------- Options : cartes ---------- */
 .grille-cartes { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .9rem; margin-top: 1rem; }
-.carte { padding: .9rem; display: flex; flex-direction: column; gap: .5rem; transition: opacity .2s; }
+.carte { padding: .9rem; display: flex; flex-direction: column; gap: .5rem; transition: opacity .2s; cursor: pointer; }
+/* Les zones de saisie gardent leur curseur habituel : un clic y sert à écrire, pas à activer la carte. */
+.carte .champ { cursor: text; }
 .carte-inactive { opacity: .5; }
 .carte-entete { display: flex; justify-content: space-between; align-items: flex-start; }
 .carte-description { color: var(--texte-doux); font-size: .85rem; flex: 1; }

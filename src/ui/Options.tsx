@@ -28,6 +28,7 @@
  *  Seule la page Options sait construire le nouvel objet `donnees`.
  * ===================================================================================== */
 
+import type { MouseEvent } from "react";
 import { LISTE_ROLES } from "../moteur/roles";
 import type { Role } from "../moteur/types";
 import { groupeDe, LIBELLES_CAMPS, LIBELLES_GROUPES, libelleTours, ORDRE_GROUPES } from "./libelles";
@@ -242,8 +243,26 @@ function CarteReglable({
   const classesCarte = reglage.active ? "carte" : "carte carte-inactive";
   const libelleActivation = reglage.active ? "Activée" : "Désactivée";
 
+  /**
+   * Un clic n'importe où sur la carte l'active ou la désactive.
+   * CONCEPT : les évènements « remontent » (bubbling). Un clic sur le titre, le texte ou un badge
+   * traverse ces éléments puis arrive à l'<article>, qui le reçoit ici ; evenement.target dit
+   * quel élément a été touché en premier.
+   * POURQUOI ignorer les éléments interactifs (closest) : le champ du titre, « Image… » et
+   * « Réinitialiser » ont leur propre rôle ; et la case à cocher bascule déjà toute seule (son
+   * onChange). Sans cette garde, un clic sur la case ferait deux bascules, et la carte reviendrait
+   * à son état d'origine.
+   * ATTENTION : « Image… » est un <label> qui contient un input caché : le clic remonte aussi
+   * depuis cet input, d'où « label » et « input » dans la liste.
+   */
+  function basculerSurClic(evenement: MouseEvent<HTMLElement>) {
+    const elementTouche = evenement.target as HTMLElement;
+    if (elementTouche.closest("input, textarea, select, button, label")) return;
+    regler({ active: !reglage.active });
+  }
+
   return (
-    <article className={classesCarte}>
+    <article className={classesCarte} onClick={basculerSurClic}>
       <div className="carte-entete">
         <Visuel src={imageAffichee} nom={role.titre} taille={64} />
         <label className="interrupteur">
