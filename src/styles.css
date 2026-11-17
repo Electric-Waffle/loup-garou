@@ -655,9 +655,15 @@ button.siege:hover { border-color: var(--accent); }
 .regles { max-width: 760px; }
 .regles ul, .regles ol { padding-left: 1.2rem; line-height: 1.55; }
 .regles em { color: var(--accent); font-style: normal; font-family: var(--police-titres); }
-/* Fin du jeu : une carte par façon de gagner. 300 px au moins : une colonne au téléphone. */
-.grille-fins { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .8rem; margin-top: .6rem; align-items: start; }
-.fin-du-jeu { padding: .9rem 1rem; }
+/* Fin du jeu : une carte par façon de gagner, rangées en COLONNES (effet « maçonnerie »).
+   POURQUOI pas une grille (display: grid) : une grille aligne les cartes par LIGNES, et chaque ligne
+   prend la hauteur de sa carte la plus haute : une carte longue laisse un trou sous ses voisines.
+   Avec column-width, le navigateur remplit une colonne de haut en bas, puis la suivante : chaque carte
+   se pose juste sous la précédente, quelle que soit sa hauteur. 300 px au moins : une colonne au téléphone.
+   ATTENTION : l'ordre de lecture est colonne par colonne (1, 2, 3 en haut à gauche, puis la colonne suivante). */
+.grille-fins { column-width: 300px; column-gap: .8rem; margin-top: .6rem; }
+/* break-inside: avoid : une carte n'est jamais coupée en deux entre deux colonnes. */
+.fin-du-jeu { padding: .9rem 1rem; break-inside: avoid; margin-bottom: .8rem; }
 .fin-du-jeu-entete { display: flex; align-items: center; gap: .6rem; margin-bottom: .3rem; }
 .fin-du-jeu-entete h3 { margin: 0; flex: 1; }
 /* Conseil (fiche d'une carte, fin du jeu) : un encadré jade, comme une note dans la marge. */
