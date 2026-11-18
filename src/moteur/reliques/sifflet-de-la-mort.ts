@@ -22,12 +22,12 @@ const VICTIMES_CONCERNEES = 2;
  */
 const siffletDeLaMort: Relique = {
   alias: "sifflet-de-la-mort",
-  titre: "Sifflet de la Mort",
+  titre: "Sifflet d'Ah Puch",
   image: "💀",
   camp: "loups",
-  description: "Les voisins des deux premières victimes des loups ne peuvent pas parler pendant le vote.",
+  description: "Le sifflet d'Ah Puch, seigneur de la mort chez les Mayas, glace les voisins des deux premières victimes des loups : ils ne peuvent pas parler pendant le vote.",
   explication: [
-    "Pour chacune des deux premières victimes des loups, les deux joueurs vivants assis juste à côté d'elle ne peuvent pas parler pendant le vote du jour.",
+    "Pour chacune des deux premières victimes des loups, les deux joueurs vivants assis juste à côté d'elle entendent le sifflet d'Ah Puch : ils ne peuvent pas parler pendant le vote du jour.",
     "Ils peuvent voter, mais plus se défendre ni accuser. Le village est prévenu de qui est muet, et pas du pourquoi.",
     "Après la deuxième victime, le sifflet se tait : il n'agit plus.",
     "Seules comptent les victimes d'une morsure de loup qui meurent vraiment : une morsure bloquée ou soignée ne compte pas."
@@ -44,7 +44,7 @@ const siffletDeLaMort: Relique = {
     const noms = voisins.map(voisin => voisin.nom).join(" et ");
     appliquerResultat(partie, {
       donner: voisins.map(voisin => ({ tag: "muet", a: voisin.id, meta: { expire: "aube_suivante" as const } })),
-      infos: [{ pour: "tous", texte: `Le sifflet de la mort retentit : ${noms} ne pourr${voisins.length > 1 ? "ont" : "a"} pas parler pendant le vote.` }]
+      infos: [{ pour: "tous", texte: `Le sifflet d'Ah Puch retentit : ${noms} ne pourr${voisins.length > 1 ? "ont" : "a"} pas parler pendant le vote.` }]
     }, "relique:sifflet-de-la-mort");
   }
 };

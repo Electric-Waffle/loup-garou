@@ -245,7 +245,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | 120 | Loup-Garou (avec ceux qui le rejoignent) | toutes |
 | 122 | Conquistador | toutes, tant qu'il a sa balle |
 | 124 | Loup barbare | toutes ; ne mord que la nuit qui suit l'élimination d'un non-loup par le village |
-| 126 | Skinwalker | à partir de la 3 ; après le Salvateur, dont la protection fait échouer le meurtre |
+| 126 | Skinwalker | à partir de la 2 ; après le Salvateur, dont la protection fait échouer le meurtre |
 | 130 | Sorcière | toutes |
 
 **L'état d'un joueur va dans `joueur.memoire`** (créé par `init()`), **jamais dans l'objet rôle**, qui est partagé par tous les joueurs ayant ce rôle.
@@ -272,7 +272,7 @@ Toujours une **dizaine** : une nouvelle carte s'insère entre deux avec un nombr
 | Loup vampire | loups | Vote avec les loups. Reçoit `invulnerable` au lancement : rien ne peut le tuer sauf le vote du village (l'or peut quand même racheter ce vote). Amoureux, il survit au chagrin ; voté, son amoureux meurt de chagrin. |
 | Rat | village (hybride) | Dévoré, il choisit en secret (décision urgente) : **mordre**, il meurt à l'aube (`agonisant`) et un participant au vote des loups attrape la **peste** (mort à la 2e aube) ; ou **rejoindre la meute**, la morsure est annulée et il devient Rat-garou (tag `devient`). Éliminé par le vote, il contamine le maire. |
 | Rat-garou | loups (hybride) | Se réveille avec les loups mais ne vote pas. Meurt à l'aube s'il est le dernier du camp des loups. Éliminé par le vote, il contamine le maire. |
-| Skinwalker | skinwalker | Nuit 3+ (126) : donne `mort` (cause `skinwalker`, carte non révélée au rapport) et se donne `imite` avec la carte de la victime (`init()` neuf). `porteursDe()` et `commencerNuit()` l'appellent au tour de cette carte ; Voyante et Loup voyante la voient (`partie.carteImitee()`). Victime protégée par le Salvateur : échec, et pas de meurtre la nuit suivante. Pouvoirs passifs de la carte volée non joués. Vole la victoire du village s'il est vivant. |
+| Skinwalker | skinwalker | Nuit 2+ (126) : donne `mort` (cause `skinwalker`, carte non révélée au rapport) et se donne `imite` avec la carte de la victime (`init()` neuf). `porteursDe()` et `commencerNuit()` l'appellent au tour de cette carte ; Voyante et Loup voyante la voient (`partie.carteImitee()`). Victime protégée par le Salvateur : échec, et pas de meurtre la nuit suivante. Pouvoirs passifs de la carte volée non joués. Vole la victoire du village s'il est vivant. |
 | Fou | fou | Se réveille et vote avec les loups, mais son vote ne compte pas. Ne compte pas comme loup. Si les loups devraient gagner alors qu'il est vivant, il gagne seul. |
 | Fée | village | À partir de la nuit 2, enchante un joueur, qui ne fait rien de la nuit. |
 | Arlequin | village | Nuits 1, 3, 5… : lie deux joueurs jusqu'à l'aube ; ils ne peuvent viser qu'eux-mêmes ou l'autre. |
@@ -314,22 +314,25 @@ Tirés après l'élection du maire. L'oracle peut demander « Un autre » ou « 
 ---
 
 ### Les reliques (`src/moteur/reliques/`, un fichier chacune)
-Un modificateur de partie, choisi à la préparation (une seule par partie, `Partie.relique`, état dans `Partie.etatRelique`). Lore : le camp qui a perdu la partie précédente offre une relique à l'autre. Le Temple Divin (défaut) ne fait rien : la partie a toujours une relique, le moteur ne teste jamais « s'il y en a une ».
+Un modificateur de partie, choisi à la préparation (une seule par partie, `Partie.relique`, état dans `Partie.etatRelique`). Lore : le camp qui a perdu la partie précédente offre une relique à l'autre. Le Pyramide de Chichén Itzá (défaut) ne fait rien : la partie a toujours une relique, le moteur ne teste jamais « s'il y en a une ».
 
 | Crochet de `Relique` | Appelé par | Exemple |
 | --- | --- | --- |
-| `debut(partie)` | constructeur de `Partie`, après les `debut()` des rôles | Encens de vérité : choisit et révèle un loup |
-| `recevoir(tag, meta, r, partie, joueur)` | `donnerTag()`, après le `recevoir()` du rôle, avant le `switch` | Toison d'or, Encens, Graal, Écaille, Fontaine |
-| `reagir(tag, meta, partie, joueur)` | `accepter()`, après le `reagir()` du rôle | Sifflet de la Mort, Œil de l'Oracle |
-| `apresCarte` / `decision` / `agir` | `jouer()` : après une carte de la nuit, une décision URGENTE de la relique (alias `relique`) | Larme de Lune : « utiliser la larme ? » juste après la morsure |
-| `apresVote(partie, elimine?)` | `finDuVote()` | Hache de guerre : revote sans limite (`revoter: true`) |
-| `apresEvenement(partie, evenement)` | validation de l'événement | Œil de l'Oracle : révèle son nom |
+| `debut(partie)` | constructeur de `Partie`, après les `debut()` des rôles | Copal d'Itzamná : choisit et révèle un loup |
+| `recevoir(tag, meta, r, partie, joueur)` | `donnerTag()`, après le `recevoir()` du rôle, avant le `switch` | Peau de Balam, Encens, Graal, Écaille, Fontaine |
+| `reagir(tag, meta, partie, joueur)` | `accepter()`, après le `reagir()` du rôle | Sifflet d'Ah Puch, Œil du Chilam |
+| `apresCarte` / `debutDeNuit` → `decision` / `porteurs` / `agir` | `jouer()` après une carte, ou `commencerNuit()` : une décision URGENTE de la relique (alias `relique`). Un `agir()` à plusieurs temps la rouvre avec `ouvrirDecisionDeRelique(moi)` | Larme d'Ixchel (après la morsure) ; Boussole de Xibalba (nuits paires : duel, puis désignation) |
+| `apresVote(partie, elimine?)` | `finDuVote()` | Hache d'Ek Chuah : revote sans limite (`revoter: true`) |
+| `apresEvenement(partie, evenement)` | validation de l'événement | Œil du Chilam : révèle son nom |
 
 - **Première victime des loups** (Graal, Écaille) : on intercepte le tag `mort` (cause `mordu`, source = une carte du camp des loups), pas `mordu` : à l'aube, la morsure a déjà passé le Salvateur, la Sorcière et l'Ancien. `reliques/outils.ts` : `estUneMorsureDeLoup`, `loupsVivants`.
 - **Un vote qui ne tue pas** (Encens, Fontaine, ignifuge) : `executerLeVote()` le traite comme « personne n'est éliminé ». Celui qui empêche la mort écrit lui-même l'annonce publique (elle n'est plus dans `Partie`).
 - **Écaille** : `Partie.aTagDe(j, "protege", "salvateur")` répond vrai pour un joueur « ecaille » : les loups qui lient ou regardent y sont déjà branchés.
-- **Larme de Lune** : `etatRelique.jourSaute` = numéro de nuit ; `suiteDeLAube()` enchaîne alors la nuit suivante (`jourEstSaute()`).
-- **Œil de l'Oracle** lit `Role.hybride` et le nouveau champ `Role.partagee` (Pleureuse, Fêtard, Marchand, Bâtisseur).
+- **Larme d'Ixchel** : `etatRelique.jourSaute` = numéro de nuit ; `suiteDeLAube()` enchaîne alors la nuit suivante (`jourEstSaute()`).
+- **Œil du Chilam** lit `Role.hybride` et le nouveau champ `Role.partagee` (Pleureuse, Fêtard, Marchand, Bâtisseur).
+- **Noms (thème maya)** : Pyramide de Chichén Itzá (`temple-divin`, défaut), Fontaine de fée, Copal d'Itzamná (`encens-de-verite`), Écaille de Kukulkan (`ecaille-de-quetzalcoatl`), Hache d'Ek Chuah, Œil du Chilam, Masque de Hun Batz (`masque-de-rumeurs`), Boussole de Xibalba (`boussole-des-morts`), Sifflet d'Ah Puch, Coupe de Camazotz (`graal-de-sang`), Peau de Balam (`toison-d-or`), Larme d'Ixchel (`larme-de-lune`). Les ALIAS ne changent pas : les réglages enregistrés les citent.
+- **Masque de Hun Batz** : `debut()` lit `Role.camp` de la table et annonce les cartes hors du village (nombre par carte, jamais qui). `AnnoncesDuDebut` (PartieVue) la rappelle à l'oracle tant qu'aucune carte n'a joué à la nuit 1.
+- **Boussole de Xibalba** : nuits paires, si un mort du camp des loups ET un du camp du village existent. Temps 1 : l'oracle indique le gagnant du pierre-feuille-ciseaux ; temps 2 : le gagnant désigne un vivant, annoncé au matin sans son camp. État : `etatRelique.boussole`.
 - Ajouter une relique : un fichier, `LISTE_RELIQUES` dans `reliques/index.ts`, une `explication`, un test dans `scenario.test.ts`. Un tag nouveau : un libellé dans `TAGS` (`libelles.ts`).
 - Interface : un `<select>` dans Préparer (`Donnees.relique`), la relique rappelée dans « Tour N · 💧 », la page Explications (section Reliques) et l'écran de fin, qui rappelle le lore.
 

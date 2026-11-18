@@ -15,13 +15,13 @@ import type { Relique } from "../types";
  */
 const toisonDOr: Relique = {
   alias: "toison-d-or",
-  titre: "Toison d'or",
+  titre: "Peau de Balam",
   image: "🐏",
   camp: "loups",
-  description: "Les loups sont immortels jusqu'à ce que le village en élimine un par le vote.",
+  description: "Les loups revêtent la peau de Balam, le jaguar sacré : ils sont immortels, jusqu'à ce que le village en élimine un par le vote.",
   explication: [
-    "Tant que le village n'a éliminé aucun loup par le vote, aucun loup ne peut mourir : ni la potion de la Sorcière, ni le Chasseur, ni le Conquistador, ni le chagrin, ni la peste.",
-    "Le vote du village, lui, passe : le premier loup qu'il élimine meurt, et la toison est brisée.",
+    "Tant que le village n'a éliminé aucun loup par le vote, la peau de Balam les protège : aucun loup ne peut mourir, ni par la potion de la Sorcière, ni par le Chasseur, ni par le Conquistador, ni par le chagrin, ni par la peste.",
+    "Le vote du village, lui, passe : le premier loup qu'il élimine meurt, et la peau de Balam est déchirée.",
     "À partir de là, les loups sont mortels comme tout le monde.",
     "« Les loups » comprend les loups cachés : Prêtre impur, Faux Parleur, Rat-garou, Loup barbare."
   ],
@@ -30,14 +30,14 @@ const toisonDOr: Relique = {
     if (tag !== "mort" || partie.etatRelique.toisonBrisee) return;
     if (partie.roleDe(joueur).camp !== "loups") return;
     if (meta.cause === "vote") return;
-    return r.bloquer("toison d'or : les loups sont immortels tant que le village n'en a pas voté un");
+    return r.bloquer("peau de Balam : les loups sont immortels tant que le village n'en a pas voté un");
   },
 
   reagir(tag, meta, partie, joueur) {
     if (tag !== "mort" || meta.cause !== "vote") return;
     if (partie.roleDe(joueur).camp !== "loups") return;
     partie.etatRelique.toisonBrisee = true;
-    partie.ajouterInfo({ pour: "tous", texte: "Un loup est tombé : la toison d'or est brisée, les loups sont mortels." });
+    partie.ajouterInfo({ pour: "tous", texte: "Un loup est tombé : la peau de Balam est déchirée, les loups sont mortels." });
   }
 };
 

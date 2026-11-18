@@ -25,14 +25,14 @@ const CAMP_ANNONCE: Partial<Record<Camp, string>> = {
  */
 const oeilDeLOracle: Relique = {
   alias: "oeil-de-l-oracle",
-  titre: "Œil de l'Oracle",
+  titre: "Œil du Chilam",
   image: "🧿",
   camp: "village",
-  description: "Le village apprend le camp des cartes hybrides qui meurent, la carte exacte des cartes partagées, et le nom de l'événement du jour.",
+  description: "Le Chilam, prêtre-devin des Mayas, voit ce que l'oracle cache d'ordinaire : le camp des cartes hybrides qui meurent, la carte exacte des cartes partagées, et le nom de l'événement du jour.",
   explication: [
-    "À la mort d'une carte hybride (Rat, Prêtre, Beau Parleur…), le village apprend de quel camp elle était : village ou loups. D'ordinaire, ce choix reste secret.",
-    "À la mort d'une carte partagée (Pleureuse, Fêtard, Marchand, Bâtisseur), le village apprend laquelle des quatre c'était, au lieu de « un villageois ».",
-    "Chaque jour, le nom de l'événement en cours est révélé au village.",
+    "À la mort d'une carte hybride (Rat, Prêtre, Beau Parleur…), le Chilam révèle au village de quel camp elle était : village ou loups. D'ordinaire, ce choix reste secret.",
+    "À la mort d'une carte partagée (Pleureuse, Fêtard, Marchand, Bâtisseur), il révèle laquelle des quatre c'était, au lieu de « un villageois ».",
+    "Chaque jour, il annonce aussi le nom de l'événement en cours.",
     "Ces informations sont lues à voix haute au rapport de l'aube, au résultat du vote ou à l'écran de l'événement."
   ],
 
@@ -41,14 +41,14 @@ const oeilDeLOracle: Relique = {
     const role = partie.roleDe(joueur);
     if (role.hybride) {
       const camp = CAMP_ANNONCE[role.camp] ?? role.camp;
-      partie.ajouterInfo({ pour: "tous", texte: `L'œil de l'oracle révèle que ${joueur.nom}, carte hybride, était ${camp}.` });
+      partie.ajouterInfo({ pour: "tous", texte: `L'œil du Chilam révèle que ${joueur.nom}, carte hybride, était ${camp}.` });
     } else if (role.partagee) {
-      partie.ajouterInfo({ pour: "tous", texte: `L'œil de l'oracle révèle que ${joueur.nom} était ${partie.titre(joueur.role)}.` });
+      partie.ajouterInfo({ pour: "tous", texte: `L'œil du Chilam révèle que ${joueur.nom} était ${partie.titre(joueur.role)}.` });
     }
   },
 
   apresEvenement(partie, evenement) {
-    return { infos: [{ pour: "tous", texte: `L'œil de l'oracle révèle l'événement du jour : « ${evenement.titre} ».` }] };
+    return { infos: [{ pour: "tous", texte: `L'œil du Chilam révèle l'événement du jour : « ${evenement.titre} ».` }] };
   }
 };
 

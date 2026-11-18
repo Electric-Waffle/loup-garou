@@ -1,10 +1,10 @@
 import type { Role } from "../types";
 
 /**
- * SKINWALKER : son propre camp. Chaque nuit à partir de la 3e, il tue un joueur et prend sa carte.
+ * SKINWALKER : son propre camp. Chaque nuit à partir de la 2e, il tue un joueur et prend sa carte.
  *
  * Déroulé :
- *   1. Nuit 3 et suivantes (126, après le Salvateur à 100) : il désigne une victime.
+ *   1. Nuit 2 et suivantes (126, après le Salvateur à 100) : il désigne une victime.
  *   2. Victime protégée par le Salvateur : rien ne se passe, et il ne pourra pas tuer la nuit
  *      suivante (numéro de nuit en memoire, comme le Loup barbare).
  *   3. Sinon il DONNE "mort" (cause "skinwalker") : ni la Sorcière ni l'Ancien n'y peuvent rien,
@@ -27,10 +27,10 @@ const skinwalker: Role = {
   titre: "Skinwalker",
   image: "👤​",
   camp: "skinwalker",
-  description: "Un esprit qui vole la peau des morts. Chaque nuit à partir de la 3e, il tue un joueur (sauf s'il est protégé par le Salvateur) et prend sa carte, sans la révéler. S'il est vivant quand le village gagne, il gagne seul.",
+  description: "Un esprit qui vole la peau des morts. Chaque nuit à partir de la 2e, il tue un joueur (sauf s'il est protégé par le Salvateur) et prend sa carte, sans la révéler. S'il est vivant quand le village gagne, il gagne seul.",
   explication: [
     "Une créature qui forme un camp à elle seule et se cache parmi les villageois.",
-    "À partir de la nuit 3 (rang 126), il tue un joueur chaque nuit : ni la Sorcière, ni la deuxième vie de l'Ancien n'y peuvent rien.",
+    "À partir de la nuit 2 (rang 126), il tue un joueur chaque nuit : ni la Sorcière, ni la deuxième vie de l'Ancien n'y peuvent rien.",
     "Au rapport de l'aube, la carte de sa victime n'est pas révélée.",
     "Il prend la carte de sa victime, neuve, et la joue en plus de la sienne. La Voyante qui le regarde voit cette carte-là.",
     "Si sa victime est protégée par le Salvateur, il échoue, et ne peut tuer personne la nuit suivante.",
@@ -43,7 +43,7 @@ const skinwalker: Role = {
   ],
   priorite: 126,
   appelNuit: true,
-  tours: { de: 3 },
+  tours: { de: 2 },
 
   decision(partie, moi) {
     if (moi.memoire.nuitSansMeurtre === partie.tour) {

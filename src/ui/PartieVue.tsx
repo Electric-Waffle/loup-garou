@@ -452,7 +452,7 @@ export function PartieVue({
               <div className="table-centre table-centre-partie">
                 <span className="table-tour">
                   Tour {partie.tour}
-                  {/* La relique en jeu, rappelée en permanence à l'oracle (rien si c'est le Temple Divin). */}
+                  {/* La relique en jeu, rappelée en permanence à l'oracle (rien si c'est la Pyramide de Chichén Itzá). */}
                   {partie.relique.alias !== RELIQUE_PAR_DEFAUT && (
                     <span title={`Relique : ${partie.relique.titre}`}> · {partie.relique.image}</span>
                   )}
@@ -498,6 +498,7 @@ export function PartieVue({
         </div>
 
         <div className="panneau-corps" ref={corpsDuPanneau}>
+          <AnnoncesDuDebut partie={partie} />
           <DerniersResultats partie={partie} />
 
           {/* Une décision est en cours : on l'affiche. Sinon : l'étape du jour. */}
@@ -902,7 +903,7 @@ function RapportDesMorts({ partie, agir }: { partie: Partie; agir: (action: () =
   const titre = estLAube ? "Rapport de la nuit" : "Résultat du vote";
   let libelleBouton = "La nuit tombe";
   if (estLAube) libelleBouton = partie.aBesoinDUnMaire() ? "Élire le maire" : "Événement du jour";
-  // Larme de Lune : pas d'élection, d'événement ni de vote ; le bouton enchaîne directement la nuit.
+  // Larme d'Ixchel : pas d'élection, d'événement ni de vote ; le bouton enchaîne directement la nuit.
   if (estLAube && partie.jourEstSaute()) libelleBouton = "La nuit tombe (jour sauté)";
 
   /** Passe à la phase suivante. Les deux méthodes vérifient d'abord la victoire. */
@@ -1180,6 +1181,33 @@ function DerniersResultats({ partie }: { partie: Partie }) {
       {infosPrivees.map((entree, index) => (
         <p key={index} className="info-privee">{decrire(entree, partie)}</p>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Les annonces publiques faites AVANT la première nuit (le Masque de Hun Batz, le Copal d'Itzamná…) :
+ * l'oracle doit les lire au village avant que la nuit 1 ne commence.
+ *
+ * FLUX : affichées tant qu'aucune carte n'a joué à la nuit 1 (aucune entrée « action » ou « passe »
+ * au journal), puis elles disparaissent. Elles restent lisibles au rapport de l'aube, comme toute
+ * annonce publique de la nuit.
+ * POURQUOI relire infos et journal plutôt qu'un état : même principe que DerniersResultats, rien à
+ * tenir à jour, donc rien qui puisse se désynchroniser.
+ */
+function AnnoncesDuDebut({ partie }: { partie: Partie }) {
+  const uneCarteAJoue = partie.journal.some(entree => entree.type === "action" || entree.type === "passe");
+  if (partie.tour !== 1 || partie.phase !== "nuit" || uneCarteAJoue) return null;
+
+  const annonces = partie.infos
+    .filter(info => info.pour === "tous" && info.tour === 1 && info.phase === "nuit")
+    .map(info => info.texte);
+  if (annonces.length === 0) return null;
+
+  return (
+    <div className="annonces-du-debut">
+      <p className="aide">📢 À annoncer au village avant la nuit :</p>
+      {annonces.map((texte, index) => <p key={index} className="info-publique">{texte}</p>)}
     </div>
   );
 }

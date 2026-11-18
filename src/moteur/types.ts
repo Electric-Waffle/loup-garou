@@ -112,7 +112,7 @@ export interface Role {
   conseil?: string[];
   /**
    * Carte « partagée » : à la mort du joueur, le village apprend seulement « un villageois est mort ».
-   * Aujourd'hui : Pleureuse, Fêtard, Marchand, Bâtisseur. Lu par l'Œil de l'Oracle, une relique qui
+   * Aujourd'hui : Pleureuse, Fêtard, Marchand, Bâtisseur. Lu par l'Œil du Chilam, une relique qui
    * révèle justement laquelle des quatre c'était.
    */
   partagee?: boolean;
@@ -258,20 +258,32 @@ export interface Relique {
   /**
    * Une carte de la nuit vient d'être jouée (`alias`, avec le choix de l'oracle). Renvoie true pour
    * ouvrir sur-le-champ une décision URGENTE de la relique (comme celle du Chasseur ou du Rat), jouée
-   * avant la carte suivante. La Larme de Lune la pose juste après la morsure des loups.
+   * avant la carte suivante. La Larme d'Ixchel la pose juste après la morsure des loups.
    */
   apresCarte?(partie: Partie, alias: string, choix: ChoixFait): boolean;
 
-  /** La décision urgente ouverte par apresCarte(), présentée à l'oracle (« Passer » n'existe pas : une option « non »). */
+  /**
+   * Une nuit commence. Renvoie le joueur « moi » d'une décision urgente de la relique pour l'ouvrir
+   * tout de suite (la Boussole de Xibalba, une nuit sur deux), ou undefined. Appelé aussi à la nuit 1.
+   */
+  debutDeNuit?(partie: Partie): Joueur | undefined;
+
+  /** La décision urgente ouverte par apresCarte() ou debutDeNuit() (« Passer » n'existe pas : une option « non »). */
   decision?(partie: Partie): Decision;
 
-  /** L'oracle a validé un choix de cette décision. Même contrat que Role.agir(). */
+  /** Les joueurs mis en avant sur la table pendant cette décision (par défaut : seulement « moi »). */
+  porteurs?(partie: Partie): Joueur[];
+
+  /**
+   * L'oracle a validé un choix de cette décision. Même contrat que Role.agir().
+   * Une relique à plusieurs temps rouvre sa décision avec partie.ouvrirDecisionDeRelique(moi).
+   */
   agir?(choix: ChoixFait, partie: Partie): ResultatAction | void;
 
   /** Après le vote DÉFINITIF du jour. Même contrat que Evenement.apresVote : `revoter` propose un autre vote. */
   apresVote?(partie: Partie, elimine?: Joueur): (ResultatAction & { revoter?: boolean }) | void;
 
-  /** Après la validation de l'événement du jour (l'Œil de l'Oracle en révèle le nom). */
+  /** Après la validation de l'événement du jour (l'Œil du Chilam en révèle le nom). */
   apresEvenement?(partie: Partie, evenement: Evenement): ResultatAction | void;
 }
 

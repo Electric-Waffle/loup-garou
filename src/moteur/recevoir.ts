@@ -23,7 +23,7 @@ export function donnerTag(partie: Partie, joueur: Joueur, tag: string, meta: Met
   const reaction = role.recevoir?.(tag, meta, r, partie, joueur);
   if (reaction) return reaction;
 
-  // 1 bis. La relique de la partie, qui voit tous les joueurs (Toison d'or, Encens, Graal…).
+  // 1 bis. La relique de la partie, qui voit tous les joueurs (Peau de Balam, Encens, Graal…).
   // POURQUOI APRÈS le rôle : la seconde vie de l'Ancien, par exemple, a priorité sur une relique qui
   // réagirait à la même morsure ; et AVANT le switch : une relique peut ainsi bloquer une mort avant
   // que l'or, le chagrin ou le tir du Chasseur ne partent.

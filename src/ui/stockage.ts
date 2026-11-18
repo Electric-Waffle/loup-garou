@@ -128,7 +128,7 @@ function parDefaut(): Donnees {
     // charger() le complète avec cette valeur grâce à la fusion « ...defaut, ...lu ».
     nbLoups: 2,
     cartesFantomes: false,
-    // Le Temple Divin : aucun effet. Des réglages enregistrés avant les reliques n'ont pas ce champ :
+    // Le Pyramide de Chichén Itzá : aucun effet. Des réglages enregistrés avant les reliques n'ont pas ce champ :
     // charger() le complète avec cette valeur.
     // Désactivée par défaut : sans elle, un clic hors des cibles ne fait rien, comme avant.
     relique: RELIQUE_PAR_DEFAUT,
@@ -188,7 +188,7 @@ export function charger(): Donnees {
       ...lu,
       cartes: cartesFusionnees,
       distribution: distributionValide ? distributionLue : {},
-      // Une relique supprimée du code depuis l'enregistrement : retour au Temple Divin, comme pour les cartes.
+      // Une relique supprimée du code depuis l'enregistrement : retour à la Pyramide de Chichén Itzá, comme pour les cartes.
       relique: lu.relique !== undefined && RELIQUES[lu.relique] ? lu.relique : RELIQUE_PAR_DEFAUT
     };
     return donnees;

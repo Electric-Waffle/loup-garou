@@ -26,13 +26,13 @@ const NON = "non";
  */
 const larmeDeLune: Relique = {
   alias: "larme-de-lune",
-  titre: "Larme de Lune",
+  titre: "Larme d'Ixchel",
   image: "💧",
   camp: "loups",
-  description: "Une fois par partie, après leur morsure, les loups peuvent utiliser la larme : le lendemain, pas de vote, on retourne à la nuit.",
+  description: "Ixchel, déesse maya de la Lune, pleure pour les loups : une fois par partie, après leur morsure, ils peuvent faire tomber sa larme. Le lendemain, pas de vote : on retourne à la nuit.",
   explication: [
-    "Chaque nuit, une fois les loups d'accord sur leur victime, l'oracle leur demande s'ils utilisent la larme. Une seule fois dans la partie.",
-    "S'ils l'utilisent, la victime est dévorée comme d'habitude, mais au matin le village apprend que la larme est tombée : il n'y a ni débat ni vote, et la nuit suivante commence aussitôt.",
+    "Chaque nuit, une fois les loups d'accord sur leur victime, l'oracle leur demande s'ils font tomber la larme d'Ixchel. Une seule fois dans la partie.",
+    "S'ils le font, la victime est dévorée comme d'habitude, mais au matin le village apprend que la larme est tombée : il n'y a ni débat ni vote, et la nuit suivante commence aussitôt.",
     "Les autres événements de la nuit (poison, tir du Chasseur…) ont lieu normalement, et la victoire est vérifiée avant de sauter le jour.",
     "Bien utilisée, elle protège un loup démasqué du bûcher, ou gagne un jour de plus pour dévorer."
   ],
@@ -43,9 +43,9 @@ const larmeDeLune: Relique = {
 
   decision() {
     return {
-      message: "Les loups ont choisi leur victime. Se mettent-ils d'accord pour utiliser la Larme de Lune ?",
+      message: "Les loups ont choisi leur victime. Se mettent-ils d'accord pour faire tomber la Larme d'Ixchel ?",
       choix: [
-        { id: OUI, label: "Utiliser la larme : pas de vote demain", cible: "aucune" },
+        { id: OUI, label: "Faire tomber la larme : pas de vote demain", cible: "aucune" },
         { id: NON, label: "Non", cible: "aucune" }
       ]
     };
@@ -56,7 +56,7 @@ const larmeDeLune: Relique = {
     partie.etatRelique.larmeUtilisee = true;
     partie.etatRelique.jourSaute = partie.tour;
     return {
-      infos: [{ pour: "tous", texte: "Une larme de lune tombe sur le village : il n'y aura ni débat ni vote aujourd'hui." }]
+      infos: [{ pour: "tous", texte: "Une larme d'Ixchel tombe sur le village : il n'y aura ni débat ni vote aujourd'hui." }]
     };
   }
 };

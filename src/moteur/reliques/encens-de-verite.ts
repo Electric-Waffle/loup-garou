@@ -19,14 +19,14 @@ import { loupsVivants } from "./outils";
  */
 const encensDeVerite: Relique = {
   alias: "encens-de-verite",
-  titre: "Encens de vérité",
+  titre: "Copal d'Itzamná",
   image: "🪔",
   camp: "village",
-  description: "Un loup est révélé au village. Il est invincible tant qu'il reste un autre loup : il ne peut tomber qu'en dernier.",
+  description: "La fumée du copal brûlé pour Itzamná, dieu de la sagesse, révèle un loup au village. Il est invincible tant qu'il reste un autre loup : il ne peut tomber qu'en dernier.",
   explication: [
-    "Au lancement, un loup tiré au hasard est révélé au village : tout le monde sait qu'il est un loup.",
-    "Tant qu'un autre loup est en vie, rien ne peut le tuer : ni le vote du village, ni la Sorcière, ni le Chasseur, ni le chagrin… absolument rien.",
-    "Quand il est le dernier loup vivant, il redevient mortel.",
+    "Au lancement, la fumée du copal sacré d'Itzamná désigne un loup tiré au hasard : tout le village sait qu'il est un loup.",
+    "Tant qu'un autre loup est en vie, Itzamná le protège : rien ne peut le tuer, ni le vote du village, ni la Sorcière, ni le Chasseur, ni le chagrin… absolument rien.",
+    "Quand il est le dernier loup vivant, le dieu l'abandonne : il redevient mortel.",
     "Le village peut donc ignorer ce loup et chasser les autres d'abord, en sachant que le dernier de la meute est déjà connu.",
     "« Un loup » veut aussi dire un loup caché : Prêtre impur, Faux Parleur, Rat-garou ou Loup barbare."
   ],
@@ -36,7 +36,7 @@ const encensDeVerite: Relique = {
     if (!loup) return;
     return {
       donner: [{ tag: "encens", a: loup.id }],
-      infos: [{ pour: "tous", texte: `L'encens de vérité révèle un loup : ${loup.nom} est du camp des loups. Il ne tombera qu'en dernier.` }]
+      infos: [{ pour: "tous", texte: `La fumée du copal d'Itzamná révèle un loup : ${loup.nom} est du camp des loups. Il ne tombera qu'en dernier.` }]
     };
   },
 
@@ -45,9 +45,9 @@ const encensDeVerite: Relique = {
     const autresLoups = loupsVivants(partie).filter(loup => loup.id !== joueur.id);
     if (autresLoups.length === 0) return;
     if (meta.cause === "vote") {
-      partie.ajouterInfo({ pour: "tous", texte: `L'encens protège ${joueur.nom} : il ne peut pas tomber tant qu'il reste d'autres loups.` });
+      partie.ajouterInfo({ pour: "tous", texte: `Le copal d'Itzamná protège ${joueur.nom} : il ne peut pas tomber tant qu'il reste d'autres loups.` });
     }
-    return r.bloquer("encens de vérité : invincible tant qu'il reste d'autres loups");
+    return r.bloquer("copal d'Itzamná : invincible tant qu'il reste d'autres loups");
   }
 };
 

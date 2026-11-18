@@ -17,12 +17,12 @@ import { verifierVictoire } from "../victoire";
  */
 const hacheDeGuerre: Relique = {
   alias: "hache-de-guerre",
-  titre: "Hache de guerre",
+  titre: "Hache d'Ek Chuah",
   image: "⚔️",
   camp: "village",
-  description: "Tant que le village élimine un loup, il peut revoter : un village qui devine juste peut gagner en un jour.",
+  description: "Ek Chuah, dieu maya de la guerre, prête sa hache au village : tant qu'il élimine un loup, il peut revoter. Un village qui devine juste peut gagner en un jour.",
   explication: [
-    "Chaque fois que le village élimine un loup par le vote, il peut voter une nouvelle fois, sans limite.",
+    "Chaque fois que le village élimine un loup par le vote, la hache d'Ek Chuah le laisse voter une nouvelle fois, sans limite.",
     "La chaîne s'arrête dès qu'un vote élimine quelqu'un qui n'est pas un loup, ou personne.",
     "Un village qui trouve un loup à chaque vote peut donc tous les éliminer le jour même, et gagner dès le premier tour.",
     "« Un loup » comprend les loups cachés : Prêtre impur, Faux Parleur, Rat-garou, Loup barbare.",
@@ -34,7 +34,7 @@ const hacheDeGuerre: Relique = {
     if (verifierVictoire(partie) !== undefined) return;
     return {
       revoter: true,
-      infos: [{ pour: "tous", texte: `${elimine.nom} était un loup : la hache de guerre permet au village de voter encore.` }]
+      infos: [{ pour: "tous", texte: `${elimine.nom} était un loup : la hache d'Ek Chuah permet au village de voter encore.` }]
     };
   }
 };

@@ -183,7 +183,7 @@ export const CAS_PARTICULIERS: CasParticulier[] = [
   },
   {
     titre: "Le Skinwalker prend la carte de la Sorcière",
-    contexte: "Nuit 3, le Skinwalker tue la Sorcière. Plus tard, la Voyante le regarde.",
+    contexte: "Nuit 2, le Skinwalker tue la Sorcière. Plus tard, la Voyante le regarde.",
     roles: ["skinwalker", "sorciere", "voyante"],
     table: [
       { role: "skinwalker", tags: ["imite"] },

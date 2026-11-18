@@ -610,7 +610,8 @@ button.siege:hover { border-color: var(--accent); }
    journal reste affiché sous le panneau (.journal-en-ligne). Voir « Téléphone » plus bas. */
 .panneau-barre { display: none; }
 /* Infos privées à montrer au joueur : un encadré jade, distinct des annonces publiques (or). */
-.derniers-resultats { margin-bottom: .6rem; }
+.derniers-resultats, .annonces-du-debut { margin-bottom: .6rem; }
+.annonces-du-debut .aide { margin: 0 0 .2rem; }
 .derniers-resultats .aide { margin: 0 0 .2rem; }
 .info-privee { background: #183a33; border-left: 3px solid var(--jade); border-radius: 4px; padding: .5rem .7rem; margin: .25rem 0; }
 /* La fiche d'un joueur ouverte depuis la table (BlocJoueur, au-dessus de la fiche de sa carte). */

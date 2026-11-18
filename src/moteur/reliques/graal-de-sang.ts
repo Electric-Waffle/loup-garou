@@ -18,12 +18,12 @@ import { estUneMorsureDeLoup } from "./outils";
  */
 const graalDeSang: Relique = {
   alias: "graal-de-sang",
-  titre: "Graal de Sang",
+  titre: "Coupe de Camazotz",
   image: "🍷",
   camp: "loups",
-  description: "La première victime des loups ne meurt pas : elle se transforme en Loup-Garou.",
+  description: "Dans la coupe de Camazotz, le dieu-chauve-souris du sacrifice, coule le sang des loups : leur première victime ne meurt pas, elle se transforme en Loup-Garou.",
   explication: [
-    "La première fois que les loups tuent vraiment un joueur, il ne meurt pas : il devient un Loup-Garou ordinaire et rejoint la meute.",
+    "La première fois que les loups tuent vraiment un joueur, il ne meurt pas : il boit à la coupe de Camazotz, devient un Loup-Garou ordinaire et rejoint la meute.",
     "Une morsure bloquée (Salvateur, Fêtard), soignée (Sorcière) ou absorbée (seconde vie de l'Ancien) ne compte pas : la relique attend une vraie victime.",
     "Le converti garde ses liens (amoureux, or…) mais perd son pouvoir de départ. Il est prévenu en secret ; pour le village, personne n'est mort cette nuit-là.",
     "Une seule fois par partie. Sans effet sur un joueur qui est déjà du camp des loups."
@@ -35,7 +35,7 @@ const graalDeSang: Relique = {
     if (partie.roleDe(joueur).camp === "loups") return;
 
     partie.etatRelique.graalUtilise = true;
-    partie.ajouterInfo({ pour: joueur.id, texte: `Le graal de sang te transforme : tu es maintenant ${partie.titre("loup")}. Rejoins la meute.` });
+    partie.ajouterInfo({ pour: joueur.id, texte: `La coupe de Camazotz te transforme : tu es maintenant ${partie.titre("loup")}. Rejoins la meute.` });
     return r.transformer("devient", { role: "loup" });
   }
 };

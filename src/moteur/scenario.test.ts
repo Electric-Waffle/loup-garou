@@ -4,6 +4,7 @@ import { aube } from "./aube";
 import { composer } from "./distribution";
 import { Partie } from "./partie";
 import { donnerTag } from "./recevoir";
+import { LISTE_RELIQUES, RELIQUES } from "./reliques";
 import { LISTE_ROLES, ROLES } from "./roles";
 import { nuitDeux, nuitUn, TABLE } from "./scenario";
 import { peutAgir } from "./tours";
@@ -927,11 +928,11 @@ function jouerJusqua(p: Partie, alias: string) {
   while (p.decisionCourante() && p.decisionCourante()?.alias !== alias) p.passer();
 }
 
-test("Skinwalker : nuit 3, il tue, prend la carte, la joue, et la Voyante la voit", () => {
+test("Skinwalker : nuit 2, il tue, prend la carte, la joue, et la Voyante la voit", () => {
   const p = partieAvec(["loup", "skinwalker", "sorciere", "voyante", "villageois", "villageois", "villageois"]);
   assert.ok(!p.file.includes("skinwalker"));
 
-  allerALaNuit(p, 3);
+  allerALaNuit(p, 2);
   jouerJusqua(p, "skinwalker");
   p.jouer({ id: "tuer", cibles: ["j2"] });
   assert.equal(p.joueur("j2").vivant, false);
@@ -940,7 +941,7 @@ test("Skinwalker : nuit 3, il tue, prend la carte, la joue, et la Voyante la voi
   assert.equal(p.decisionCourante()?.porteurs[0].id, "j1");
   assert.equal(p.joueur("j1").memoire.potionMort, true);
 
-  allerALaNuit(p, 4);
+  allerALaNuit(p, 3);
   jouerJusqua(p, "voyante");
   p.jouer({ id: "sonder", cibles: ["j1"] });
   assert.ok(p.infos.some(i => i.texte === "J1 est Sorcière."));
@@ -948,14 +949,14 @@ test("Skinwalker : nuit 3, il tue, prend la carte, la joue, et la Voyante la voi
 
 test("Skinwalker : victime protégée par le Salvateur, rien cette nuit ni la suivante", () => {
   const p = partieAvec(["loup", "skinwalker", "salvateur", "villageois", "villageois", "villageois"]);
-  allerALaNuit(p, 3);
+  allerALaNuit(p, 2);
   jouerJusqua(p, "salvateur");
   p.jouer({ id: "proteger", cibles: ["j3"] });
   jouerJusqua(p, "skinwalker");
   p.jouer({ id: "tuer", cibles: ["j3"] });
   assert.equal(p.joueur("j3").vivant, true);
 
-  allerALaNuit(p, 4);
+  allerALaNuit(p, 3);
   jouerJusqua(p, "skinwalker");
   assert.deepEqual(p.decisionCourante()?.decision.choix, []);
 });
@@ -1703,7 +1704,7 @@ function partieAvecRelique(relique: string, roles: string[]): Partie {
 
 const infosDe = (p: Partie) => p.infos.filter(i => i.pour === "tous").map(i => i.texte);
 
-test("Relique : sans choix, le Temple Divin ne change rien ; un alias inconnu retombe dessus", () => {
+test("Relique : sans choix, la Pyramide de Chichén Itzá ne change rien ; un alias inconnu retombe dessus", () => {
   assert.equal(partieAvec(["loup", "villageois", "villageois"]).relique.alias, "temple-divin");
   assert.equal(partieAvec(["loup", "villageois", "villageois"], { relique: "inconnue" }).relique.alias, "temple-divin");
   const p = partieAvec(["loup", "villageois", "villageois"], { relique: "temple-divin" });
@@ -1730,7 +1731,7 @@ test("Fontaine de fée : un loup voté meurt, et la fontaine reste disponible", 
   assert.equal(p.joueur("j2").vivant, true);
 });
 
-test("Encens de vérité : un loup est révélé et invincible tant qu'il reste un autre loup", () => {
+test("Copal d'Itzamná : un loup est révélé et invincible tant qu'il reste un autre loup", () => {
   const p = partieAvecRelique("encens-de-verite", ["loup", "loup", "villageois", "voyante"]);
   const revele = p.joueur("j0");
   assert.ok(p.aTag(revele, "encens"));
@@ -1740,7 +1741,7 @@ test("Encens de vérité : un loup est révélé et invincible tant qu'il reste 
   assert.equal(revele.vivant, true, "poison bloqué");
   p.voter("j0");
   assert.equal(revele.vivant, true, "vote bloqué");
-  assert.ok(infosDe(p).some(t => t.includes("L'encens protège J0")));
+  assert.ok(infosDe(p).some(t => t.includes("Le copal d'Itzamná protège J0")));
 
   // L'autre loup tombe : le révélé devient mortel.
   p.voter("j1");
@@ -1749,14 +1750,14 @@ test("Encens de vérité : un loup est révélé et invincible tant qu'il reste 
   assert.equal(revele.vivant, false);
 });
 
-test("Encens de vérité : le révélé peut être un loup caché (Prêtre impur), mortel s'il est le dernier", () => {
+test("Copal d'Itzamná : le révélé peut être un loup caché (Prêtre impur), mortel s'il est le dernier", () => {
   const p = partieAvecRelique("encens-de-verite", ["pretre-impur", "villageois", "voyante"]);
   assert.ok(p.aTag(p.joueur("j0"), "encens"));
   donnerTag(p, p.joueur("j0"), "mort", { cause: "poison" });
   assert.equal(p.joueur("j0").vivant, false);
 });
 
-test("Écaille de Quetzalcoatl : la première victime des loups survit, immunisée contre eux", () => {
+test("Écaille de Kukulkan : la première victime des loups survit, immunisée contre eux", () => {
   const p = partieAvecRelique("ecaille-de-quetzalcoatl", ["loup", "villageois", "villageois", "villageois"]);
   p.jouer({ id: "devorer", cibles: ["j1"] });
   p.leverLeJour();
@@ -1774,7 +1775,7 @@ test("Écaille de Quetzalcoatl : la première victime des loups survit, immunis�
   assert.equal(victime.vivant, false);
 });
 
-test("Écaille de Quetzalcoatl : une seule écaille, et le Loup barbare compte comme un loup", () => {
+test("Écaille de Kukulkan : une seule écaille, et le Loup barbare compte comme un loup", () => {
   const p = partieAvecRelique("ecaille-de-quetzalcoatl", ["loup-barbare", "villageois", "villageois"]);
   donnerTag(p, p.joueur("j1"), "mort", { source: "loup-barbare", cause: "mordu" });
   assert.ok(p.aTag(p.joueur("j1"), "ecaille"));
@@ -1782,14 +1783,14 @@ test("Écaille de Quetzalcoatl : une seule écaille, et le Loup barbare compte c
   assert.equal(p.joueur("j2").vivant, false, "la seconde victime meurt");
 });
 
-test("Écaille de Quetzalcoatl : une morsure du Rat n'est pas une victime des loups", () => {
+test("Écaille de Kukulkan : une morsure du Rat n'est pas une victime des loups", () => {
   const p = partieAvecRelique("ecaille-de-quetzalcoatl", ["loup", "villageois", "villageois"]);
   donnerTag(p, p.joueur("j1"), "mort", { source: "rat", cause: "mordu" });
   assert.equal(p.joueur("j1").vivant, false);
   assert.ok(!p.aTag(p.joueur("j1"), "ecaille"));
 });
 
-test("Hache de guerre : tant que le village élimine un loup, il revote, sans limite", () => {
+test("Hache d'Ek Chuah : tant que le village élimine un loup, il revote, sans limite", () => {
   const p = partieAvecRelique("hache-de-guerre", ["loup", "loup", "loup", "villageois", "villageois", "villageois", "villageois"]);
   p.voter("j0");
   assert.equal(p.peutRevoter, true);
@@ -1801,7 +1802,7 @@ test("Hache de guerre : tant que le village élimine un loup, il revote, sans li
   assert.equal(p.peutRevoter, false);
 });
 
-test("Hache de guerre : tous les loups éliminés le même jour, le village gagne au tour 1", () => {
+test("Hache d'Ek Chuah : tous les loups éliminés le même jour, le village gagne au tour 1", () => {
   const p = partieAvecRelique("hache-de-guerre", ["loup", "loup", "villageois", "villageois", "villageois"]);
   p.voter("j0");
   assert.equal(p.peutRevoter, true);
@@ -1813,13 +1814,13 @@ test("Hache de guerre : tous les loups éliminés le même jour, le village gagn
   assert.equal(p.tour, 1);
 });
 
-test("Hache de guerre : sans relique, un loup voté ne propose aucun revote", () => {
+test("Hache d'Ek Chuah : sans relique, un loup voté ne propose aucun revote", () => {
   const p = partieAvec(["loup", "loup", "villageois", "villageois"]);
   p.voter("j0");
   assert.equal(p.peutRevoter, false);
 });
 
-test("Œil de l'Oracle : le camp d'une carte hybride et la carte exacte d'une carte partagée", () => {
+test("Œil du Chilam : le camp d'une carte hybride et la carte exacte d'une carte partagée", () => {
   const p = partieAvecRelique("oeil-de-l-oracle", ["rat", "pretre-impur", "pleureuse", "villageois", "loup"]);
   donnerTag(p, p.joueur("j0"), "mort", { cause: "vote" });
   donnerTag(p, p.joueur("j1"), "mort", { cause: "poison" });
@@ -1832,7 +1833,7 @@ test("Œil de l'Oracle : le camp d'une carte hybride et la carte exacte d'une ca
   assert.ok(!infos.some(t => t.includes("J3")), "un simple villageois n'est pas révélé");
 });
 
-test("Œil de l'Oracle : le nom de l'événement du jour est révélé à sa validation", () => {
+test("Œil du Chilam : le nom de l'événement du jour est révélé à sa validation", () => {
   const p = partieAvecRelique("oeil-de-l-oracle", ["loup", "villageois", "villageois"]);
   p.ouvrirEvenement("soleil");
   assert.deepEqual(p.infosPubliques(["evenement"]), []);
@@ -1840,7 +1841,7 @@ test("Œil de l'Oracle : le nom de l'événement du jour est révélé à sa val
   assert.ok(p.infosPubliques(["evenement"]).some(t => t.includes("Inti rayonne")));
 });
 
-test("Sifflet de la Mort : les voisins vivants des deux premières victimes sont muets au vote", () => {
+test("Sifflet d'Ah Puch : les voisins vivants des deux premières victimes sont muets au vote", () => {
   const p = partieAvecRelique("sifflet-de-la-mort", ["loup", "villageois", "villageois", "villageois", "villageois", "villageois"]);
   const muets = () => p.joueursAvecTag("muet").map(j => j.id).sort();
 
@@ -1873,7 +1874,7 @@ test("Voisins vivants : un voisin déjà mort est sauté, et la table se referme
   assert.deepEqual(p.voisinsVivants(p.joueur("j0")).map(j => j.id), ["j4", "j2"]);
 });
 
-test("Graal de Sang : la première victime des loups devient Loup-Garou au lieu de mourir", () => {
+test("Coupe de Camazotz : la première victime des loups devient Loup-Garou au lieu de mourir", () => {
   const p = partieAvecRelique("graal-de-sang", ["loup", "villageois", "villageois", "villageois"]);
   p.jouer({ id: "devorer", cibles: ["j1"] });
   p.leverLeJour();
@@ -1881,7 +1882,7 @@ test("Graal de Sang : la première victime des loups devient Loup-Garou au lieu 
   assert.equal(converti.vivant, true);
   assert.equal(converti.role, "loup");
   assert.deepEqual(p.morts().map(m => m.joueur.id), [], "personne n'est mort pour le village");
-  assert.ok(p.infos.some(i => i.pour === "j1" && i.texte.includes("graal de sang")));
+  assert.ok(p.infos.some(i => i.pour === "j1" && i.texte.includes("coupe de Camazotz")));
   assert.deepEqual(p.porteursDe("loup").map(j => j.id).sort(), ["j0", "j1"]);
 
   // Une seule fois : la victime suivante meurt.
@@ -1889,7 +1890,7 @@ test("Graal de Sang : la première victime des loups devient Loup-Garou au lieu 
   assert.equal(p.joueur("j2").vivant, false);
 });
 
-test("Graal de Sang : une morsure bloquée par le Salvateur ne consomme pas la relique", () => {
+test("Coupe de Camazotz : une morsure bloquée par le Salvateur ne consomme pas la relique", () => {
   const p = partieAvecRelique("graal-de-sang", ["loup", "salvateur", "villageois", "villageois"]);
   donnerTag(p, p.joueur("j2"), "protege", { source: "salvateur" });
   donnerTag(p, p.joueur("j2"), "mordu", { source: "loup" });
@@ -1898,7 +1899,7 @@ test("Graal de Sang : une morsure bloquée par le Salvateur ne consomme pas la r
   assert.equal(p.joueur("j3").role, "loup", "le Graal est toujours disponible");
 });
 
-test("Toison d'or : les loups sont immortels jusqu'à ce que le village en vote un", () => {
+test("Peau de Balam : les loups sont immortels jusqu'à ce que le village en vote un", () => {
   const p = partieAvecRelique("toison-d-or", ["loup", "loup", "villageois", "villageois"]);
   for (const cause of ["poison", "chasseur", "chagrin", "mordu"]) {
     donnerTag(p, p.joueur("j0"), "mort", { cause });
@@ -1911,12 +1912,12 @@ test("Toison d'or : les loups sont immortels jusqu'à ce que le village en vote 
 
   p.voter("j0");  // le village vote un loup : il meurt, la toison se brise
   assert.equal(p.joueur("j0").vivant, false);
-  assert.ok(infosDe(p).some(t => t.includes("toison d'or est brisée")));
+  assert.ok(infosDe(p).some(t => t.includes("peau de Balam est déchirée")));
   donnerTag(p, p.joueur("j1"), "mort", { cause: "poison" });
   assert.equal(p.joueur("j1").vivant, false, "les loups sont mortels");
 });
 
-test("Larme de Lune : après la morsure, les loups décident ; la victime est dévorée, le jour est sauté", () => {
+test("Larme d'Ixchel : après la morsure, les loups décident ; la victime est dévorée, le jour est sauté", () => {
   const p = partieAvecRelique("larme-de-lune", ["loup", "villageois", "villageois", "villageois"]);
   // La décision des loups n'a que leurs options habituelles : la larme n'est PAS un choix à la place de la morsure.
   assert.deepEqual(p.decisionCourante()!.decision.choix.map(c => c.id), ["devorer"]);
@@ -1925,7 +1926,7 @@ test("Larme de Lune : après la morsure, les loups décident ; la victime est d�
   const apres = p.decisionCourante()!;
   assert.equal(apres.alias, "relique");
   assert.equal(apres.urgente, true);
-  assert.equal(apres.titre, "Larme de Lune");
+  assert.equal(apres.titre, "Larme d'Ixchel");
   assert.deepEqual(apres.decision.choix.map(c => c.id), ["larme", "non"]);
   assert.ok(p.aTag(p.joueur("j1"), "mordu"), "la victime est bien mordue");
 
@@ -1933,7 +1934,7 @@ test("Larme de Lune : après la morsure, les loups décident ; la victime est d�
   assert.equal(p.decisionCourante(), undefined, "plus aucune carte à jouer");
   p.leverLeJour();
   assert.equal(p.joueur("j1").vivant, false, "la victime est dévorée");
-  assert.ok(infosDe(p).some(t => t.includes("larme de lune")));
+  assert.ok(infosDe(p).some(t => t.includes("larme d'Ixchel")));
   assert.equal(p.jourEstSaute(), true);
 
   p.suiteDeLAube();
@@ -1944,7 +1945,7 @@ test("Larme de Lune : après la morsure, les loups décident ; la victime est d�
   assert.equal(p.decisionCourante(), undefined);
 });
 
-test("Larme de Lune : répondre « non » ne saute rien, et la question revient la nuit suivante", () => {
+test("Larme d'Ixchel : répondre « non » ne saute rien, et la question revient la nuit suivante", () => {
   const p = partieAvecRelique("larme-de-lune", ["loup", "villageois", "villageois", "villageois"]);
   p.jouer({ id: "devorer", cibles: ["j1"] });
   p.jouer({ id: "non", cibles: [] });
@@ -1958,13 +1959,13 @@ test("Larme de Lune : répondre « non » ne saute rien, et la question revient 
   assert.equal(p.decisionCourante()!.alias, "relique", "la larme n'est pas consommée");
 });
 
-test("Larme de Lune : les loups qui n'ont rien dévoré (« Passer ») ne reçoivent pas la décision", () => {
+test("Larme d'Ixchel : les loups qui n'ont rien dévoré (« Passer ») ne reçoivent pas la décision", () => {
   const p = partieAvecRelique("larme-de-lune", ["loup", "villageois", "villageois"]);
   p.passer();
   assert.equal(p.decisionCourante(), undefined);
 });
 
-test("Larme de Lune : les autres morts de la nuit ont lieu, et la victoire est vérifiée avant de sauter", () => {
+test("Larme d'Ixchel : les autres morts de la nuit ont lieu, et la victoire est vérifiée avant de sauter", () => {
   const p = partieAvecRelique("larme-de-lune", ["loup", "villageois", "villageois"]);
   p.jouer({ id: "devorer", cibles: ["j1"] });
   p.jouer({ id: "larme", cibles: [] });
@@ -1983,4 +1984,103 @@ test("Relique : l'état d'une partie n'est pas partagé avec la suivante", () =>
   assert.equal(a.etatRelique.graalUtilise, true);
   const b = partieAvecRelique("graal-de-sang", ["loup", "villageois", "villageois"]);
   assert.deepEqual(b.etatRelique, {});
+});
+
+test("Masque de Hun Batz : les cartes hors du village et leur nombre, jamais qui les porte", () => {
+  const p = partieAvecRelique("masque-de-rumeurs", ["loup", "loup", "fou", "villageois", "voyante", "pretre", "rat"]);
+  const [annonce] = infosDe(p);
+  assert.ok(annonce.includes("2 × Loup-Garou"), annonce);
+  assert.ok(annonce.includes("Fou"), annonce);
+  assert.ok(annonce.includes("3 joueurs ne sont pas villageois"), annonce);
+  // Aucune carte du village n'est citée, et aucun nom de joueur.
+  for (const interdit of ["Villageois", "Voyante", "Prêtre", "Rat", "J0", "J1", "J2"]) {
+    assert.ok(!annonce.includes(interdit), `« ${interdit} » ne doit pas apparaître : ${annonce}`);
+  }
+});
+
+test("Masque de Hun Batz : un Prêtre impur distribué tel quel est révélé, un seul joueur au singulier", () => {
+  const p = partieAvecRelique("masque-de-rumeurs", ["pretre-impur", "villageois", "voyante"]);
+  const [annonce] = infosDe(p);
+  assert.ok(annonce.includes("Prêtre impur") && annonce.includes("1 joueur n'est pas villageois"), annonce);
+});
+
+test("Masque de Hun Batz : sans aucune carte hors du village", () => {
+  const p = partieAvecRelique("masque-de-rumeurs", ["villageois", "voyante", "sorciere"]);
+  assert.ok(infosDe(p)[0].includes("tous les joueurs sont du village"));
+});
+
+/** Une partie de 6 joueurs avec la Boussole : j0 (loup) et j2 (villageois) morts, nuit 2 ouverte. */
+function nuitDeLaBoussole(): Partie {
+  const p = partieAvecRelique("boussole-des-morts", ["loup", "loup", "villageois", "voyante", "villageois", "villageois"]);
+  assert.equal(p.decisionCourante()?.alias === "relique", false, "rien la nuit 1 : personne n'est mort");
+  donnerTag(p, p.joueur("j0"), "mort", { cause: "poison" });
+  donnerTag(p, p.joueur("j2"), "mort", { cause: "poison" });
+  p.nuitSuivante();
+  return p;
+}
+
+test("Boussole de Xibalba : nuit 2, un mort de chaque camp s'affrontent, le gagnant désigne un vivant", () => {
+  const p = nuitDeLaBoussole();
+  assert.equal(p.tour, 2);
+
+  // TEMPS 1 : le duel. Les deux morts sont surlignés, la décision passe avant toutes les cartes.
+  const duel = p.decisionCourante()!;
+  assert.equal(duel.alias, "relique");
+  assert.equal(duel.titre, "Boussole de Xibalba");
+  assert.deepEqual(duel.porteurs.map(j => j.id), ["j0", "j2"]);
+  assert.deepEqual(duel.decision.choix.map(c => c.id), ["j0", "j2"]);
+  assert.ok(duel.decision.message!.includes("camp des loups") && duel.decision.message!.includes("camp du village"));
+
+  // TEMPS 2 : le gagnant (le mort du village) désigne un vivant.
+  p.jouer({ id: "j2", cibles: [] });
+  const designation = p.decisionCourante()!;
+  assert.equal(designation.alias, "relique");
+  assert.deepEqual(designation.porteurs.map(j => j.id), ["j2"]);
+  assert.deepEqual(p.ciblesPossibles("un_joueur", designation.moi, designation.porteurs).map(j => j.id), ["j1", "j3", "j4", "j5"]);
+  p.jouer({ id: "designer", cibles: ["j3"] });
+
+  // Annonce publique, sans le camp du gagnant ; puis la nuit continue avec les cartes.
+  const annonce = infosDe(p).find(t => t.includes("boussole de Xibalba"))!;
+  assert.ok(annonce.includes("J3"), annonce);
+  assert.ok(!/loup|village/i.test(annonce), `le camp du gagnant ne doit pas fuiter : ${annonce}`);
+  assert.notEqual(p.decisionCourante()?.alias, "relique");
+});
+
+test("Boussole de Xibalba : une nuit sur deux seulement, et pas sans les deux camps parmi les morts", () => {
+  const p = nuitDeLaBoussole();
+  p.jouer({ id: "j0", cibles: [] });
+  p.jouer({ id: "designer", cibles: ["j4"] });
+  while (p.decisionCourante()) p.passer();
+  p.leverLeJour();
+
+  p.nuitSuivante(); // nuit 3 : impaire
+  assert.notEqual(p.decisionCourante()?.alias, "relique");
+  while (p.decisionCourante()) p.passer();
+  p.leverLeJour();
+
+  p.nuitSuivante(); // nuit 4 : les mêmes morts, le duel revient
+  assert.equal(p.tour, 4);
+  assert.equal(p.decisionCourante()?.alias, "relique");
+});
+
+test("Boussole de Xibalba : un seul camp parmi les morts, ou un Fou mort, ne déclenche rien", () => {
+  const seulsLesLoups = partieAvecRelique("boussole-des-morts", ["loup", "loup", "villageois", "villageois", "villageois"]);
+  donnerTag(seulsLesLoups, seulsLesLoups.joueur("j0"), "mort", { cause: "poison" });
+  seulsLesLoups.nuitSuivante();
+  assert.notEqual(seulsLesLoups.decisionCourante()?.alias, "relique");
+
+  const avecUnFou = partieAvecRelique("boussole-des-morts", ["loup", "fou", "villageois", "villageois", "villageois"]);
+  donnerTag(avecUnFou, avecUnFou.joueur("j1"), "mort", { cause: "poison" }); // le Fou n'est ni loup ni village
+  donnerTag(avecUnFou, avecUnFou.joueur("j2"), "mort", { cause: "poison" });
+  avecUnFou.nuitSuivante();
+  assert.notEqual(avecUnFou.decisionCourante()?.alias, "relique");
+});
+
+test("Relique : les alias sont stables (les réglages enregistrés les citent) et tous ont un nom maya ou celui de la Fontaine", () => {
+  assert.deepEqual(
+    LISTE_RELIQUES.map(r => r.alias).sort(),
+    ["boussole-des-morts", "ecaille-de-quetzalcoatl", "encens-de-verite", "fontaine-de-fee", "graal-de-sang", "hache-de-guerre",
+      "larme-de-lune", "masque-de-rumeurs", "oeil-de-l-oracle", "sifflet-de-la-mort", "temple-divin", "toison-d-or"]
+  );
+  assert.equal(RELIQUES["fontaine-de-fee"].titre, "Fontaine de fée", "la Fontaine de fée garde son nom");
 });

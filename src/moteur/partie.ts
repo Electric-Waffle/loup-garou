@@ -25,7 +25,7 @@ export interface OptionsPartie {
   aleatoire?: Aleatoire;
   cartesActives?: string[];  // cartes activées dans Options, distribuées ou non
   cartesFantomes?: boolean;  // appeler la nuit les cartes activées que personne n'a reçues
-  relique?: string;          // alias de la relique de la partie ; absent = le Temple Divin (aucun effet)
+  relique?: string;          // alias de la relique de la partie ; absent = la Pyramide de Chichén Itzá (aucun effet)
 }
 
 export interface DecisionCourante {
@@ -93,7 +93,7 @@ export class Partie {
   private cartesFantomes: boolean;
 
   /**
-   * La relique de la partie (toujours une : le Temple Divin ne fait rien). Voir types.ts, Relique.
+   * La relique de la partie (toujours une : la Pyramide de Chichén Itzá ne fait rien). Voir types.ts, Relique.
    * ATTENTION : assignée AVANT les crochets debut() des rôles, car donnerTag() l'interroge déjà.
    */
   relique: Relique;
@@ -105,7 +105,7 @@ export class Partie {
     this.aleatoire = options.aleatoire ?? Math.random;
     this.cartesFantomes = options.cartesFantomes ?? false;
     // POURQUOI le repli sur le défaut si l'alias est inconnu : des réglages enregistrés peuvent citer
-    // une relique supprimée du code depuis ; mieux vaut le Temple Divin qu'une partie qui plante.
+    // une relique supprimée du code depuis ; mieux vaut la Pyramide de Chichén Itzá qu'une partie qui plante.
     this.relique = RELIQUES[options.relique ?? RELIQUE_PAR_DEFAUT] ?? RELIQUES[RELIQUE_PAR_DEFAUT];
     this.joueurs = joueurs.map(j => ({
       ...j,
@@ -131,7 +131,7 @@ export class Partie {
       appliquerResultat(this, this.roleDe(joueur).debut?.(this, joueur), joueur.role);
     }
 
-    // Puis la relique, APRÈS les rôles : l'Encens de vérité choisit un loup, qui doit déjà être en place.
+    // Puis la relique, APRÈS les rôles : l'Copal d'Itzamná choisit un loup, qui doit déjà être en place.
     if (this.relique.alias !== RELIQUE_PAR_DEFAUT) {
       this.log({ type: "info", texte: `Relique en jeu : ${this.relique.titre}.` });
     }
@@ -190,7 +190,7 @@ export class Partie {
    * seule la protection du Salvateur bloque les loups qui lient ou regardent (pas celle d'un événement).
    */
   aTagDe(j: Joueur, tag: string, source: string): boolean {
-    // Écaille de Quetzalcoatl : le joueur est protégé du Salvateur « H24 ». Les loups qui lient ou
+    // Écaille de Kukulkan : le joueur est protégé du Salvateur « H24 ». Les loups qui lient ou
     // regardent (Loup amoureux, Succube, Voyante, Hypnotiseur) et le Skinwalker posent cette question
     // avant d'agir : la relique répond oui à leur place, sans qu'ils connaissent la relique.
     if (tag === "protege" && source === "salvateur" && this.aTag(j, "ecaille")) return true;
@@ -201,7 +201,7 @@ export class Partie {
    * Les voisins VIVANTS d'un joueur à la table : le premier vivant avant lui, le premier après lui,
    * dans l'ordre des sièges (partie.joueurs), en tournant. Le joueur lui-même est exclu, et un voisin
    * qui est les deux à la fois (table de deux) n'est compté qu'une fois.
-   * Utilisé par le Sifflet de la Mort : un voisin mort cette nuit-là est sauté.
+   * Utilisé par le Sifflet d'Ah Puch : un voisin mort cette nuit-là est sauté.
    */
   voisinsVivants(joueur: Joueur): Joueur[] {
     const nombre = this.joueurs.length;
@@ -325,12 +325,12 @@ export class Partie {
     const urgente = this.attente[0];
     if (urgente) {
       const moi = this.joueur(urgente.joueur);
-      // Décision de la RELIQUE (la Larme de Lune, après la morsure) : ce n'est pas un rôle, son titre
+      // Décision de la RELIQUE (la Larme d'Ixchel, après la morsure) : ce n'est pas un rôle, son titre
       // et son image viennent d'elle, comme pour un événement.
       if (urgente.alias === ALIAS_RELIQUE) {
         return {
           alias: ALIAS_RELIQUE, titre: this.relique.titre, image: this.relique.image,
-          moi, porteurs: [moi], decision: this.relique.decision!(this), urgente: true
+          moi, porteurs: this.relique.porteurs?.(this) ?? [moi], decision: this.relique.decision!(this), urgente: true
         };
       }
       const role = this.role(urgente.alias);
@@ -445,9 +445,9 @@ export class Partie {
 
     // La relique peut réagir à la carte qui vient de jouer en ouvrant sa propre décision urgente.
     // FLUX : elle passe en tête de file (decisionCourante lit attente avant la nuit), donc l'oracle la
-    // voit tout de suite, avant la carte suivante : la Larme de Lune, juste après la morsure.
+    // voit tout de suite, avant la carte suivante : la Larme d'Ixchel, juste après la morsure.
     if (!courante.urgente && this.relique.apresCarte?.(this, courante.alias, choix)) {
-      this.attente.push({ alias: ALIAS_RELIQUE, joueur: courante.moi.id });
+      this.ouvrirDecisionDeRelique(courante.moi);
     }
   }
 
@@ -514,6 +514,19 @@ export class Partie {
       // Sans priorité : en fin de nuit, après toutes les cartes numérotées.
       .sort((a, b) => (a.priorite ?? 999) - (b.priorite ?? 999))
       .map(r => r.alias);
+
+    // La relique peut ouvrir sa décision dès le début de la nuit (la Boussole de Xibalba). Elle passe
+    // avant toutes les cartes : decisionCourante() lit `attente` avant `file`.
+    const ouvreur = this.relique.debutDeNuit?.(this);
+    if (ouvreur) this.ouvrirDecisionDeRelique(ouvreur);
+  }
+
+  /**
+   * Ouvre (ou rouvre) la décision urgente de la relique. `moi` est le joueur que l'interface désigne
+   * pour cette décision. Une relique à plusieurs temps l'appelle depuis son agir(), pour enchaîner.
+   */
+  ouvrirDecisionDeRelique(moi: Joueur): void {
+    this.attente.push({ alias: ALIAS_RELIQUE, joueur: moi.id });
   }
 
   leverLeJour(): void {
@@ -529,7 +542,7 @@ export class Partie {
   suiteDeLAube(): void {
     if (this.attente.length) throw new Error("Une décision est en attente.");
     if (this.verifier()) return;
-    // Larme de Lune : pas d'élection, d'événement, de débat ni de vote ; on retourne à la nuit.
+    // Larme d'Ixchel : pas d'élection, d'événement, de débat ni de vote ; on retourne à la nuit.
     // FLUX : nuitSuivante() refait la vérification de victoire (sans effet, déjà faite) puis passe au tour suivant.
     if (this.jourEstSaute()) {
       this.log({ type: "info", texte: "Le jour est sauté : la nuit suivante commence." });
@@ -540,7 +553,7 @@ export class Partie {
     else this.ouvrirEvenement();
   }
 
-  /** Le jour d'aujourd'hui est-il sauté (Larme de Lune utilisée par les loups cette nuit) ? */
+  /** Le jour d'aujourd'hui est-il sauté (Larme d'Ixchel utilisée par les loups cette nuit) ? */
   jourEstSaute(): boolean {
     return this.etatRelique.jourSaute === this.tour;
   }
@@ -712,7 +725,7 @@ export class Partie {
       return;
     }
 
-    // Vote qui ne tue PAS : bloqué (ignifuge du Loup salamandre, Encens de vérité) ou transformé
+    // Vote qui ne tue PAS : bloqué (ignifuge du Loup salamandre, Copal d'Itzamná) ou transformé
     // (Fontaine de fée). Le village a déjà été prévenu par celui qui l'a empêché (recevoir.ts ou la
     // relique) ; le jour compte comme « personne n'est éliminé » pour l'événement (l'Ultimatum tue alors le maire).
     // POURQUOI le message n'est plus écrit ici : avec les reliques, un vote peut échouer pour plusieurs
@@ -744,7 +757,7 @@ export class Partie {
       if (resultat.revoter && !this.aRevote) this.peutRevoter = true;
     }
 
-    // Puis la relique (Hache de guerre). Son revote n'est PAS borné à un par jour : c'est sa force.
+    // Puis la relique (Hache d'Ek Chuah). Son revote n'est PAS borné à un par jour : c'est sa force.
     const deLaRelique = this.relique.apresVote?.(this, elimine);
     if (deLaRelique) {
       appliquerResultat(this, deLaRelique, `relique:${this.relique.alias}`);
@@ -829,9 +842,9 @@ export class Partie {
     for (const joueur of this.joueursAvecTag("sauf_conduit")) {
       rappels.push(`${joueur.nom} a trouvé asile au temple : il ne peut pas être éliminé aujourd'hui.`);
     }
-    // Sifflet de la Mort : la PAROLE est coupée (la voix, elle, compte), contrairement à « silence ».
+    // Sifflet d'Ah Puch : la PAROLE est coupée (la voix, elle, compte), contrairement à « silence ».
     for (const joueur of this.joueursAvecTag("muet")) {
-      rappels.push(`${joueur.nom} ne peut pas parler pendant le vote : le sifflet de la mort l'a réduit au silence.`);
+      rappels.push(`${joueur.nom} ne peut pas parler pendant le vote : le sifflet d'Ah Puch l'a réduit au silence.`);
     }
     for (const joueur of this.joueursAvecTag("soupcon")) {
       const maire = this.joueursAvecTag("maire")[0];

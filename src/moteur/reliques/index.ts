@@ -1,10 +1,12 @@
 import type { Relique } from "../types";
-import ecailleDeQuetzalcoatl from "./ecaille-de-quetzalcoatl";
+import boussoleDesMorts from "./boussole-des-morts";
+import ecailleDeKukulkan from "./ecaille-de-quetzalcoatl";
 import encensDeVerite from "./encens-de-verite";
 import fontaineDeFee from "./fontaine-de-fee";
 import graalDeSang from "./graal-de-sang";
 import hacheDeGuerre from "./hache-de-guerre";
 import larmeDeLune from "./larme-de-lune";
+import masqueDeRumeurs from "./masque-de-rumeurs";
 import oeilDeLOracle from "./oeil-de-l-oracle";
 import siffletDeLaMort from "./sifflet-de-la-mort";
 import templeDivin from "./temple-divin";
@@ -21,9 +23,11 @@ export const LISTE_RELIQUES: Relique[] = [
   templeDivin,
   fontaineDeFee,
   encensDeVerite,
-  ecailleDeQuetzalcoatl,
+  ecailleDeKukulkan,
   hacheDeGuerre,
   oeilDeLOracle,
+  masqueDeRumeurs,
+  boussoleDesMorts,
   siffletDeLaMort,
   graalDeSang,
   toisonDOr,
