@@ -1,5 +1,6 @@
 import type { Relique } from "../types";
 import boussoleDesMorts from "./boussole-des-morts";
+import domaineDesOmbres from "./domaine-des-ombres";
 import ecailleDeKukulkan from "./ecaille-de-quetzalcoatl";
 import encensDeVerite from "./encens-de-verite";
 import fontaineDeFee from "./fontaine-de-fee";
@@ -31,7 +32,8 @@ export const LISTE_RELIQUES: Relique[] = [
   siffletDeLaMort,
   graalDeSang,
   toisonDOr,
-  larmeDeLune
+  larmeDeLune,
+  domaineDesOmbres
 ];
 
 export const RELIQUES: Record<string, Relique> = Object.fromEntries(LISTE_RELIQUES.map(r => [r.alias, r]));

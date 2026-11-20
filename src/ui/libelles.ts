@@ -125,6 +125,7 @@ export const TAGS: Record<string, string> = {
   encens: "🪔 révélé (invincible)",
   ecaille: "🐉 écaille (immunisé)",
   muet: "🔇 muet",
+  votant: "🗳️ seul votant",
   mort: "⚰️ mort"
 };
 

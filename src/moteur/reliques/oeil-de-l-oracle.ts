@@ -33,6 +33,7 @@ const oeilDeLOracle: Relique = {
     "À la mort d'une carte hybride (Rat, Prêtre, Beau Parleur…), le Chilam révèle au village de quel camp elle était : village ou loups. D'ordinaire, ce choix reste secret.",
     "À la mort d'une carte partagée (Pleureuse, Fêtard, Marchand, Bâtisseur), il révèle laquelle des quatre c'était, au lieu de « un villageois ».",
     "Chaque jour, il annonce aussi le nom de l'événement en cours.",
+    "Si l'événement est le Pantomime, il révèle aussi le nom du seul joueur qui votera, dès le début du débat.",
     "Ces informations sont lues à voix haute au rapport de l'aube, au résultat du vote ou à l'écran de l'événement."
   ],
 
@@ -48,7 +49,14 @@ const oeilDeLOracle: Relique = {
   },
 
   apresEvenement(partie, evenement) {
-    return { infos: [{ pour: "tous", texte: `L'œil du Chilam révèle l'événement du jour : « ${evenement.titre} ».` }] };
+    const infos = [{ pour: "tous", texte: `L'œil du Chilam révèle l'événement du jour : « ${evenement.titre} ».` }];
+    // Synergie avec le Pantomime : le tag « votant » est posé par l'événement, et le Chilam en révèle le
+    // nom tout de suite. POURQUOI lire le tag et pas l'alias de l'événement : un futur événement qui
+    // désigne un votant unique est révélé sans toucher à ce fichier.
+    for (const votant of partie.joueursAvecTag("votant")) {
+      infos.push({ pour: "tous", texte: `Le Chilam voit plus loin : ${votant.nom} sera le seul à voter.` });
+    }
+    return { infos };
   }
 };
 

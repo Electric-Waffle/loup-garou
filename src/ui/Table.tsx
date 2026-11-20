@@ -58,6 +58,18 @@ function angleDuTour(fractionDuTour: number): number {
 }
 
 /**
+ * De combien de SIÈGES on fait tourner tous les sièges (0 ou 0,5).
+ * POURQUOI : quand un trait vertical coupe la table (Domaine des ombres), le premier siège est en haut,
+ * donc SUR le trait. Avec un nombre PAIR de joueurs, le dernier siège est alors aussi sur le trait
+ * (en bas) : personne n'est « scindé », mais deux joueurs seraient sur la ligne. Un demi-siège de
+ * décalage écarte tous les sièges du trait. Avec un nombre IMPAIR, un seul siège est sur le trait
+ * (en haut) : c'est exactement le joueur scindé, on ne décale rien.
+ */
+function decalageDuTrait(nombreSieges: number, avecTrait: boolean): number {
+  return avecTrait && nombreSieges % 2 === 0 ? 0.5 : 0;
+}
+
+/**
  * Exposant du carré arrondi : 1 = le cercle ; plus il est petit, plus on s'approche d'un carré.
  * 0,6 : un point à 45° passe de 0,71 à 0,81 du rayon, vers le coin.
  */
@@ -94,7 +106,7 @@ const ECHANTILLONS = 720;
  *      parcourue depuis le haut jusqu'au point k ;
  *   3. le siège i se place au point où l'on a parcouru i / nombre du tour complet.
  */
-function placesSurLeCarre(nombre: number, proportions: number): Point[] {
+function placesSurLeCarre(nombre: number, proportions: number, decalage = 0): Point[] {
   // 1. Les points du tour. Array.from({ length }, fabrique) : un tableau de `length` éléments,
   //    chacun fabriqué à partir de son index k (comme range() + array_map en PHP).
   const trace: Point[] = Array.from({ length: ECHANTILLONS + 1 }, (_, k) => {
@@ -114,7 +126,8 @@ function placesSurLeCarre(nombre: number, proportions: number): Point[] {
 
   // 3. Une place par siège : le premier point du tracé qui atteint la distance voulue.
   return Array.from({ length: nombre }, (_, i) => {
-    const distanceVoulue = (i / nombre) * tourComplet;
+    // Le décalage (0 ou 0,5 siège) fait glisser tous les sièges le long du tour.
+    const distanceVoulue = ((i + decalage) / nombre) * tourComplet;
     const k = longueursCumulees.findIndex(longueur => longueur >= distanceVoulue);
     return trace[k];
   });
@@ -183,25 +196,29 @@ function useProportions(element: RefObject<HTMLElement>): number {
  * @param sieges la liste des sièges, dans l'ordre (le premier est placé en haut, puis sens horaire)
  * @param centre ce qu'on affiche au milieu du plateau (facultatif)
  */
-export function Table({ sieges, centre }: { sieges: Siege[]; centre?: ReactNode }) {
+export function Table({ sieges, centre, trait = false }: { sieges: Siege[]; centre?: ReactNode; trait?: boolean }) {
   const nombreSieges = sieges.length;
   const table = useRef<HTMLDivElement>(null);
   const proportions = useProportions(table);
 
   // POURQUOI useMemo : 720 points mesurés à chaque rendu de PartieVue (chaque clic) seraient
   // recalculés pour rien. Le résultat ne change qu'avec le nombre de sièges ou la forme.
-  const placesCarrees = useMemo(() => placesSurLeCarre(nombreSieges, proportions), [nombreSieges, proportions]);
+  const decalage = decalageDuTrait(nombreSieges, trait);
+  const placesCarrees = useMemo(() => placesSurLeCarre(nombreSieges, proportions, decalage), [nombreSieges, proportions, decalage]);
 
   // --nb-sieges : le CSS rétrécit les sièges quand la table se remplit (voir .table dans styles.css).
   const styleTable = { "--nb-sieges": Math.max(nombreSieges, 1) } as CSSProperties;
 
   return (
     <div className="table" style={styleTable} ref={table}>
+      {/* Le trait vertical (Domaine des ombres). AVANT le plateau dans le DOM : à z-index égal, le plus
+          tardif passe dessus, donc le trait disparaît derrière le cadran au lieu de le traverser. */}
+      {trait && <div className="table-trait" aria-hidden="true" />}
       <div className="table-plateau">{centre}</div>
 
       {sieges.map((siege, index) => {
         // Math.max(..., 1) évite une division par zéro s'il n'y a aucun siège.
-        const angle = angleDuTour(index / Math.max(nombreSieges, 1));
+        const angle = angleDuTour((index + decalage) / Math.max(nombreSieges, 1));
         const carre = placesCarrees[index];
         // CONCEPT : React accepte les variables CSS (« --nom ») dans style, mais le type
         // CSSProperties ne les connaît pas : le « as » le rassure.

@@ -359,6 +359,11 @@ export function PartieVue({
     // courante?. : s'il n'y a pas de décision en cours, l'expression vaut undefined.
     const estPorteur = courante?.porteurs.some(porteur => porteur.id === joueur.id) ?? false;
 
+    // Les droits du jour (relique) ne comptent que pendant le débat et le vote, et seulement pour les vivants.
+    // `partie.droitsDuJour` renvoie undefined sans relique de ce genre : rien ne s'affiche.
+    const droits = joueur.vivant && (partie.phase === "debat" || partie.phase === "vote") ? partie.droitsDuJour(joueur) : undefined;
+    const libelleDesDroits = droits ? `${droits.parole ? "peut parler" : "ne parle pas"}, ${droits.vote ? "peut voter" : "ne vote pas"}` : "";
+
     // Cliquable pendant le vote (s'il est vivant), ou s'il fait partie des cibles possibles.
     // L'élection du maire se joue comme le vote : un clic sur un joueur vivant.
     // Sauf-conduit (événement) : impossible à éliminer aujourd'hui, son siège n'est pas cliquable au vote.
@@ -388,6 +393,8 @@ export function PartieVue({
       contenu: (
         <>
           <Visuel src={joueur.image} nom={joueur.nom} taille={44} />
+          {/* Domaine des ombres : qui peut parler (💬) ou voter (🗳️) aujourd'hui, pendant le débat et le vote. */}
+          {droits && <span className="siege-droits" title={libelleDesDroits}>{droits.parole ? "💬" : ""}{droits.vote ? "🗳️" : ""}</span>}
           <span className="siege-nom">{joueur.nom}</span>
           {/* L'oracle voit toutes les cartes : c'est l'écran du maître du jeu. */}
           <span className="siege-carte">
@@ -463,6 +470,7 @@ export function PartieVue({
           </>
         }
         sieges={sieges}
+        trait={partie.separationDeTable() !== undefined}
       />
 
       {/* RÉUTILISABLE : la même fiche que la page Explications, avec l'apparence de la partie,
@@ -754,6 +762,8 @@ function EtapeDeJour({
           <h2>{accuse ? `Plaidoirie de ${accuse.nom}` : "Débat"}</h2>
           {accuse && <p className="info-publique">{accuse.nom} a payé avec son or : lui seul a la parole, puis le village revote.</p>}
           {rappelPretre && <p className="aide">⛪ Le prêtre, mort, peut chuchoter au maire.</p>}
+          {/* Rappels du débat : le Pantomime (qui comptera au vote) et la relique (qui peut parler). */}
+          {partie.rappelsDuDebat().map((rappel, index) => <p key={index} className="aide">⚠️ {rappel}</p>)}
           {/* Le minuteur garde son propre état. Il est détruit (et son intervalle arrêté)
               dès qu'on quitte la phase de débat, puisque ce JSX n'est plus rendu.
               Durée : celle de l'événement du jour (Sablier, Urgence…) ou le réglage ; null = pas de minuteur. */}

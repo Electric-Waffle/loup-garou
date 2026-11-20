@@ -2079,8 +2079,93 @@ test("Boussole de Xibalba : un seul camp parmi les morts, ou un Fou mort, ne dé
 test("Relique : les alias sont stables (les réglages enregistrés les citent) et tous ont un nom maya ou celui de la Fontaine", () => {
   assert.deepEqual(
     LISTE_RELIQUES.map(r => r.alias).sort(),
-    ["boussole-des-morts", "ecaille-de-quetzalcoatl", "encens-de-verite", "fontaine-de-fee", "graal-de-sang", "hache-de-guerre",
+    ["boussole-des-morts", "domaine-des-ombres", "ecaille-de-quetzalcoatl", "encens-de-verite", "fontaine-de-fee", "graal-de-sang", "hache-de-guerre",
       "larme-de-lune", "masque-de-rumeurs", "oeil-de-l-oracle", "sifflet-de-la-mort", "temple-divin", "toison-d-or"]
   );
   assert.equal(RELIQUES["fontaine-de-fee"].titre, "Fontaine de fée", "la Fontaine de fée garde son nom");
+});
+
+test("Domaine des ombres : nombre impair, un joueur est scindé (premier siège), le reste est réparti de part et d'autre", () => {
+  const p = partieAvecRelique("domaine-des-ombres", ["loup", "villageois", "villageois", "villageois", "villageois"]);
+  assert.deepEqual(p.separationDeTable(), { j0: "scinde", j1: "droite", j2: "droite", j3: "gauche", j4: "gauche" });
+});
+
+test("Domaine des ombres : nombre pair, personne n'est scindé, moitié à droite, moitié à gauche", () => {
+  const p = partieAvecRelique("domaine-des-ombres", ["loup", "villageois", "villageois", "villageois", "villageois", "villageois"]);
+  assert.deepEqual(p.separationDeTable(), { j0: "droite", j1: "droite", j2: "droite", j3: "gauche", j4: "gauche", j5: "gauche" });
+});
+
+test("Domaine des ombres : jour impair la gauche parle et la droite vote ; jour pair, l'inverse ; le scindé fait les deux", () => {
+  const p = partieAvecRelique("domaine-des-ombres", ["loup", "villageois", "villageois", "villageois", "villageois"]);
+  const droits = (id: string) => p.droitsDuJour(p.joueur(id));
+  // Jour 1 (tour 1) : j3, j4 à gauche parlent ; j1, j2 à droite votent.
+  assert.deepEqual(droits("j3"), { parole: true, vote: false });
+  assert.deepEqual(droits("j1"), { parole: false, vote: true });
+  assert.deepEqual(droits("j0"), { parole: true, vote: true });
+  // Jour 2 : l'inverse.
+  p.nuitSuivante();
+  assert.equal(p.tour, 2);
+  assert.deepEqual(droits("j3"), { parole: false, vote: true });
+  assert.deepEqual(droits("j1"), { parole: true, vote: false });
+  assert.deepEqual(droits("j0"), { parole: true, vote: true });
+  // Jour 3 : comme le jour 1.
+  p.nuitSuivante();
+  assert.deepEqual(droits("j3"), { parole: true, vote: false });
+});
+
+test("Domaine des ombres : les rappels du débat et du vote ne citent que les vivants, et marquent le scindé", () => {
+  const p = partieAvecRelique("domaine-des-ombres", ["loup", "villageois", "villageois", "villageois", "villageois"]);
+  donnerTag(p, p.joueur("j3"), "mort", { cause: "poison" });
+  const [debat] = p.rappelsDuDebat();
+  assert.ok(debat.includes("jour 1") && debat.includes("J4") && debat.includes("J0 (scindé)"), debat);
+  assert.ok(!debat.includes("J3"), "un mort ne parle pas");
+  assert.ok(!debat.includes("J1") && !debat.includes("J2"), "la droite ne parle pas le jour 1");
+  const vote = p.rappelsDuVote().find(r => r.includes("Domaine des ombres"))!;
+  assert.ok(vote.includes("J1") && vote.includes("J2") && vote.includes("J0 (scindé)"), vote);
+});
+
+test("Domaine des ombres : sans cette relique, aucune séparation ni droit du jour", () => {
+  const p = partieAvec(["loup", "villageois", "villageois"]);
+  assert.equal(p.separationDeTable(), undefined);
+  assert.equal(p.droitsDuJour(p.joueur("j1")), undefined);
+  assert.deepEqual(p.rappelsDuDebat(), []);
+});
+
+test("Pantomime : un seul votant tiré au hasard, rappelé au débat, et seul son vote compte au vote", () => {
+  const p = partieAvecRelique("temple-divin", ["loup", "villageois", "villageois", "villageois"]);
+  p.ouvrirEvenement("pantomime");
+  assert.deepEqual(p.joueursAvecTag("votant"), [], "aucun effet avant la validation");
+  p.appliquerEvenement();
+  const votants = p.joueursAvecTag("votant");
+  assert.deepEqual(votants.map(j => j.id), ["j0"], "hasard figé à 0 : le premier vivant");
+
+  assert.ok(p.rappelsDuDebat().some(r => r.includes("Pantomime") && r.includes("J0") && r.includes("fin du débat")));
+  const vote = p.rappelsDuVote().find(r => r.includes("Pantomime"))!;
+  assert.ok(vote.includes("pouvoirs des loups") && vote.includes("seul le vote de J0 compte"), vote);
+});
+
+test("Pantomime : un votant réduit au silence, personne n'est éliminé ; le tag disparaît à l'aube", () => {
+  const p = partieAvecRelique("temple-divin", ["loup", "villageois", "villageois", "villageois"]);
+  p.ouvrirEvenement("pantomime");
+  p.appliquerEvenement();
+  donnerTag(p, p.joueur("j0"), "silence", { par: "j1" });
+  const vote = p.rappelsDuVote().find(r => r.includes("Pantomime"))!;
+  assert.ok(vote.includes("réduit au silence") && vote.includes("personne n'est éliminé"), vote);
+
+  aube(p);
+  assert.deepEqual(p.joueursAvecTag("votant"), []);
+});
+
+test("Œil du Chilam + Pantomime : le nom du votant est révélé dès la validation de l'événement", () => {
+  const avec = partieAvecRelique("oeil-de-l-oracle", ["loup", "villageois", "villageois", "villageois"]);
+  avec.ouvrirEvenement("pantomime");
+  avec.appliquerEvenement();
+  const infos = avec.infosPubliques(["evenement"]);
+  assert.ok(infos.some(t => t.includes("Pantomime")), "le nom de l'événement");
+  assert.ok(infos.some(t => t.includes("J0 sera le seul à voter")), "le nom du votant");
+
+  const sans = partieAvecRelique("temple-divin", ["loup", "villageois", "villageois", "villageois"]);
+  sans.ouvrirEvenement("pantomime");
+  sans.appliquerEvenement();
+  assert.deepEqual(sans.infosPubliques(["evenement"]), [], "sans relique, rien n'est révélé");
 });

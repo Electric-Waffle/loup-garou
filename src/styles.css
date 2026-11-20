@@ -171,6 +171,15 @@ input[type="checkbox"] { accent-color: var(--accent); }
 }
 
 /* ---------- Table ronde : la pierre du Soleil ---------- */
+/* Le trait qui coupe la table en deux (Domaine des ombres) : une ligne verticale en pointillés d'ombre,
+   de haut en bas de la table, sous le plateau. pointer-events: none : jamais un clic ne s'y arrête. */
+.table-trait {
+  position: absolute; left: 50%; top: 2%; bottom: 2%; width: 0; pointer-events: none;
+  border-left: 3px dashed #9b7bd9aa; filter: drop-shadow(0 0 6px #6b3fc088);
+}
+/* Qui peut parler (💬) ou voter (🗳️) aujourd'hui : posé sur le coin du siège, hors du flux, pour ne
+   jamais changer sa hauteur (les sièges ont une taille fixe au téléphone). */
+.siege-droits { position: absolute; top: -9px; right: -6px; font-size: 1rem; line-height: 1; filter: drop-shadow(0 1px 2px #000); }
 /* PATTERN : la géométrie de la table en variables CSS, lues par chaque siège (.siege plus bas).
    FLUX : Table.tsx donne à chaque siège sa direction (--cos, --sin) et à la table le nombre de
    sièges (--nb-sieges) ; ici, on en déduit la largeur des sièges et le rayon de l'ellipse.

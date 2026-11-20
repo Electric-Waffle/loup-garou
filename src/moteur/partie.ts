@@ -7,7 +7,7 @@ import { RELIQUE_PAR_DEFAUT, RELIQUES } from "./reliques";
 import { ROLES } from "./roles";
 import { peutAgir } from "./tours";
 import type {
-  ChoixFait, Decision, Entree, Evenement, Info, Joueur, Phase, Relique, Role, TypeCible
+  ChoixFait, CoteDeTable, Decision, DroitsDuJour, Entree, Evenement, Info, Joueur, Phase, Relique, Role, TypeCible
 } from "./types";
 import { verifierVictoire } from "./victoire";
 
@@ -818,11 +818,43 @@ export class Partie {
     return tousHorrifies ? "Tous les villageois sont horrifiés : le village ne peut pas voter." : undefined;
   }
 
+  /** Le côté de chaque joueur si la relique coupe la table en deux (Domaine des ombres), sinon undefined. */
+  separationDeTable(): Record<string, CoteDeTable> | undefined {
+    return this.relique.separation?.(this);
+  }
+
+  /** Ce que le joueur peut faire aujourd'hui d'après la relique (parler, voter), ou undefined s'il n'y a aucune restriction. */
+  droitsDuJour(joueur: Joueur): DroitsDuJour | undefined {
+    return this.relique.droitsDuJour?.(this, joueur);
+  }
+
+  /**
+   * Les rappels de l'oracle pendant le DÉBAT : le Pantomime (qui comptera au vote) et la relique
+   * (qui peut parler). Même principe que rappelsDuVote(), mais pour la phase de débat.
+   */
+  rappelsDuDebat(): string[] {
+    const rappels: string[] = [];
+    // Pantomime : tout le monde débat, un seul vote comptera. Son nom n'est dit qu'à la fin du débat.
+    for (const votant of this.joueursAvecTag("votant")) {
+      rappels.push(`Pantomime : tout le monde débat, mais seul le vote de ${votant.nom} comptera. Ne le révélez qu'à la fin du débat.`);
+    }
+    rappels.push(...(this.relique.rappelsDuDebat?.(this) ?? []));
+    return rappels;
+  }
+
   rappelsDuVote(): string[] {
     const rappels: string[] = [];
     const interdiction = this.voteImpossible();
     if (interdiction) rappels.push(interdiction);
     if (this.evenement?.rappelVote) rappels.push(this.evenement.rappelVote);
+    rappels.push(...(this.relique.rappelsDuVote?.(this) ?? []));
+    // Pantomime : le vote se déroule en entier, les pouvoirs des loups s'appliquent, PUIS on ne garde
+    // que celui du votant. Le moteur ne compte pas les voix : tout se joue dans ces rappels.
+    for (const votant of this.joueursAvecTag("votant")) {
+      rappels.push(this.aTag(votant, "silence")
+        ? `Pantomime : ${votant.nom}, le seul votant, est réduit au silence : son vote ne compte pas, personne n'est éliminé.`
+        : `Pantomime : faites voter tout le monde, appliquez les pouvoirs des loups (silence, suggestion), puis révélez que seul le vote de ${votant.nom} compte.`);
+    }
     for (const joueur of this.vivants()) {
       // Un joueur bloqué ne fait pas son rôle : pas de rappel (le Stratège sans pouvoir n'enquête plus).
       if (this.raisonDuBlocage(joueur, TAGS_BLOQUANTS)) continue;

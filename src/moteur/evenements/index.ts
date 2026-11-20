@@ -9,6 +9,7 @@ import contagion from "./contagion";
 import coupDouble from "./coup-double";
 import marcheNoir from "./marche-noir";
 import murmures from "./murmures";
+import pantomime from "./pantomime";
 import passation from "./passation";
 import { sablier, sablierSuite } from "./sablier";
 import saufConduit from "./sauf-conduit";
@@ -36,6 +37,7 @@ export const LISTE_EVENEMENTS: Evenement[] = [
   batonDeParole,
   murmures,
   boucheCousue,
+  pantomime,
   // Minuteur du débat
   sablier,
   urgence,

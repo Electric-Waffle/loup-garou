@@ -285,6 +285,33 @@ export interface Relique {
 
   /** Après la validation de l'événement du jour (l'Œil du Chilam en révèle le nom). */
   apresEvenement?(partie: Partie, evenement: Evenement): ResultatAction | void;
+
+  /**
+   * La table est-elle coupée en deux par un trait vertical ? Renvoie le côté de chaque joueur (par id),
+   * ou undefined. L'interface dessine le trait et le moteur n'en fait rien d'autre : il ne compte pas
+   * les voix, c'est l'oracle qui fait respecter la règle (Domaine des ombres).
+   * CONTRAT avec Table.tsx : les joueurs sont assis dans l'ordre de partie.joueurs, le premier en haut,
+   * puis dans le sens des aiguilles d'une montre. La table se décale d'un demi-siège quand leur nombre
+   * est pair, pour qu'aucun siège ne soit sur le trait : voir la prop `separation` de <Table>.
+   */
+  separation?(partie: Partie): Record<string, CoteDeTable> | undefined;
+
+  /** Ce que ce joueur a le droit de faire aujourd'hui (parler, voter). undefined = aucune restriction. */
+  droitsDuJour?(partie: Partie, joueur: Joueur): DroitsDuJour | undefined;
+
+  /** Lignes de rappel pour l'oracle pendant le débat. */
+  rappelsDuDebat?(partie: Partie): string[];
+  /** Lignes de rappel pour l'oracle à l'écran du vote (en plus de celles du moteur). */
+  rappelsDuVote?(partie: Partie): string[];
+}
+
+/** Le côté de la table d'un joueur : à gauche du trait, à droite, ou sur le trait (« scindé »). */
+export type CoteDeTable = "gauche" | "droite" | "scinde";
+
+/** Ce qu'un joueur peut faire aujourd'hui. */
+export interface DroitsDuJour {
+  parole: boolean;
+  vote: boolean;
 }
 
 /* ---------- Journal ---------- */
