@@ -210,6 +210,9 @@ export interface Evenement {
   /** Rappel affiché à l'oracle à l'écran du vote (ex. « si le village n'élimine pas un loup… »). */
   rappelVote?: string;
 
+  /** Rappel affiché à l'oracle à l'écran du DÉBAT (ex. « onomatopées seulement »). */
+  rappelDebat?: string;
+
   /**
    * Après le vote DÉFINITIF du jour (après une éventuelle plaidoirie), avec l'éliminé, ou undefined
    * si personne ne l'a été. Comme agir() : renvoie ce qu'il donne, plus revoter pour proposer un

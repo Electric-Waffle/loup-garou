@@ -303,7 +303,7 @@ Tirés après l'élection du maire. L'oracle peut demander « Un autre » ou « 
 | Genre | Événements |
 | --- | --- |
 | Rien | Inti rayonne (`soleil`, aussi forcé par « Passer »). La Rumeur (camp d'un joueur au hasard) a été retirée : trop puissante. |
-| Animation (aucun champ de jeu) | Colère de Supay (`baillon`), Éclipse (`tenebres`), Inti Raymi (`carnaval`), Bâton de Viracocha (`baton-de-parole`), Voix d'outre-tombe (`murmures`), Masque de jade (`bouche-cousue`), Pantomime (`pantomime` : tag `votant`, un seul vote compte ; rappels dans `rappelsDuDebat()` et `rappelsDuVote()`, nom révélé par l'Œil du Chilam) |
+| Animation (aucun champ de jeu) | Colère de Supay (`baillon`), Éclipse (`tenebres`), Inti Raymi (`carnaval`), Bâton de Viracocha (`baton-de-parole`), Voix d'outre-tombe (`murmures`), Masque de jade (`bouche-cousue`), fêtes des saisons Kayab/Yax/Xul/Sip/Bacabs (`fete-hiver|automne|ete|printemps|quatre-saisons` : champs `rappelDebat` / `rappelVote`, `minuteur: null` pour la vague), Pantomime (`pantomime` : tag `votant`, un seul vote compte ; rappels dans `rappelsDuDebat()` et `rappelsDuVote()`, nom révélé par l'Œil du Chilam) |
 | Minuteur | Course d'Inti (`sablier` : 8 min, temps restant reporté au lendemain, suite imposée), Grondement d'Illapa (`urgence` : 2 min), Paix de Pachamama (`treve` : pas de minuteur) |
 | Le maire désigne | Asile du temple (`sauf-conduit`, tag `sauf_conduit`), Vol du condor (`soupcon`), Bénédiction de Pachamama (`benediction`), Passation (tag `maire`), Souffle de Supay (`contagion`, tag `peste` : mort à la 2e aube), Lumière de Mama Killa (`clair-de-lune`, tag `eclaire`) |
 | Sans choix | Caravane de lamas (`marche-noir` : `recharge` à tous les vivants) |

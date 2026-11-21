@@ -6,6 +6,11 @@ import boucheCousue from "./bouche-cousue";
 import carnaval from "./carnaval";
 import clairDeLune from "./clair-de-lune";
 import contagion from "./contagion";
+import feteAutomne from "./fete-automne";
+import feteEte from "./fete-ete";
+import feteHiver from "./fete-hiver";
+import fetePrintemps from "./fete-printemps";
+import feteQuatreSaisons from "./fete-quatre-saisons";
 import coupDouble from "./coup-double";
 import marcheNoir from "./marche-noir";
 import murmures from "./murmures";
@@ -38,6 +43,11 @@ export const LISTE_EVENEMENTS: Evenement[] = [
   murmures,
   boucheCousue,
   pantomime,
+  feteHiver,
+  feteAutomne,
+  feteEte,
+  fetePrintemps,
+  feteQuatreSaisons,
   // Minuteur du débat
   sablier,
   urgence,

@@ -2169,3 +2169,20 @@ test("Œil du Chilam + Pantomime : le nom du votant est révélé dès la valida
   sans.appliquerEvenement();
   assert.deepEqual(sans.infosPubliques(["evenement"]), [], "sans relique, rien n'est révélé");
 });
+
+test("Fêtes des saisons : rappels du débat et du vote, et vague sans minuteur", () => {
+  const rappels = (alias: string) => {
+    const p = jourAvecEvenement(SIMPLE, alias);
+    return { debat: p.rappelsDuDebat().join(" "), vote: p.rappelsDuVote().join(" "), duree: p.dureeDuDebat(5) };
+  };
+  const hiver = rappels("fete-hiver");
+  assert.ok(hiver.debat.includes("sauf le maire") && hiver.duree === 5);
+  assert.ok(rappels("fete-automne").debat.includes("onomatopées"));
+  const ete = rappels("fete-ete");
+  assert.ok(ete.debat.includes("vague") && ete.duree === null, "la vague remplace le minuteur");
+  const printemps = rappels("fete-printemps");
+  assert.ok(printemps.vote.includes("bras") && printemps.debat === "");
+  const quatre = rappels("fete-quatre-saisons");
+  assert.ok(quatre.debat.includes("vague") && quatre.debat.includes("onomatopées") && quatre.vote.includes("jambes"));
+  assert.equal(quatre.duree, null);
+});

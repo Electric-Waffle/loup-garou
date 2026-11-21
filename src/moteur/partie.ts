@@ -834,6 +834,7 @@ export class Partie {
    */
   rappelsDuDebat(): string[] {
     const rappels: string[] = [];
+    if (this.evenement?.rappelDebat) rappels.push(this.evenement.rappelDebat);
     // Pantomime : tout le monde débat, un seul vote comptera. Son nom n'est dit qu'à la fin du débat.
     for (const votant of this.joueursAvecTag("votant")) {
       rappels.push(`Pantomime : tout le monde débat, mais seul le vote de ${votant.nom} comptera. Ne le révélez qu'à la fin du débat.`);
